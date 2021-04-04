@@ -10,6 +10,8 @@
 
 #pragma once
 
+#if __cplusplus >= 201103L
+
 #include <string>
 #include <functional>
 #include <exception>
@@ -92,3 +94,7 @@ public:
         m_handle = nullptr;
     }
 };
+
+#else
+    #error DyLib needs at least a C++11 compliant compiler
+#endif
