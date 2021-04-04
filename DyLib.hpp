@@ -34,6 +34,8 @@ public:
 /** Creates a Dynamic Library object.
  */
     DyLib() = default;
+    DyLib(const DyLib&) = delete;
+    DyLib& operator=(const DyLib&) = delete;
 /**
  *  Creates a Dynamic Library instance.
  *
@@ -83,6 +85,25 @@ public:
         if (!sym)
             throw exception(dlerror());
         return ((Ret (*)(Args...)) sym);
+    }
+
+/**
+ *  Get a global variable from the Dynamic Library inside the object.
+ *
+ *  @param template_Type Type of the global variable
+ *  @param name name of the global variable to get from the Dynamic Library
+ *
+ *  @returns global variable of type <Type>
+ */
+    template<class Type>
+    Type getVariable(const std::string &name)
+    {
+        if (!m_handle)
+            throw exception(dlerror());
+        void *sym = dlsym(m_handle, name.c_str());
+        if (!sym)
+            throw exception(dlerror());
+        return *(Type*)sym;
     }
 
 /** Close the Dynamic Library currently loaded into the object.
