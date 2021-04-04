@@ -1,7 +1,7 @@
 # DyLib - Dynamic Library Loader for C++  
-[![DyLib](https://img.shields.io/badge/DyLib-v0.1-red.svg)](https://github.com/tocola/IO-TESTER/releases/tag/v1.6.2)
-[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/tocola/IO-TESTER/blob/main/LICENSE)
-[![CPP Version](https://img.shields.io/badge/C++-11/14/17/20-green.svg)](https://github.com/tocola/IO-TESTER/blob/main/LICENSE)
+[![DyLib](https://img.shields.io/badge/DyLib-v0.1-blue.svg)](https://github.com/tocola/DyLib)
+[![MIT license](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/tocola/DyLib/blob/main/LICENSE)
+[![CPP Version](https://img.shields.io/badge/C++-11/14/17/20-darkgreen.svg)](https://isocpp.org/)
 
 The goal of this Library is to load Dynamic Libraries (.so, .dylib, ...) and access its functions and symbols at runtime.
 
@@ -39,22 +39,28 @@ Lets build our lib :
 
 Lets try to access the functions of our dynamic lib at runtime with this main :
 ```c++
-// main.cpp
-
-#include <iostream>
 #include "DyLib.hpp"
+#include <iostream>
 
 int main(int ac, char **av)
 {
-    DyLib lib("./myLib.so");
+    try {
+        DyLib lib("./myLib.so");
 
-    auto adder = lib.getFunction<int, int, int>("adder");
-    std::cout << adder(5, 10) << std::endl;
+        // getFunction<ReturnValue, arg1, arg2>("functionName")
+        auto adder = lib.getFunction<int, int, int>("adder");
+        std::cout << adder(5, 10) << std::endl;
 
-    auto printer = lib.getFunction<void>("printHello");
-    printer();
+        // getFunction<ReturnValue>("functionName")
+        auto printer = lib.getFunction<void>("printHello");
+        printer();
+    }
+    catch (const DyLib::exception &e) {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 ```
 
