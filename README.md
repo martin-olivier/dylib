@@ -1,12 +1,12 @@
 # DyLib - Dynamic Library Loader for C++  
-[![DyLib](https://img.shields.io/badge/DyLib-v0.1-blue.svg)](https://github.com/tocola/DyLib)
+[![DyLib](https://img.shields.io/badge/DyLib-v0.2-blue.svg)](https://github.com/tocola/DyLib)
 [![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/tocola/DyLib/blob/main/LICENSE)
 [![CPP Version](https://img.shields.io/badge/C++-11/14/17/20-darkgreen.svg)](https://isocpp.org/)
 
-The goal of this Library is to load Dynamic Libraries (.so, .dylib, ...) and access its functions and global variables at runtime.
+The goal of this Library is to load Dynamic Libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
 
 ## Compatibility
-Tested on `MacOS`, `Linux`
+Works on `Linux`, `Windows`, `MacOS`
 
 ## Installation
 
@@ -40,7 +40,7 @@ extern "C" {
 
 Lets build our lib :  
 
-`g++ -fPIC -shared myLib.cpp -o myLib.so`
+`g++ -std=c++11 -shared myLib.cpp -o myLib.so`
 
 Lets try to access the functions of our dynamic lib at runtime with this main :
 ```c++

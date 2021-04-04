@@ -2,7 +2,7 @@
  * \file DyLib.hpp
  * \brief Dynamic Library Loader
  * \author Martin Olivier
- * \version 0.1
+ * \version 0.2
  * 
  * MIT License
  * Copyright (c) 2021 Martin Olivier
@@ -15,12 +15,20 @@
 #include <string>
 #include <functional>
 #include <exception>
+#ifdef __WIN32__
+#include <windows.h> 
+#else
 #include <dlfcn.h>
+#endif
 
 class DyLib
 {
 private:
+#ifdef __WIN32__
+    HINSTANCE m_handle{nullptr};
+#else
     void *m_handle{nullptr};
+#endif
 public:
 
     class exception : std::exception
@@ -33,25 +41,53 @@ public:
     };
 /** Creates a Dynamic Library object.
  */
-    DyLib() = default;
+    DyLib() noexcept = default;
     DyLib(const DyLib&) = delete;
     DyLib& operator=(const DyLib&) = delete;
+
+#ifdef __WIN32__
 /**
  *  Creates a Dynamic Library instance.
  *
- *  @param path path to the dynamic library to load (.so, .dylib)
+ *  @param path path to the dynamic library to load (.so, .dll, .dylib)
+ */
+    DyLib(const std::string &path)
+    {
+        this->load(path);
+    }
+#else
+/**
+ *  Creates a Dynamic Library instance.
+ *
+ *  @param path path to the dynamic library to load (.so, .dll, .dylib)
  *  @param mode dl lib flag -> RTLD_NOW by default
  */
     DyLib(const std::string &path, int mode = RTLD_NOW)
     {
         this->load(path, mode);
     }
+#endif
 
     ~DyLib()
     {
         this->close();
     }
 
+#ifdef __WIN32__
+/**
+ *  Load a Dynamic Library into the object. 
+ *  If a Dynamic Library was Already opened, it will be unload and replaced
+ *
+ *  @param path path to the dynamic library to load (.so, .dylib)
+ */
+    void load(const std::string &path)
+    {
+        this->close();
+        m_handle = LoadLibrary(TEXT(path.c_str()));
+        if (!m_handle)
+            throw exception("Error while loading dynamic library : " + path);
+    }
+#else
 /**
  *  Load a Dynamic Library into the object. 
  *  If a Dynamic Library was Already opened, it will be unload and replaced
@@ -66,6 +102,7 @@ public:
         if (!m_handle)
             throw exception(dlerror());
     }
+#endif
 
 /**
  *  Get a function from the Dynamic Library inside the object.
@@ -76,6 +113,18 @@ public:
  *
  *  @returns std::function<Ret, ...Args> that contains the symbol
  */
+#ifdef __WIN32__
+    template<class Ret, class ...Args>
+    std::function<Ret(Args...)> getFunction(const std::string &name)
+    {
+        if (!m_handle)
+            throw exception("Error : no Dynamic Library loaded");
+        auto sym = GetProcAddress(m_handle, name.c_str());
+        if (!sym)
+            throw exception("Error while loading function : " + name);
+        return ((Ret (*)(Args...)) sym);
+    }
+#else
     template<class Ret, class ...Args>
     std::function<Ret(Args...)> getFunction(const std::string &name)
     {
@@ -86,6 +135,7 @@ public:
             throw exception(dlerror());
         return ((Ret (*)(Args...)) sym);
     }
+#endif
 
 /**
  *  Get a global variable from the Dynamic Library inside the object.
@@ -95,6 +145,18 @@ public:
  *
  *  @returns global variable of type <Type>
  */
+#ifdef __WIN32__
+    template<class Type>
+    Type getVariable(const std::string &name)
+    {
+        if (!m_handle)
+            throw exception("Error : no Dynamic Library loaded");
+        auto sym = GetProcAddress(m_handle, name.c_str());
+        if (!sym)
+            throw exception("Error while loading global variable : " + name);
+        return *(Type*)sym;
+    }
+#else
     template<class Type>
     Type getVariable(const std::string &name)
     {
@@ -105,15 +167,25 @@ public:
             throw exception(dlerror());
         return *(Type*)sym;
     }
+#endif
 
 /** Close the Dynamic Library currently loaded into the object.
  */
+#ifdef __WIN32__
+    void close() noexcept
+    {
+        if (m_handle)
+            FreeLibrary(m_handle);
+        m_handle = nullptr;
+    }
+#else
     void close() noexcept
     {
         if (m_handle)
             dlclose(m_handle);
         m_handle = nullptr;
     }
+#endif
 };
 
 #else
