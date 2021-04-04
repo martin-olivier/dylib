@@ -17,20 +17,20 @@
 #include <exception>
 #include <dlfcn.h>
 
-class DyLibException : std::exception
-{
-protected:
-    const std::string m_error;
-public:        
-    DyLibException(const std::string &error) : m_error(error) {};
-    const char *what() const noexcept override {return m_error.c_str();};
-};
-
 class DyLib
 {
 private:
     void *m_handle{nullptr};
 public:
+
+    class exception : std::exception
+    {
+    protected:
+        const std::string m_error;
+    public:        
+        exception(const std::string &error) : m_error(error) {};
+        const char *what() const noexcept override {return m_error.c_str();};
+    };
 /** Creates a Dynamic Library object.
  */
     DyLib() = default;
@@ -62,7 +62,7 @@ public:
         this->close();
         m_handle = dlopen(path.c_str(), mode);
         if (!m_handle)
-            throw DyLibException(dlerror());
+            throw exception(dlerror());
     }
 
 /**
@@ -78,10 +78,10 @@ public:
     std::function<Ret(Args...)> getFunction(const std::string &name)
     {
         if (!m_handle)
-            throw DyLibException(dlerror());
+            throw exception(dlerror());
         void *sym = dlsym(m_handle, name.c_str());
         if (!sym)
-            throw DyLibException(dlerror());
+            throw exception(dlerror());
         return ((Ret (*)(Args...)) sym);
     }
 
