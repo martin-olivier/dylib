@@ -1,5 +1,5 @@
 # DyLib - Dynamic Library Loader for C++  
-[![DyLib](https://img.shields.io/badge/DyLib-v0.2-blue.svg)](https://github.com/tocola/DyLib)
+[![DyLib](https://img.shields.io/badge/DyLib-v0.3-blue.svg)](https://github.com/tocola/DyLib)
 [![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/tocola/DyLib/blob/main/LICENSE)
 [![CPP Version](https://img.shields.io/badge/C++-11/14/17/20-darkgreen.svg)](https://isocpp.org/)
 

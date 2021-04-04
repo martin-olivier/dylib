@@ -2,7 +2,7 @@
  * \file DyLib.hpp
  * \brief Dynamic Library Loader
  * \author Martin Olivier
- * \version 0.2
+ * \version 0.3
  * 
  * MIT License
  * Copyright (c) 2021 Martin Olivier
@@ -15,8 +15,8 @@
 #include <string>
 #include <functional>
 #include <exception>
-#ifdef __WIN32__
-#include <windows.h> 
+#ifdef _WIN32
+#include <windows.h>
 #else
 #include <dlfcn.h>
 #endif
@@ -24,7 +24,7 @@
 class DyLib
 {
 private:
-#ifdef __WIN32__
+#ifdef _WIN32
     HINSTANCE m_handle{nullptr};
 #else
     void *m_handle{nullptr};
@@ -35,74 +35,64 @@ public:
     {
     protected:
         const std::string m_error;
-    public:        
-        exception(const std::string &error) : m_error(error) {};
+    public:
+        exception(const char* message) : m_error(message) {};
+        exception(std::string message) : m_error(std::move(message)) {};
         const char *what() const noexcept override {return m_error.c_str();};
     };
 /** Creates a Dynamic Library object.
  */
     DyLib() noexcept = default;
     DyLib(const DyLib&) = delete;
+    DyLib(DyLib &&) = delete;
     DyLib& operator=(const DyLib&) = delete;
+    DyLib& operator=(DyLib &&) = delete;
 
-#ifdef __WIN32__
 /**
  *  Creates a Dynamic Library instance.
  *
  *  @param path path to the dynamic library to load (.so, .dll, .dylib)
  */
-    DyLib(const std::string &path)
+    DyLib(const char *path)
     {
         this->load(path);
     }
-#else
-/**
- *  Creates a Dynamic Library instance.
- *
- *  @param path path to the dynamic library to load (.so, .dll, .dylib)
- *  @param mode dl lib flag -> RTLD_NOW by default
- */
-    DyLib(const std::string &path, int mode = RTLD_NOW)
+
+    DyLib(const std::string &path)
     {
-        this->load(path, mode);
+        this->load(path.c_str());
     }
-#endif
 
     ~DyLib()
     {
         this->close();
     }
 
-#ifdef __WIN32__
 /**
  *  Load a Dynamic Library into the object. 
  *  If a Dynamic Library was Already opened, it will be unload and replaced
  *
- *  @param path path to the dynamic library to load (.so, .dylib)
+ *  @param path path to the dynamic library to load (.so, .dll, .dylib)
  */
-    void load(const std::string &path)
+
+    void load(const char *path)
     {
         this->close();
-        m_handle = LoadLibrary(TEXT(path.c_str()));
+    #ifdef _WIN32
+        m_handle = LoadLibrary(TEXT(path));
         if (!m_handle)
-            throw exception("Error while loading dynamic library : " + path);
-    }
-#else
-/**
- *  Load a Dynamic Library into the object. 
- *  If a Dynamic Library was Already opened, it will be unload and replaced
- *
- *  @param path path to the dynamic library to load (.so, .dylib)
- *  @param mode dl lib flag -> RTLD_NOW by default
- */
-    void load(const std::string &path, int mode = RTLD_NOW)
-    {
-        this->close();
-        m_handle = dlopen(path.c_str(), mode);
+            throw exception("Error while loading dynamic library : " + std::string(path));
+    #else
+        m_handle = dlopen(path, RTLD_NOW);
         if (!m_handle)
             throw exception(dlerror());
+    #endif
     }
-#endif
+
+    void load(const std::string &path)
+    {
+        load(path.c_str());
+    }
 
 /**
  *  Get a function from the Dynamic Library inside the object.
@@ -113,29 +103,30 @@ public:
  *
  *  @returns std::function<Ret, ...Args> that contains the symbol
  */
-#ifdef __WIN32__
     template<class Ret, class ...Args>
-    std::function<Ret(Args...)> getFunction(const std::string &name)
+    std::function<Ret(Args...)> getFunction(const char *name)
     {
+    #ifdef _WIN32
         if (!m_handle)
             throw exception("Error : no Dynamic Library loaded");
-        auto sym = GetProcAddress(m_handle, name.c_str());
+        auto sym = GetProcAddress(m_handle, name);
         if (!sym)
-            throw exception("Error while loading function : " + name);
+            throw exception("Error while loading function : " + std::string(name));
+    #else
+        if (!m_handle)
+            throw exception(dlerror());
+        void *sym = dlsym(m_handle, name);
+        if (!sym)
+            throw exception(dlerror());
+    #endif
         return ((Ret (*)(Args...)) sym);
     }
-#else
+
     template<class Ret, class ...Args>
     std::function<Ret(Args...)> getFunction(const std::string &name)
     {
-        if (!m_handle)
-            throw exception(dlerror());
-        void *sym = dlsym(m_handle, name.c_str());
-        if (!sym)
-            throw exception(dlerror());
-        return ((Ret (*)(Args...)) sym);
+        return getFunction<Ret, Args...>(name.c_str());
     }
-#endif
 
 /**
  *  Get a global variable from the Dynamic Library inside the object.
@@ -145,47 +136,44 @@ public:
  *
  *  @returns global variable of type <Type>
  */
-#ifdef __WIN32__
     template<class Type>
-    Type getVariable(const std::string &name)
+    Type getVariable(const char *name)
     {
+    #ifdef _WIN32
         if (!m_handle)
             throw exception("Error : no Dynamic Library loaded");
-        auto sym = GetProcAddress(m_handle, name.c_str());
+        auto sym = GetProcAddress(m_handle, name);
         if (!sym)
-            throw exception("Error while loading global variable : " + name);
+            throw exception("Error while loading global variable : " + std::string(name));
+    #else
+        if (!m_handle)
+            throw exception(dlerror());
+        void *sym = dlsym(m_handle, name);
+        if (!sym)
+            throw exception(dlerror());
+    #endif
         return *(Type*)sym;
     }
-#else
+
     template<class Type>
     Type getVariable(const std::string &name)
     {
-        if (!m_handle)
-            throw exception(dlerror());
-        void *sym = dlsym(m_handle, name.c_str());
-        if (!sym)
-            throw exception(dlerror());
-        return *(Type*)sym;
+        return getVariable<Type>(name.c_str());
     }
-#endif
 
 /** Close the Dynamic Library currently loaded into the object.
  */
-#ifdef __WIN32__
     void close() noexcept
     {
+    #ifdef _WIN32
         if (m_handle)
             FreeLibrary(m_handle);
-        m_handle = nullptr;
-    }
-#else
-    void close() noexcept
-    {
+    #else
         if (m_handle)
             dlclose(m_handle);
+    #endif
         m_handle = nullptr;
     }
-#endif
 };
 
 #else
