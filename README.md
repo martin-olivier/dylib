@@ -7,9 +7,9 @@
 [![GitHub forks](https://img.shields.io/github/forks/tocola/DyLib?style=social)](https://github.com/tocola/DyLib/network/members/)
 [![GitHub stars](https://img.shields.io/github/stars/tocola/DyLib?style=social)](https://github.com/tocola/DyLib/stargazers/)
 
-[![GitHub download](https://img.shields.io/github/downloads/tocola/DyLib/total?style=for-the-badge)](https://github.com/tocola/DyLib/releases/download/v0.4/DyLib.hpp)
+[![GitHub download](https://img.shields.io/github/downloads/tocola/DyLib/total?style=for-the-badge)](https://github.com/tocola/DyLib/releases/download/v0.5/DyLib.hpp)
 
-The goal of this Library is to load Dynamic Libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
+The goal of this Library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
 
 ## Compatibility
 Works on `Linux`, `Windows`, `MacOS`
