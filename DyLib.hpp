@@ -1,8 +1,8 @@
 /**
  * \file DyLib.hpp
- * \brief Dynamic Library Loader
+ * \brief Mutiplatform Dynamic Library Loader
  * \author Martin Olivier
- * \version 0.3
+ * \version 0.4
  * 
  * MIT License
  * Copyright (c) 2021 Martin Olivier
@@ -30,16 +30,20 @@ private:
     void *m_handle{nullptr};
 #endif
 public:
-
-    class exception : std::exception
+    class handle_error : public std::runtime_error
     {
-    protected:
-        const std::string m_error;
     public:
-        exception(const char* message) : m_error(message) {};
-        exception(std::string message) : m_error(std::move(message)) {};
-        const char *what() const noexcept override {return m_error.c_str();};
+        handle_error(const char* message) : std::runtime_error(message) {};
+        handle_error(const std::string &message) : std::runtime_error(message) {};
     };
+
+    class symbol_error : public std::runtime_error
+    {
+    public:
+        symbol_error(const char* message) : std::runtime_error(message) {};
+        symbol_error(const std::string &message) : std::runtime_error(message) {};
+    };
+
 /** Creates a Dynamic Library object.
  */
     DyLib() noexcept = default;
@@ -74,18 +78,17 @@ public:
  *
  *  @param path path to the dynamic library to load (.so, .dll, .dylib)
  */
-
     void load(const char *path)
     {
         this->close();
     #ifdef _WIN32
         m_handle = LoadLibrary(TEXT(path));
         if (!m_handle)
-            throw exception("Error while loading dynamic library : " + std::string(path));
+            throw handle_error("Error while loading the dynamic library : " + std::string(path));
     #else
-        m_handle = dlopen(path, RTLD_NOW);
+        m_handle = dlopen(path, RTLD_NOW | RTLD_LOCAL);
         if (!m_handle)
-            throw exception(dlerror());
+            throw handle_error(dlerror());
     #endif
     }
 
@@ -95,43 +98,43 @@ public:
     }
 
 /**
- *  Get a function from the Dynamic Library inside the object.
+ *  Get a function from the Dynamic Library currently loaded in the object.
  *
- *  @param template_Ret the first template arg must be the return value of the function
- *  @param template_Args next template arguments must be the arguments of the function
- *  @param name function to get from the Dynamic Library
+ *  @param template_Type the template argument must be the function prototype
+ *  it must be the same pattern as the template of std::function
+ *  @param name symbol name of the function to get from the Dynamic Library
  *
- *  @returns std::function<Ret, ...Args> that contains the symbol
+ *  @returns std::function<Type> that contains the function
  */
-    template<class Ret, class ...Args>
-    std::function<Ret(Args...)> getFunction(const char *name)
+    template<typename Type>
+    std::function<Type> getFunction(const char *name)
     {
     #ifdef _WIN32
         if (!m_handle)
-            throw exception("Error : no Dynamic Library loaded");
+            throw handle_error("Error : no Dynamic Library loaded");
         auto sym = GetProcAddress(m_handle, name);
         if (!sym)
-            throw exception("Error while loading function : " + std::string(name));
+            throw symbol_error("Error while loading function : " + std::string(name));
     #else
         if (!m_handle)
-            throw exception(dlerror());
+            throw handle_error(dlerror());
         void *sym = dlsym(m_handle, name);
         if (!sym)
-            throw exception(dlerror());
+            throw symbol_error(dlerror());
     #endif
-        return ((Ret (*)(Args...)) sym);
+        return reinterpret_cast<Type *>(sym);
     }
 
-    template<class Ret, class ...Args>
-    std::function<Ret(Args...)> getFunction(const std::string &name)
+    template<typename Type>
+    std::function<Type> getFunction(const std::string &name)
     {
-        return getFunction<Ret, Args...>(name.c_str());
+        return getFunction<Type>(name.c_str());
     }
 
 /**
- *  Get a global variable from the Dynamic Library inside the object.
+ *  Get a global variable from the Dynamic Library currently loaded in the object.
  *
- *  @param template_Type Type of the global variable
+ *  @param template_Type type of the global variable
  *  @param name name of the global variable to get from the Dynamic Library
  *
  *  @returns global variable of type <Type>
@@ -141,16 +144,16 @@ public:
     {
     #ifdef _WIN32
         if (!m_handle)
-            throw exception("Error : no Dynamic Library loaded");
+            throw handle_error("Error : no dynamic library loaded");
         auto sym = GetProcAddress(m_handle, name);
         if (!sym)
-            throw exception("Error while loading global variable : " + std::string(name));
+            throw symbol_error("Error while loading global variable : " + std::string(name));
     #else
         if (!m_handle)
-            throw exception(dlerror());
+            throw handle_error(dlerror());
         void *sym = dlsym(m_handle, name);
         if (!sym)
-            throw exception(dlerror());
+            throw symbol_error(dlerror());
     #endif
         return *(Type*)sym;
     }
@@ -161,7 +164,7 @@ public:
         return getVariable<Type>(name.c_str());
     }
 
-/** Close the Dynamic Library currently loaded into the object.
+/** Close the Dynamic Library currently loaded in the object.
  */
     void close() noexcept
     {
