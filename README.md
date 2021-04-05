@@ -1,11 +1,11 @@
 # DyLib - Dynamic Library Loader for C++  
-[![DyLib](https://img.shields.io/badge/DyLib-v0.4-blue.svg)](https://github.com/tocola/DyLib)
+[![DyLib](https://img.shields.io/badge/DyLib-v0.5-blue.svg)](https://github.com/tocola/DyLib/releases/tag/v0.5)
 [![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/tocola/DyLib/blob/main/LICENSE)
 [![CPP Version](https://img.shields.io/badge/C++-11/14/17/20-darkgreen.svg)](https://isocpp.org/)
 
-[![GitHub watchers](https://img.shields.io/github/watchers/tocola/DyLib.svg?style=social&label=Watch&maxAge=2592000)](https://github.com/tocola/DyLib/watchers/)
-[![GitHub forks](https://img.shields.io/github/forks/tocola/DyLib.svg?style=social&label=Fork&maxAge=2592000)](https://github.com/tocola/DyLib/network/members/)
-[![GitHub stars](https://img.shields.io/github/stars/tocola/DyLib.svg?style=social&label=Star&maxAge=2592000)](https://github.com/tocola/DyLib/stargazers/)
+[![GitHub watchers](https://img.shields.io/github/watchers/tocola/DyLib?style=social)](https://github.com/tocola/DyLib/watchers/)
+[![GitHub forks](https://img.shields.io/github/forks/tocola/DyLib?style=social)](https://github.com/tocola/DyLib/network/members/)
+[![GitHub stars](https://img.shields.io/github/stars/tocola/DyLib?style=social)](https://github.com/tocola/DyLib/stargazers/)
 
 The goal of this Library is to load Dynamic Libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
 
