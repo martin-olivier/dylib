@@ -71,7 +71,7 @@ int main(int ac, char **av)
         if (ptr == nullptr)
             std::cout << "nullptr" << std::endl;
     }
-    catch (const std::runtime_error &e) {
+    catch (const DyLib::exception &e) {
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
     }

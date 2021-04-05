@@ -30,18 +30,28 @@ private:
     void *m_handle{nullptr};
 #endif
 public:
-    class handle_error : public std::runtime_error
+    class exception : public std::exception
     {
+    protected:
+        const std::string m_error;
     public:
-        handle_error(const char* message) : std::runtime_error(message) {};
-        handle_error(const std::string &message) : std::runtime_error(message) {};
+        exception(const char* message) : m_error(message) {}
+        exception(const std::string &message) : m_error(message) {};
+        const char *what() const noexcept override {return m_error.c_str();};
     };
 
-    class symbol_error : public std::runtime_error
+    class handle_error : public exception
     {
     public:
-        symbol_error(const char* message) : std::runtime_error(message) {};
-        symbol_error(const std::string &message) : std::runtime_error(message) {};
+        handle_error(const char* message) : exception(message) {};
+        handle_error(const std::string &message) : exception(message) {};
+    };
+
+    class symbol_error : public exception
+    {
+    public:
+        symbol_error(const char* message) : exception(message) {};
+        symbol_error(const std::string &message) : exception(message) {};
     };
 
 /** Creates a Dynamic Library object.
@@ -107,7 +117,7 @@ public:
  *  @returns std::function<Type> that contains the function
  */
     template<typename Type>
-    std::function<Type> getFunction(const char *name)
+    std::function<Type> getFunction(const char *name) const
     {
     #ifdef _WIN32
         if (!m_handle)
@@ -126,7 +136,7 @@ public:
     }
 
     template<typename Type>
-    std::function<Type> getFunction(const std::string &name)
+    std::function<Type> getFunction(const std::string &name) const
     {
         return getFunction<Type>(name.c_str());
     }
@@ -140,7 +150,7 @@ public:
  *  @returns global variable of type <Type>
  */
     template<class Type>
-    Type getVariable(const char *name)
+    Type getVariable(const char *name) const
     {
     #ifdef _WIN32
         if (!m_handle)
@@ -159,7 +169,7 @@ public:
     }
 
     template<class Type>
-    Type getVariable(const std::string &name)
+    Type getVariable(const std::string &name) const
     {
         return getVariable<Type>(name.c_str());
     }
