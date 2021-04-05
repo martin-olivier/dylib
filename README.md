@@ -7,7 +7,7 @@
 [![GitHub forks](https://img.shields.io/github/forks/tocola/DyLib.svg?style=social&label=Fork&maxAge=2592000)](https://github.com/tocola/DyLib/network/members/)
 [![GitHub stars](https://img.shields.io/github/stars/tocola/DyLib.svg?style=social&label=Star&maxAge=2592000)](https://github.com/tocola/DyLib/stargazers/)
 
-[![GitHub all releases](https://img.shields.io/github/downloads/tocola/DyLib/total?style=for-the-badge)](https://github.com/tocola/DyLib/releases/download/v0.4/DyLib.hpp)
+[![GitHub download](https://img.shields.io/github/downloads/tocola/DyLib/total?style=for-the-badge)](https://github.com/tocola/DyLib/releases/download/v0.4/DyLib.hpp)
 
 The goal of this Library is to load Dynamic Libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
 
@@ -16,9 +16,8 @@ Works on `Linux`, `Windows`, `MacOS`
 
 ## Installation
 
-1. Clone this repository
-2. Go to the `DyLib` folder
-3. Grab the `DyLib.hpp` file
+1. Click [HERE](https://github.com/tocola/DyLib/releases/download/v0.4/DyLib.hpp) to download the DyLib header file
+2. Put DyLib.hpp in your project directory
 
 ## Usage
 
