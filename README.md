@@ -37,16 +37,16 @@ lib.open("./myDynLib.so");
 
 ## Open and Close
 
-`Open :`  
+`Open:`  
 Load a dynamic library into the object. If a dynamic library was already opened, it will be unload and replaced  
-`Close :`  
+`Close:`  
 Close the dynamic library currently loaded in the object. This will always be call when going out of stack
 ```c++
 // Load ./myDynLib.so
 DyLib lib("./myDynLib.so");
 
 // Unload ./myDynLib.so and load ./otherLib.so
-lib.load("./otherLib.so");
+lib.open("./otherLib.so");
 
 // Close ./otherLib.so
 lib.close();
@@ -54,9 +54,9 @@ lib.close();
 
 ## Get a Function or a Variable
 
-`getFunction :`  
+`getFunction:`  
 Get a function from the dynamic library currently loaded in the object.  
-`getVariable :`  
+`getVariable:`  
 Get a global variable from the dynamic library currently loaded in the object.
 ```c++
 // Load ./myDynLib.so
@@ -74,9 +74,9 @@ double result = adder(pi, pi);
 
 ## DyLib Exceptions
 
-`handle_error :`  
+`handle_error:`  
 This exception is thrown when the library failed to load or the library encountered symbol resolution issues  
-`symbol_error :`  
+`symbol_error:`  
 This exception is thrown when the library failed to load a symbol.
 This usualy happens when you forgot to mark a library function or variable as `extern "C"`  
 
