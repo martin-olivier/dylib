@@ -25,12 +25,10 @@ Works on `Linux`, `Windows`, `MacOS`
 
 The DyLib class can load a dynamic library at runtime :
 ```c++
-// Creates a dynamic library instance and load myDynLib.so
-
 DyLib lib("./myDynLib.so");
-
-// OR
-
+```
+or
+```c++
 DyLib lib;
 lib.open("./myDynLib.so");
 ```
@@ -43,12 +41,15 @@ Load a dynamic library into the object. If a dynamic library was already opened,
 Close the dynamic library currently loaded in the object. This will always be call when going out of stack
 ```c++
 // Load ./myDynLib.so
+
 DyLib lib("./myDynLib.so");
 
 // Unload ./myDynLib.so and load ./otherLib.so
+
 lib.open("./otherLib.so");
 
 // Close ./otherLib.so
+
 lib.close();
 ```
 
@@ -60,15 +61,19 @@ Get a function from the dynamic library currently loaded in the object.
 Get a global variable from the dynamic library currently loaded in the object.
 ```c++
 // Load ./myDynLib.so
+
 DyLib lib("./myDynLib.so");
 
 // Get the global function adder
+
 auto adder = lib.getFunction<double(double, double)>("adder");
 
 // Get the global variable pi_value
+
 double pi = lib.getVariable<double>("pi_value");
 
 // Use the function adder with pi_value
+
 double result = adder(pi, pi);
 ```
 
