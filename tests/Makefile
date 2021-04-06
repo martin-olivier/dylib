@@ -14,11 +14,11 @@ CXXFLAGS 	= 	-std=c++11
 
 CXX 		= 	g++
 
-LDLIBS 		= 	-ldl -lgtest -lgcov
+LDLIBS 		= 	-ldl -lgtest -lpthread -lgcov
 
 all :
 	g++ -std=c++11 -fPIC -shared myDynLib.cpp -o myDynLib.so
-	g++ -std=c++11 $(SRC) -o $(NAME) -ldl -lgtest --coverage
+	g++ -std=c++11 $(SRC) -o $(NAME) -ldl -lgtest -lpthread -lgcov --coverage
 	./$(NAME)
 	gcovr -e $(SRC)
 	gcovr --branches -e $(SRC)
