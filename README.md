@@ -9,21 +9,97 @@
 
 [![GitHub download](https://img.shields.io/github/downloads/tocola/DyLib/total?style=for-the-badge)](https://github.com/tocola/DyLib/releases/download/v0.5/DyLib.hpp)
 
-The goal of this Library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
+The goal of this C++ Library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
 
-## Compatibility
+# Compatibility
 Works on `Linux`, `Windows`, `MacOS`
 
-## Installation
+# Installation
 
-1. Click [HERE](https://github.com/tocola/DyLib/releases/download/v0.4/DyLib.hpp) to download the DyLib header file
-2. Put DyLib.hpp in your project directory
+1. Click [HERE](https://github.com/tocola/DyLib/releases/download/v0.5/DyLib.hpp) to download the DyLib header file
+2. Put the DyLib header file in your project directory
 
-## Usage
+# Documentation
 
-Lets write some functions in our lib
+## DyLib Class
+
+The DyLib class can load a dynamic library at runtime :
 ```c++
-// myLib.cpp
+// Creates a dynamic library instance and load myDynLib.so
+
+DyLib lib("./myDynLib.so");
+
+// OR
+
+DyLib lib;
+lib.open("./myDynLib.so");
+```
+
+## Open and Close
+
+`Open :`  
+Load a dynamic library into the object. If a dynamic library was already opened, it will be unload and replaced  
+`Close :`  
+Close the dynamic library currently loaded in the object. This will always be call when going out of stack
+```c++
+// Load ./myDynLib.so
+DyLib lib("./myDynLib.so");
+
+// Unload ./myDynLib.so and load ./otherLib.so
+lib.load("./otherLib.so");
+
+// Close ./otherLib.so
+lib.close();
+```
+
+## Get a Function or a Variable
+
+`getFunction :`  
+Get a function from the dynamic library currently loaded in the object.  
+`getVariable :`  
+Get a global variable from the dynamic library currently loaded in the object.
+```c++
+// Load ./myDynLib.so
+DyLib lib("./myDynLib.so");
+
+// Get the global function adder
+auto adder = lib.getFunction<double(double, double)>("adder");
+
+// Get the global variable pi_value
+double pi = lib.getVariable<double>("pi_value");
+
+// Use the function adder with pi_value
+double result = adder(pi, pi);
+```
+
+## DyLib Exceptions
+
+`handle_error :`  
+This exception is thrown when the library failed to load or the library encountered symbol resolution issues  
+`symbol_error :`  
+This exception is thrown when the library failed to load a symbol.
+This usualy happens when you forgot to mark a library function or variable as `extern "C"`  
+
+
+Those exceptions inherits from `DyLib::exception`
+```c++
+try {
+    DyLib lib("./myDynLib.so");
+    double pi_value = lib.getVariable<double>("pi_value");
+    std::cout << pi_value << std::endl;
+}
+catch (const DyLib::exception &e) {
+    std::cerr << e.what() << std::endl;
+    return EXIT_FAILURE;
+}
+return EXIT_SUCCESS;
+```
+
+# Exemple
+
+Lets write some functions in our future dynamic library :
+```c++
+// myDynLib.cpp
 
 #include <iostream>
 
@@ -31,7 +107,7 @@ extern "C" {
     double pi_value = 3.14159;
     void *ptr = nullptr;
 
-    int adder(int a, int b)
+    double adder(double a, double b)
     {
         return a + b;
     }
@@ -45,7 +121,7 @@ extern "C" {
 
 Lets build our lib :  
 
-`g++ -std=c++11 -shared myLib.cpp -o myLib.so`
+`g++ -std=c++11 -shared myDynLib.cpp -o myDynLib.so`
 
 Lets try to access the functions of our dynamic lib at runtime with this code :
 ```c++
@@ -57,7 +133,7 @@ Lets try to access the functions of our dynamic lib at runtime with this code :
 int main(int ac, char **av)
 {
     try {
-        DyLib lib("./myLib.so");
+        DyLib lib("./myDynLib.so");
 
         auto adder = lib.getFunction<int(int, int)>("adder");
         std::cout << adder(5, 10) << std::endl;

@@ -1,6 +1,6 @@
 /**
  * \file DyLib.hpp
- * \brief Mutiplatform Dynamic Library Loader
+ * \brief Cross-platform Dynamic Library Loader
  * \author Martin Olivier
  * \version 0.5
  * 
@@ -62,6 +62,12 @@ private:
     }
 #endif
 public:
+
+/**
+ *  This exception is thrown when the DyLib library encountered an error. 
+ *
+ *  @return error message by calling what() member function
+ */
     class exception : public std::exception
     {
     protected:
@@ -71,19 +77,31 @@ public:
         const char *what() const noexcept override {return m_error.c_str();};
     };
 
+/**
+ *  This exception is thrown when the library failed to load 
+ *  or the library encountered symbol resolution issues
+ *
+ *  @param message error message
+ */
     class handle_error : public exception
     {
     public:
         handle_error(const std::string &message) : exception(message) {};
     };
 
+/**
+ *  This exception is thrown when the library failed to load a symbol. 
+ *  This usualy happens when you forgot to mark a library function or variable as extern "C"
+ *
+ *  @param message error message
+ */
     class symbol_error : public exception
     {
     public:
         symbol_error(const std::string &message) : exception(message) {};
     };
 
-/** Creates a dynamic library object.
+/** Creates a dynamic library object
  */
     DyLib() noexcept = default;
     DyLib(const DyLib&) = delete;
@@ -92,18 +110,18 @@ public:
     DyLib& operator=(DyLib &&) = delete;
 
 /**
- *  Creates a dynamic library instance.
+ *  Creates a dynamic library instance
  *
  *  @param path path to the dynamic library to load (.so, .dll, .dylib)
  */
     DyLib(const char *path)
     {
-        this->load(path);
+        this->open(path);
     }
 
     DyLib(const std::string &path)
     {
-        this->load(path.c_str());
+        this->open(path.c_str());
     }
 
     ~DyLib()
@@ -117,7 +135,7 @@ public:
  *
  *  @param path path to the dynamic library to load (.so, .dll, .dylib)
  */
-    void load(const char *path)
+    void open(const char *path)
     {
         this->close();
         m_handle = m_openLib(path);
@@ -125,13 +143,13 @@ public:
             throw handle_error(m_getError("Error while loading the dynamic library : " + std::string(path)));
     }
 
-    void load(const std::string &path)
+    void open(const std::string &path)
     {
-        load(path.c_str());
+        open(path.c_str());
     }
 
 /**
- *  Get a function from the dynamic library currently loaded in the object.
+ *  Get a function from the dynamic library currently loaded in the object
  *
  *  @param template_Type the template argument must be the function prototype
  *  it must be the same pattern as the template of std::function
@@ -157,7 +175,7 @@ public:
     }
 
 /**
- *  Get a global variable from the dynamic library currently loaded in the object.
+ *  Get a global variable from the dynamic library currently loaded in the object
  *
  *  @param template_Type type of the global variable
  *  @param name name of the global variable to get from the dynamic library
@@ -181,7 +199,8 @@ public:
         return getVariable<Type>(name.c_str());
     }
 
-/** Close the dynamic library currently loaded in the object.
+/** Close the dynamic library currently loaded in the object. 
+ *  This will always be call when going out of stack
  */
     void close() noexcept
     {
