@@ -192,7 +192,7 @@ public:
     }
 
 /** Close the dynamic library currently loaded in the object. 
- *  This will always be call when going out of stack
+ *  This function will be automatically called by the class destructor
  */
     void close() noexcept
     {

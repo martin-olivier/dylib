@@ -124,11 +124,11 @@ extern "C" {
 }
 ```
 
-Lets build our lib :  
+Lets build our code into a dynamic library :  
 
 `g++ -std=c++11 -fPIC -shared myDynLib.cpp -o myDynLib.so`
 
-Lets try to access the functions of our dynamic lib at runtime with this code :
+Lets try to access the functions and global variables of our dynamic library at runtime with this code :
 ```c++
 // main.cpp
 
@@ -161,10 +161,11 @@ int main(int ac, char **av)
 }
 ```
 
-Lets build :  
-`g++ -std=c++11 main.cpp -ldl`
+Lets build and run our code :  
+`g++ -std=c++11 main.cpp -o out -ldl`  
+`./out`
 
-Result :
+Output :
 ```
 15
 Hello!
