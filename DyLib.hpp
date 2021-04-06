@@ -26,10 +26,6 @@ class DyLib
 private:
 #ifdef _WIN32
     HINSTANCE m_handle{nullptr};
-    std::string m_getError(const std::string &str) const
-    {
-        return str;
-    }
     HINSTANCE m_openLib(const char *path) const
     {
         return LoadLibrary(TEXT(path));
@@ -44,10 +40,6 @@ private:
     }
 #else
     void *m_handle{nullptr};
-    std::string m_getError(const std::string &str) const
-    {
-        return dlerror();
-    }
     void *m_openLib(const char *path) const
     {
         return dlopen(path, RTLD_NOW | RTLD_LOCAL);
@@ -140,7 +132,7 @@ public:
         this->close();
         m_handle = m_openLib(path);
         if (!m_handle)
-            throw handle_error(m_getError("Error while loading the dynamic library : " + std::string(path)));
+            throw handle_error("Error while loading the dynamic library : " + std::string(path));
     }
 
     void open(const std::string &path)
@@ -161,10 +153,10 @@ public:
     std::function<Type> getFunction(const char *name) const
     {
         if (!m_handle)
-            throw handle_error(m_getError("Error : no dynamic library loaded"));
+            throw handle_error("Error : no dynamic library loaded");
         auto sym = m_getSymbol(name);
         if (!sym)
-            throw symbol_error(m_getError("Error while loading function : " + std::string(name)));
+            throw symbol_error("Error while loading function : " + std::string(name));
         return reinterpret_cast<Type *>(sym);
     }
 
@@ -186,10 +178,10 @@ public:
     Type getVariable(const char *name) const
     {
         if (!m_handle)
-            throw handle_error(m_getError("Error : no dynamic library loaded"));
+            throw handle_error("Error : no dynamic library loaded");
         auto sym = m_getSymbol(name);
         if (!sym)
-            throw symbol_error(m_getError("Error while loading global variable : " + std::string(name)));
+            throw symbol_error("Error while loading global variable : " + std::string(name));
         return *(Type *)sym;
     }
 
