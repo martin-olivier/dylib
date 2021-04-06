@@ -21,4 +21,7 @@ jobs:
 
             - name: Unit Tests
               working-directory: tests
-              run: make
+              run: |
+                g++ -std=c++11 -fPIC -shared myDynLib.cpp -o myDynLib.so
+	              g++ -std=c++11 tests.cpp -o tests_run -ldl -lgtest -lpthread
+	              ./tests_run
