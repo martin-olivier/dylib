@@ -126,7 +126,7 @@ extern "C" {
 
 Lets build our lib :  
 
-`g++ -std=c++11 -shared myDynLib.cpp -o myDynLib.so`
+`g++ -std=c++11 -fPIC -shared myDynLib.cpp -o myDynLib.so`
 
 Lets try to access the functions of our dynamic lib at runtime with this code :
 ```c++
@@ -140,7 +140,7 @@ int main(int ac, char **av)
     try {
         DyLib lib("./myDynLib.so");
 
-        auto adder = lib.getFunction<int(int, int)>("adder");
+        auto adder = lib.getFunction<double(double, double)>("adder");
         std::cout << adder(5, 10) << std::endl;
 
         auto printer = lib.getFunction<void()>("printHello");
