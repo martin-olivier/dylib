@@ -38,7 +38,7 @@ lib.open("./myDynLib.so");
 `Open:`  
 Load a dynamic library into the object. If a dynamic library was already opened, it will be unload and replaced  
 `Close:`  
-Close the dynamic library currently loaded in the object. This will always be call when going out of stack
+Close the dynamic library currently loaded in the object. This function will be automatically called by the class destructor
 ```c++
 // Load ./myDynLib.so
 
