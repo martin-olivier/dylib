@@ -19,8 +19,7 @@ Works on `Linux`, `Windows`, `MacOS`
 
 # Installation
 
-1. Click [HERE](https://github.com/tocola/DyLib/releases/download/v1.0/DyLib.hpp) to download the DyLib header file
-2. Put the DyLib header file in your project directory
+- Click [HERE](https://github.com/tocola/DyLib/releases/download/v1.0/DyLib.hpp) to download the DyLib header file
 
 # Documentation
 
@@ -38,10 +37,10 @@ lib.open("./myDynLib.so");
 
 ## Open and Close
 
-`Open`  
+`open`  
 Load a dynamic library into the object. If a dynamic library was already opened, it will be unload and replaced  
 
-`Close`  
+`close`  
 Close the dynamic library currently loaded in the object. This function will be automatically called by the class destructor
 ```c++
 // Load ./myDynLib.so
