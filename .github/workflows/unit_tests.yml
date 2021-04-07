@@ -31,10 +31,6 @@ jobs:
               working-directory: tests
               run: ./tests_run
 
-            - name: Display Unit Tests Coverage
-              working-directory: tests
-              run: gcovr -e tests.cpp
-
             - name: Send Coverage to codecov.io
               working-directory: tests
               run: bash <(curl -s https://codecov.io/bash)
