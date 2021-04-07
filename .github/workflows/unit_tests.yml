@@ -19,9 +19,14 @@ jobs:
                 sudo apt-get update
                 sudo apt-get install -y libgtest-dev gcovr
 
-            - name: Unit Tests
+            - name: Build Dynamic Library
               working-directory: tests
-              run: |
-                g++ -std=c++11 -fPIC -shared myDynLib.cpp -o myDynLib.so
-	              g++ -std=c++11 tests.cpp -o tests_run -ldl -lgtest -lpthread
-	              ./tests_run
+              run: g++ -std=c++11 -fPIC -shared myDynLib.cpp -o myDynLib.so
+
+            - name: Build Unit Tests
+              working-directory: tests
+              run: g++ -std=c++11 tests.cpp -o tests_run -ldl -lgtest -lpthread
+
+            - name: Run Unit Tests
+              working-directory: tests
+              run: ./tests_run
