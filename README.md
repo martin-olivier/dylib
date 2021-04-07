@@ -1,5 +1,5 @@
 # DyLib - Dynamic Library Loader for C++  
-[![DyLib](https://img.shields.io/badge/DyLib-v0.5-blue.svg)](https://github.com/tocola/DyLib/releases/tag/v0.5)
+[![DyLib](https://img.shields.io/badge/DyLib-v1.0-blue.svg)](https://github.com/tocola/DyLib/releases/tag/v1.0)
 [![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/tocola/DyLib/blob/main/LICENSE)
 [![CPP Version](https://img.shields.io/badge/C++-11/14/17/20-darkgreen.svg)](https://isocpp.org/)
 
@@ -10,7 +10,7 @@
 [![workflow](https://github.com/tocola/DyLib/actions/workflows/unit_tests.yml/badge.svg)](https://github.com/tocola/DyLib/actions/workflows/unit_tests.yml)
 [![codecov](https://codecov.io/gh/tocola/DyLib/branch/main/graph/badge.svg?token=4V6A9B7PII)](https://codecov.io/gh/tocola/DyLib)
 
-[![GitHub download](https://img.shields.io/github/downloads/tocola/DyLib/total?style=for-the-badge)](https://github.com/tocola/DyLib/releases/download/v0.5/DyLib.hpp)
+[![GitHub download](https://img.shields.io/github/downloads/tocola/DyLib/total?style=for-the-badge)](https://github.com/tocola/DyLib/releases/download/v1.0/DyLib.hpp)
 
 The goal of this C++ Library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
 
@@ -19,7 +19,7 @@ Works on `Linux`, `Windows`, `MacOS`
 
 # Installation
 
-1. Click [HERE](https://github.com/tocola/DyLib/releases/download/v0.5/DyLib.hpp) to download the DyLib header file
+1. Click [HERE](https://github.com/tocola/DyLib/releases/download/v1.0/DyLib.hpp) to download the DyLib header file
 2. Put the DyLib header file in your project directory
 
 # Documentation
@@ -38,9 +38,10 @@ lib.open("./myDynLib.so");
 
 ## Open and Close
 
-`Open:`  
+`Open`  
 Load a dynamic library into the object. If a dynamic library was already opened, it will be unload and replaced  
-`Close:`  
+
+`Close`  
 Close the dynamic library currently loaded in the object. This function will be automatically called by the class destructor
 ```c++
 // Load ./myDynLib.so
@@ -58,9 +59,10 @@ lib.close();
 
 ## Get a Function or a Variable
 
-`getFunction:`  
+`getFunction`  
 Get a function from the dynamic library currently loaded in the object.  
-`getVariable:`  
+
+`getVariable`  
 Get a global variable from the dynamic library currently loaded in the object.
 ```c++
 // Load ./myDynLib.so
@@ -82,9 +84,10 @@ double result = adder(pi, pi);
 
 ## DyLib Exceptions
 
-`handle_error:`  
+`handle_error`  
 This exception is thrown when the library failed to load or the library encountered symbol resolution issues  
-`symbol_error:`  
+
+`symbol_error`  
 This exception is thrown when the library failed to load a symbol.
 This usualy happens when you forgot to mark a library function or variable as `extern "C"`  
 
