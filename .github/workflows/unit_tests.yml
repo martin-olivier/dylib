@@ -25,8 +25,16 @@ jobs:
 
             - name: Build Unit Tests
               working-directory: tests
-              run: g++ -std=c++11 tests.cpp -o tests_run -ldl -lgtest -lpthread
+              run: g++ -std=c++11 tests.cpp -o tests_run -ldl -lgtest -lpthread -lgcov --coverage
 
             - name: Run Unit Tests
               working-directory: tests
               run: ./tests_run
+
+            - name: Display Unit Tests Coverage
+              working-directory: tests
+              run: gcovr -e tests.cpp
+
+            - name: Send Coverage to codecov.io
+              working-directory: tests
+              run: bash <(curl -s https://codecov.io/bash)
