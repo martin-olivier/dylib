@@ -1,0 +1,3 @@
+ignore:
+  - tests/myDynLib.cpp
+  - tests/myDynLib.cpp
