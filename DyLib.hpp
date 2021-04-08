@@ -15,6 +15,7 @@
 #include <string>
 #include <functional>
 #include <exception>
+#include <utility>
 #ifdef _WIN32
 #include <windows.h>
 #else
@@ -40,7 +41,7 @@ private:
     }
 #else
     void *m_handle{nullptr};
-    void *m_openLib(const char *path) const
+    static void *m_openLib(const char *path)
     {
         return dlopen(path, RTLD_NOW | RTLD_LOCAL);
     }
@@ -65,7 +66,7 @@ public:
     protected:
         const std::string m_error;
     public:
-        exception(const std::string &message) : m_error(message) {};
+        explicit exception(std::string message) : m_error(std::move(message)) {};
         const char *what() const noexcept override {return m_error.c_str();};
     };
 
@@ -78,7 +79,7 @@ public:
     class handle_error : public exception
     {
     public:
-        handle_error(const std::string &message) : exception(message) {};
+        explicit handle_error(const std::string &message) : exception(message) {};
     };
 
 /**
@@ -90,7 +91,7 @@ public:
     class symbol_error : public exception
     {
     public:
-        symbol_error(const std::string &message) : exception(message) {};
+        explicit symbol_error(const std::string &message) : exception(message) {};
     };
 
 /** Creates a dynamic library object
@@ -106,12 +107,12 @@ public:
  *
  *  @param path path to the dynamic library to load (.so, .dll, .dylib)
  */
-    DyLib(const char *path)
+    explicit DyLib(const char *path)
     {
         this->open(path);
     }
 
-    DyLib(const std::string &path)
+    explicit DyLib(const std::string &path)
     {
         this->open(path.c_str());
     }
