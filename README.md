@@ -19,7 +19,7 @@ Works on `Linux`, `Windows`, `MacOS`
 
 # Installation
 
-- Click [HERE](https://github.com/tocola/DyLib/releases/download/v1.0/DyLib.hpp) to download the DyLib header file
+Click [HERE](https://github.com/tocola/DyLib/releases/download/v1.0/DyLib.hpp) to download the DyLib header file
 
 # Documentation
 
