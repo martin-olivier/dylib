@@ -2,7 +2,7 @@
  * \file DyLib.hpp
  * \brief Cross-platform Dynamic Library Loader
  * \author Martin Olivier
- * \version 1.1
+ * \version 1.2
  * 
  * MIT License
  * Copyright (c) 2021 Martin Olivier
@@ -27,7 +27,7 @@ class DyLib
 private:
 #ifdef _WIN32
     HINSTANCE m_handle{nullptr};
-    HINSTANCE m_openLib(const char *path) const
+    static HINSTANCE m_openLib(const char *path)
     {
         return LoadLibrary(TEXT(path));
     }
@@ -131,6 +131,8 @@ public:
     void open(const char *path)
     {
         this->close();
+        if (!path)
+            throw handle_error("Error while loading the dynamic library : (nullptr)");
         m_handle = m_openLib(path);
         if (!m_handle)
             throw handle_error("Error while loading the dynamic library : " + std::string(path));
@@ -155,6 +157,8 @@ public:
     {
         if (!m_handle)
             throw handle_error("Error : no dynamic library loaded");
+        if (!name)
+            throw symbol_error("Error while loading function : (nullptr)");
         auto sym = m_getSymbol(name);
         if (!sym)
             throw symbol_error("Error while loading function : " + std::string(name));
@@ -180,6 +184,8 @@ public:
     {
         if (!m_handle)
             throw handle_error("Error : no dynamic library loaded");
+        if (!name)
+            throw symbol_error("Error while loading global variable : (nullptr)");
         auto sym = m_getSymbol(name);
         if (!sym)
             throw symbol_error("Error while loading global variable : " + std::string(name));

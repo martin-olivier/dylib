@@ -128,6 +128,33 @@ TEST(getVariable, bad_symbol)
     }
 }
 
+TEST(bad arguments, nullptr)
+{
+    try {
+        DyLib lib(nullptr);
+        EXPECT_EQ(true, false);
+    }
+    catch (const DyLib::handle_error &e) {
+        EXPECT_EQ(true, true);
+    }
+    try {
+        DyLib lib("./myDynLib.so");
+        auto nothing = lib.getFunction<void()>(nullptr);
+        EXPECT_EQ(true, false);
+    }
+    catch (const DyLib::symbol_error &e) {
+        EXPECT_EQ(true, true);
+    }
+    try {
+        DyLib lib("./myDynLib.so");
+        auto nothing = lib.getVariable<void *>(nullptr);
+        EXPECT_EQ(true, false);
+    }
+    catch (const DyLib::symbol_error &e) {
+        EXPECT_EQ(true, true);
+    }
+}
+
 int main(int ac, char **av)
 {
     testing::InitGoogleTest(&ac, av);
