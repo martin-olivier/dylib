@@ -128,7 +128,7 @@ TEST(getVariable, bad_symbol)
     }
 }
 
-TEST(bad arguments, nullptr)
+TEST(bad_arguments, null_pointer)
 {
     try {
         DyLib lib(nullptr);
