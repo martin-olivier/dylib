@@ -1,5 +1,5 @@
 # DyLib - Dynamic Library Loader for C++  
-[![DyLib](https://img.shields.io/badge/DyLib-v1.2-blue.svg)](https://github.com/tocola/DyLib/releases/tag/v1.2)
+[![DyLib](https://img.shields.io/badge/DyLib-v1.3-blue.svg)](https://github.com/tocola/DyLib/releases/tag/v1.3)
 [![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/tocola/DyLib/blob/main/LICENSE)
 [![CPP Version](https://img.shields.io/badge/C++-11/14/17/20-darkgreen.svg)](https://isocpp.org/)
 
@@ -10,7 +10,7 @@
 [![workflow](https://github.com/tocola/DyLib/actions/workflows/unit_tests.yml/badge.svg)](https://github.com/tocola/DyLib/actions/workflows/unit_tests.yml)
 [![codecov](https://codecov.io/gh/tocola/DyLib/branch/main/graph/badge.svg?token=4V6A9B7PII)](https://codecov.io/gh/tocola/DyLib)
 
-[![GitHub download](https://img.shields.io/github/downloads/tocola/DyLib/total?style=for-the-badge)](https://github.com/tocola/DyLib/releases/download/v1.2/DyLib.hpp)
+[![GitHub download](https://img.shields.io/github/downloads/tocola/DyLib/total?style=for-the-badge)](https://github.com/tocola/DyLib/releases/download/v1.3/DyLib.hpp)
 
 The goal of this C++ Library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
 
@@ -19,7 +19,7 @@ Works on `Linux`, `Windows`, `MacOS`
 
 # Installation
 
-Click [HERE](https://github.com/tocola/DyLib/releases/download/v1.2/DyLib.hpp) to download the DyLib header file
+Click [HERE](https://github.com/tocola/DyLib/releases/download/v1.3/DyLib.hpp) to download the DyLib header file
 
 # Documentation
 
@@ -29,10 +29,14 @@ The DyLib class can load a dynamic library at runtime :
 ```c++
 DyLib lib("./myDynLib.so");
 ```
+DyLib can detect the file extension :
+```c++
+DyLib lib("./myDynLib");
+```
 or
 ```c++
 DyLib lib;
-lib.open("./myDynLib.so");
+lib.open("./myDynLib");
 ```
 
 ## Open and Close
@@ -143,7 +147,7 @@ Lets try to access the functions and global variables of our dynamic library at 
 int main(int ac, char **av)
 {
     try {
-        DyLib lib("./myDynLib.so");
+        DyLib lib("./myDynLib");
 
         auto adder = lib.getFunction<double(double, double)>("adder");
         std::cout << adder(5, 10) << std::endl;

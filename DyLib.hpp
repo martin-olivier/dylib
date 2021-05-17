@@ -2,7 +2,7 @@
  * \file DyLib.hpp
  * \brief Cross-platform Dynamic Library Loader
  * \author Martin Olivier
- * \version 1.2
+ * \version 1.3
  * 
  * MIT License
  * Copyright (c) 2021 Martin Olivier
@@ -16,7 +16,7 @@
 #include <functional>
 #include <exception>
 #include <utility>
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 #else
 #include <dlfcn.h>
@@ -25,36 +25,46 @@
 class DyLib
 {
 private:
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     HINSTANCE m_handle{nullptr};
-    static HINSTANCE m_openLib(const char *path)
+    static HINSTANCE m_openLib(const char *path) noexcept
     {
         return LoadLibrary(TEXT(path));
     }
-    FARPROC m_getSymbol(const char *name) const
+    FARPROC m_getSymbol(const char *name) const noexcept
     {
         return GetProcAddress(m_handle, name);
     }
-    void m_closeLib()
+    void m_closeLib() noexcept
     {
         FreeLibrary(m_handle);
     }
 #else
     void *m_handle{nullptr};
-    static void *m_openLib(const char *path)
+    static void *m_openLib(const char *path) noexcept
     {
         return dlopen(path, RTLD_NOW | RTLD_LOCAL);
     }
-    void *m_getSymbol(const char *name) const
+    void *m_getSymbol(const char *name) const noexcept
     {
         return dlsym(m_handle, name);
     }
-    void m_closeLib()
+    void m_closeLib() noexcept
     {
         dlclose(m_handle);
     }
 #endif
 public:
+
+#if defined(_WIN32) || defined(_WIN64)
+    static constexpr auto OS_EXT = ".dll";
+#elif defined(__APPLE__)
+    static constexpr auto OS_EXT = ".dylib";
+#elif defined(__unix__)
+    static constexpr auto OS_EXT = ".so"
+#else
+    #error "DyLib : Unknown OS"
+#endif
 
 /**
  *  This exception is thrown when the DyLib library encountered an error. 
@@ -134,8 +144,13 @@ public:
         if (!path)
             throw handle_error("Error while loading the dynamic library : (nullptr)");
         m_handle = m_openLib(path);
-        if (!m_handle)
-            throw handle_error("Error while loading the dynamic library : " + std::string(path));
+        if (!m_handle) {
+            std::string path_ext(path);
+            path_ext += OS_EXT;
+            m_handle = m_openLib(path_ext.c_str());
+            if (!m_handle)
+                throw handle_error("Error while loading the dynamic library : " + std::string(path));
+        }
     }
 
     void open(const std::string &path)
@@ -179,7 +194,7 @@ public:
  *
  *  @returns global variable of type <Type>
  */
-    template<class Type>
+    template<typename Type>
     Type getVariable(const char *name) const
     {
         if (!m_handle)
@@ -192,7 +207,7 @@ public:
         return *(Type *)sym;
     }
 
-    template<class Type>
+    template<typename Type>
     Type getVariable(const std::string &name) const
     {
         return getVariable<Type>(name.c_str());

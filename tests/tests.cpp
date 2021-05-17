@@ -155,6 +155,18 @@ TEST(bad_arguments, null_pointer)
     }
 }
 
+TEST(os_detector, basic_test)
+{
+    try {
+        DyLib lib("./myDynLib");
+        auto pi = lib.getVariable<double>("pi_value");
+        EXPECT_EQ(pi, 3.14159);
+    }
+    catch (const DyLib::exception &e) {
+        EXPECT_EQ(true, false);
+    }
+}
+
 int main(int ac, char **av)
 {
     testing::InitGoogleTest(&ac, av);
