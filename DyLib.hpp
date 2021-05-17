@@ -61,7 +61,7 @@ public:
 #elif defined(__APPLE__)
     static constexpr auto OS_EXT = ".dylib";
 #elif defined(__unix__)
-    static constexpr auto OS_EXT = ".so"
+    static constexpr auto OS_EXT = ".so";
 #else
     #error "DyLib : Unknown OS"
 #endif
