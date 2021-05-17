@@ -29,7 +29,7 @@ The DyLib class can load a dynamic library at runtime :
 ```c++
 DyLib lib("./myDynLib.so");
 ```
-DyLib can detect the file extension :
+The DyLib class can detect the file extension :
 ```c++
 DyLib lib("./myDynLib");
 ```
