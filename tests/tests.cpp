@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <utility>
 #include "../DyLib.hpp"
 
 class OSRedirector {
@@ -164,6 +165,24 @@ TEST(os_detector, basic_test)
     }
     catch (const DyLib::exception &e) {
         EXPECT_EQ(true, false);
+    }
+}
+
+TEST(std_move, basic_test)
+{
+    try {
+        DyLib lib("./myDynLib");
+        DyLib other(std::move(lib));
+        auto pi = other.getVariable<double>("pi_value");
+        EXPECT_EQ(pi, 3.14159);
+        lib = std::move(other);
+        auto ptr = lib.getVariable<void *>("ptr");
+        EXPECT_EQ(ptr, nullptr);
+        auto last = other.getVariable<double>("pi_value");
+        EXPECT_EQ(true, false);
+    }
+    catch (const DyLib::handle_error &e) {
+        EXPECT_EQ(true, true);
     }
 }
 

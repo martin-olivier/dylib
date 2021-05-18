@@ -2,7 +2,7 @@
  * \file DyLib.hpp
  * \brief Cross-platform Dynamic Library Loader
  * \author Martin Olivier
- * \version 1.3
+ * \version 1.4
  * 
  * MIT License
  * Copyright (c) 2021 Martin Olivier
@@ -108,15 +108,29 @@ public:
  */
     DyLib() noexcept = default;
     DyLib(const DyLib&) = delete;
-    DyLib(DyLib &&) = delete;
     DyLib& operator=(const DyLib&) = delete;
-    DyLib& operator=(DyLib &&) = delete;
 
 /**
  *  Creates a dynamic library instance
  *
  *  @param path path to the dynamic library to load (.so, .dll, .dylib)
  */
+
+    DyLib(DyLib &&other) noexcept
+    {
+        m_handle = other.m_handle;
+        other.m_handle = nullptr;
+    }
+
+    DyLib& operator=(DyLib &&other) noexcept
+    {
+        if (this != &other) {
+            m_handle = other.m_handle;
+            other.m_handle = nullptr;
+        }
+        return *this;
+    }
+
     explicit DyLib(const char *path)
     {
         this->open(path);
