@@ -147,7 +147,7 @@ Lets try to access the functions and global variables of our dynamic library at 
 int main(int ac, char **av)
 {
     try {
-        DyLib lib("./myDynLib");
+        DyLib lib("./myDynLib.so");
 
         auto adder = lib.getFunction<double(double, double)>("adder");
         std::cout << adder(5, 10) << std::endl;
