@@ -15,7 +15,6 @@
 #include <string>
 #include <functional>
 #include <exception>
-#include <utility>
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 #else
@@ -76,8 +75,8 @@ public:
     protected:
         const std::string m_error;
     public:
-        explicit exception(std::string message) : m_error(std::move(message)) {};
-        const char *what() const noexcept override {return m_error.c_str();};
+        explicit exception(std::string &&message) : m_error(message) {};
+        [[nodiscard]] const char *what() const noexcept override {return m_error.c_str();};
     };
 
 /**
@@ -89,19 +88,19 @@ public:
     class handle_error : public exception
     {
     public:
-        explicit handle_error(const std::string &message) : exception(message) {};
+        explicit handle_error(std::string &&message) : exception(std::forward<std::string>(message)) {};
     };
 
 /**
  *  This exception is thrown when the library failed to load a symbol. 
- *  This usualy happens when you forgot to mark a library function or variable as extern "C"
+ *  This usually happens when you forgot to mark a library function or variable as extern "C"
  *
  *  @param message error message
  */
     class symbol_error : public exception
     {
     public:
-        explicit symbol_error(const std::string &message) : exception(message) {};
+        explicit symbol_error(std::string &&message) : exception(std::forward<std::string>(message)) {};
     };
 
 /** Creates a dynamic library object
@@ -111,11 +110,10 @@ public:
     DyLib& operator=(const DyLib&) = delete;
 
 /**
- *  Creates a dynamic library instance
+ *  Move constructor : move a dynamic library instance to build this object
  *
- *  @param path path to the dynamic library to load (.so, .dll, .dylib)
+ *  @param other ref on rvalue of the other DyLib (use std::move)
  */
-
     DyLib(DyLib &&other) noexcept
     {
         m_handle = other.m_handle;
@@ -125,12 +123,18 @@ public:
     DyLib& operator=(DyLib &&other) noexcept
     {
         if (this != &other) {
+            this->close();
             m_handle = other.m_handle;
             other.m_handle = nullptr;
         }
         return *this;
     }
 
+/**
+ *  Creates a dynamic library instance
+ *
+ *  @param path path to the dynamic library to load (.so, .dll, .dylib)
+ */
     explicit DyLib(const char *path)
     {
         this->open(path);
@@ -139,6 +143,16 @@ public:
     explicit DyLib(const std::string &path)
     {
         this->open(path.c_str());
+    }
+
+    DyLib(std::string &&path, const char *ext)
+    {
+        this->open(std::forward<std::string>(path), ext);
+    }
+
+    DyLib(const std::string &path, const char *ext)
+    {
+        this->open(path, ext);
     }
 
     ~DyLib()
@@ -158,18 +172,36 @@ public:
         if (!path)
             throw handle_error("Error while loading the dynamic library : (nullptr)");
         m_handle = m_openLib(path);
-        if (!m_handle) {
-            std::string path_ext(path);
-            path_ext += OS_EXT;
-            m_handle = m_openLib(path_ext.c_str());
-            if (!m_handle)
-                throw handle_error("Error while loading the dynamic library : " + std::string(path));
-        }
+        if (!m_handle)
+            throw handle_error("Error while loading the dynamic library : " + std::string(path));
     }
 
     void open(const std::string &path)
     {
         open(path.c_str());
+    }
+
+    void open(std::string &&path, const char *ext)
+    {
+        this->close();
+        if (!ext)
+            throw handle_error("Bad extension name : (nullptr)");
+        path += ext;
+        m_handle = m_openLib(path.c_str());
+        if (!m_handle)
+            throw handle_error("Error while loading the dynamic library : " + path);
+    }
+
+    void open(const std::string &path, const char *ext)
+    {
+        this->close();
+        if (!ext)
+            throw handle_error("Bad extension name : (nullptr)");
+        std::string path_ext(path);
+        path_ext += ext;
+        m_handle = m_openLib(path_ext.c_str());
+        if (!m_handle)
+            throw handle_error("Error while loading the dynamic library : " + path_ext);
     }
 
 /**
@@ -218,7 +250,7 @@ public:
         auto sym = m_getSymbol(name);
         if (!sym)
             throw symbol_error("Error while loading global variable : " + std::string(name));
-        return *(Type *)sym;
+        return *reinterpret_cast<Type *>(sym);
     }
 
     template<typename Type>

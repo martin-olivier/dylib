@@ -144,7 +144,7 @@ Lets try to access the functions and global variables of our dynamic library at 
 #include <iostream>
 #include "DyLib.hpp"
 
-int main(int ac, char **av)
+int main()
 {
     try {
         DyLib lib("./myDynLib.so");
