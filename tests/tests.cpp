@@ -156,6 +156,24 @@ TEST(bad_arguments, null_pointer)
     }
 }
 
+TEST(bad_arguments, handle_and_ext)
+{
+    try {
+        DyLib lib("./badlib", DyLib::OS_EXT);
+        EXPECT_EQ(true, false);
+    }
+    catch (const DyLib::handle_error &e) {
+        EXPECT_EQ(true, true);
+    }
+    try {
+        DyLib lib("./myDynLib", nullptr);
+        EXPECT_EQ(true, false);
+    }
+    catch (const DyLib::handle_error &e) {
+        EXPECT_EQ(true, true);
+    }
+}
+
 TEST(os_detector, basic_test)
 {
     try {
