@@ -15,6 +15,7 @@
 #include <string>
 #include <functional>
 #include <exception>
+#include <utility>
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 #else
@@ -56,11 +57,11 @@ private:
 public:
 
 #if defined(_WIN32) || defined(_WIN64)
-    static constexpr auto OS_EXT = ".dll";
+    static constexpr auto extension = ".dll";
 #elif defined(__APPLE__)
-    static constexpr auto OS_EXT = ".dylib";
+    static constexpr auto extension = ".dylib";
 #elif defined(__unix__)
-    static constexpr auto OS_EXT = ".so";
+    static constexpr auto extension = ".so";
 #else
     #error "DyLib : Unknown OS"
 #endif
@@ -88,7 +89,7 @@ public:
     class handle_error : public exception
     {
     public:
-        explicit handle_error(std::string &&message) : exception(std::forward<std::string>(message)) {};
+        explicit handle_error(std::string &&message) : exception(std::move(message)) {};
     };
 
 /**
@@ -100,7 +101,7 @@ public:
     class symbol_error : public exception
     {
     public:
-        explicit symbol_error(std::string &&message) : exception(std::forward<std::string>(message)) {};
+        explicit symbol_error(std::string &&message) : exception(std::move(message)) {};
     };
 
 /** Creates a dynamic library object
@@ -133,7 +134,8 @@ public:
 /**
  *  Creates a dynamic library instance
  *
- *  @param path path to the dynamic library to load (.so, .dll, .dylib)
+ *  @param path path to the dynamic library to load
+ *  @param ext use DyLib::extension to specify the os extension (optional parameter)
  */
     explicit DyLib(const char *path)
     {
@@ -147,7 +149,7 @@ public:
 
     DyLib(std::string &&path, const char *ext)
     {
-        this->open(std::forward<std::string>(path), ext);
+        this->open(std::move(path), ext);
     }
 
     DyLib(const std::string &path, const char *ext)
@@ -164,7 +166,8 @@ public:
  *  Load a dynamic library into the object. 
  *  If a dynamic library was already opened, it will be unload and replaced
  *
- *  @param path path to the dynamic library to load (.so, .dll, .dylib)
+ *  @param path path to the dynamic library to load
+ *  @param ext use DyLib::OS_EXT to specify the os extension (optional parameter)
  */
     void open(const char *path)
     {

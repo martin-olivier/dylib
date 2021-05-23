@@ -159,7 +159,7 @@ TEST(bad_arguments, null_pointer)
 TEST(bad_arguments, handle_and_ext)
 {
     try {
-        DyLib lib("./badlib", DyLib::OS_EXT);
+        DyLib lib("./badlib", DyLib::extension);
         EXPECT_EQ(true, false);
     }
     catch (const DyLib::handle_error &e) {
@@ -177,7 +177,7 @@ TEST(bad_arguments, handle_and_ext)
 TEST(os_detector, basic_test)
 {
     try {
-        DyLib lib("./myDynLib", DyLib::OS_EXT);
+        DyLib lib("./myDynLib", DyLib::extension);
         auto pi = lib.getVariable<double>("pi_value");
         EXPECT_EQ(pi, 3.14159);
     }
@@ -189,7 +189,7 @@ TEST(os_detector, basic_test)
 TEST(std_move, basic_test)
 {
     try {
-        DyLib lib("./myDynLib", DyLib::OS_EXT);
+        DyLib lib("./myDynLib", DyLib::extension);
         DyLib other(std::move(lib));
         auto pi = other.getVariable<double>("pi_value");
         EXPECT_EQ(pi, 3.14159);

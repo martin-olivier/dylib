@@ -1,5 +1,5 @@
 # DyLib - Dynamic Library Loader for C++  
-[![DyLib](https://img.shields.io/badge/DyLib-v1.3-blue.svg)](https://github.com/tocola/DyLib/releases/tag/v1.3)
+[![DyLib](https://img.shields.io/badge/DyLib-v1.4-blue.svg)](https://github.com/tocola/DyLib/releases/tag/v1.4)
 [![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/tocola/DyLib/blob/main/LICENSE)
 [![CPP Version](https://img.shields.io/badge/C++-11/14/17/20-darkgreen.svg)](https://isocpp.org/)
 
@@ -10,7 +10,7 @@
 [![workflow](https://github.com/tocola/DyLib/actions/workflows/unit_tests.yml/badge.svg)](https://github.com/tocola/DyLib/actions/workflows/unit_tests.yml)
 [![codecov](https://codecov.io/gh/tocola/DyLib/branch/main/graph/badge.svg?token=4V6A9B7PII)](https://codecov.io/gh/tocola/DyLib)
 
-[![GitHub download](https://img.shields.io/github/downloads/tocola/DyLib/total?style=for-the-badge)](https://github.com/tocola/DyLib/releases/download/v1.3/DyLib.hpp)
+[![GitHub download](https://img.shields.io/github/downloads/tocola/DyLib/total?style=for-the-badge)](https://github.com/tocola/DyLib/releases/download/v1.4/DyLib.hpp)
 
 The goal of this C++ Library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
 
@@ -19,7 +19,7 @@ Works on `Linux`, `Windows`, `MacOS`
 
 # Installation
 
-Click [HERE](https://github.com/tocola/DyLib/releases/download/v1.3/DyLib.hpp) to download the DyLib header file
+Click [HERE](https://github.com/tocola/DyLib/releases/download/v1.4/DyLib.hpp) to download the DyLib header file
 
 # Documentation
 
@@ -29,14 +29,14 @@ The DyLib class can load a dynamic library at runtime :
 ```c++
 DyLib lib("./myDynLib.so");
 ```
-The DyLib class can detect the file extension :
+The DyLib class can detect the file extension of the actual os using `DyLib::extension` :
 ```c++
-DyLib lib("./myDynLib");
+DyLib lib("./myDynLib", DyLib::extension);
 ```
 or
 ```c++
 DyLib lib;
-lib.open("./myDynLib");
+lib.open("./myDynLib", DyLib::extension);
 ```
 
 ## Open and Close
