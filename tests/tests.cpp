@@ -159,7 +159,7 @@ TEST(bad_arguments, null_pointer)
 TEST(os_detector, basic_test)
 {
     try {
-        DyLib lib("./myDynLib");
+        DyLib lib("./myDynLib", DyLib::OS_EXT);
         auto pi = lib.getVariable<double>("pi_value");
         EXPECT_EQ(pi, 3.14159);
     }
