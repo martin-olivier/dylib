@@ -171,7 +171,7 @@ TEST(os_detector, basic_test)
 TEST(std_move, basic_test)
 {
     try {
-        DyLib lib("./myDynLib");
+        DyLib lib("./myDynLib", DyLib::OS_EXT);
         DyLib other(std::move(lib));
         auto pi = other.getVariable<double>("pi_value");
         EXPECT_EQ(pi, 3.14159);
