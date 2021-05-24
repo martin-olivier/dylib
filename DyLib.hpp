@@ -2,7 +2,7 @@
  * \file DyLib.hpp
  * \brief Cross-platform Dynamic Library Loader
  * \author Martin Olivier
- * \version 1.4
+ * \version 1.4.1
  * 
  * MIT License
  * Copyright (c) 2021 Martin Olivier
@@ -76,7 +76,7 @@ public:
     protected:
         const std::string m_error;
     public:
-        explicit exception(std::string &&message) : m_error(message) {};
+        explicit exception(std::string &&message) : m_error(std::move(message)) {};
         [[nodiscard]] const char *what() const noexcept override {return m_error.c_str();};
     };
 
@@ -167,7 +167,7 @@ public:
  *  If a dynamic library was already opened, it will be unload and replaced
  *
  *  @param path path to the dynamic library to load
- *  @param ext use DyLib::OS_EXT to specify the os extension (optional parameter)
+ *  @param ext use DyLib::extension to specify the os extension (optional parameter)
  */
     void open(const char *path)
     {
