@@ -4,6 +4,7 @@ project(DyLib)
 set(CMAKE_VERBOSE_MAKEFILE off)
 
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
@@ -35,10 +36,15 @@ if (UNIX AND NOT APPLE)
     )
 endif()
 
+if (UNIX)
+    target_link_libraries(unit_tests PRIVATE
+            dl
+            pthread
+    )
+endif()
+
 target_link_libraries(unit_tests PRIVATE
-        dl
         gtest_main
-        pthread
 )
 
 include(GoogleTest)

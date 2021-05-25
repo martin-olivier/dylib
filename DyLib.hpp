@@ -2,15 +2,13 @@
  * \file DyLib.hpp
  * \brief Cross-platform Dynamic Library Loader
  * \author Martin Olivier
- * \version 1.4.1
+ * \version 1.4.2
  * 
  * MIT License
  * Copyright (c) 2021 Martin Olivier
  */
 
 #pragma once
-
-#if __cplusplus >= 201103L
 
 #include <string>
 #include <functional>
@@ -77,7 +75,7 @@ public:
         const std::string m_error;
     public:
         explicit exception(std::string &&message) : m_error(std::move(message)) {};
-        [[nodiscard]] const char *what() const noexcept override {return m_error.c_str();};
+        const char *what() const noexcept override {return m_error.c_str();};
     };
 
     /**
@@ -272,7 +270,3 @@ public:
         m_handle = nullptr;
     }
 };
-
-#else
-    #error DyLib needs at least a C++11 compliant compiler
-#endif
