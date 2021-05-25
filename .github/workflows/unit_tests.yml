@@ -13,6 +13,16 @@ jobs:
             fail-fast: false
             matrix:
                 os: [windows-latest, ubuntu-latest, macos-latest]
+                include:
+                  - os: windows-latest
+                    bin: unit_tests.exe
+                    dir: Debug
+                  - os: ubuntu-latest
+                    bin: unit_tests
+                    dir: .
+                  - os: macos-latest
+                    bin: unit_tests
+                    dir: .
 
         name: Unit Tests
         runs-on: ${{ matrix.os }}
@@ -32,7 +42,8 @@ jobs:
               run: cmake --build .
 
             - name: Run Unit Tests
-              run: ./unit_tests
+              working-directory: ${{ matrix.dir }}
+              run: ./${{ matrix.bin }}
 
             - name: Send Coverage to codecov.io
               if: ${{ matrix.os == 'ubuntu-latest' }}
