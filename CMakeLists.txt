@@ -33,7 +33,6 @@ target_link_libraries(unit_tests PRIVATE
         dl
         gtest_main
         pthread
-        gcov
 )
 
 include(GoogleTest)
