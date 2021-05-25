@@ -56,7 +56,7 @@ TEST(exemple, exemple_test)
         void *ptr = lib.getVariable<void *>("ptr");
         EXPECT_EQ(ptr, nullptr);
     }
-    catch (const DyLib::exception &e) {
+    catch (const DyLib::exception &) {
         EXPECT_EQ(true, false);
     }
 }
@@ -86,7 +86,7 @@ TEST(dtor, mutiple_open_close)
         lib.close();
         auto fn = lib.getFunction<double(double, double)>("adder");
     }
-    catch (const DyLib::exception &e) {
+    catch (const DyLib::exception &) {
         EXPECT_EQ(true, true);
     }
 }
@@ -99,7 +99,7 @@ TEST(getFunction, bad_handler)
         auto adder = lib.getFunction<double(double, double)>("adder");
         EXPECT_EQ(true, false);
     }
-    catch (const DyLib::handle_error &e) {
+    catch (const DyLib::handle_error &) {
         EXPECT_EQ(true, true);
     }
 }
@@ -111,7 +111,7 @@ TEST(getFunction, bad_symbol)
         auto adder = lib.getFunction<double(double, double)>("unknow");
         EXPECT_EQ(true, false);
     }
-    catch (const DyLib::symbol_error &e) {
+    catch (const DyLib::symbol_error &) {
         EXPECT_EQ(true, true);
     }
 }
@@ -124,7 +124,7 @@ TEST(getVariable, bad_handler)
         lib.getVariable<double>("pi_value");
         EXPECT_EQ(true, false);
     }
-    catch (const DyLib::handle_error &e) {
+    catch (const DyLib::handle_error &) {
         EXPECT_EQ(true, true);
     }
 }
@@ -136,7 +136,7 @@ TEST(getVariable, bad_symbol)
         lib.getVariable<double>("unknow");
         EXPECT_EQ(true, false);
     }
-    catch (const DyLib::symbol_error &e) {
+    catch (const DyLib::symbol_error &) {
         EXPECT_EQ(true, true);
     }
 }
@@ -147,7 +147,7 @@ TEST(bad_arguments, null_pointer)
         DyLib lib(nullptr);
         EXPECT_EQ(true, false);
     }
-    catch (const DyLib::handle_error &e) {
+    catch (const DyLib::handle_error &) {
         EXPECT_EQ(true, true);
     }
     try {
@@ -155,7 +155,7 @@ TEST(bad_arguments, null_pointer)
         auto nothing = lib.getFunction<void()>(nullptr);
         EXPECT_EQ(true, false);
     }
-    catch (const DyLib::symbol_error &e) {
+    catch (const DyLib::symbol_error &) {
         EXPECT_EQ(true, true);
     }
     try {
@@ -163,7 +163,7 @@ TEST(bad_arguments, null_pointer)
         lib.getVariable<void *>(nullptr);
         EXPECT_EQ(true, false);
     }
-    catch (const DyLib::symbol_error &e) {
+    catch (const DyLib::symbol_error &) {
         EXPECT_EQ(true, true);
     }
 }
@@ -174,14 +174,14 @@ TEST(bad_arguments, handle_and_ext)
         DyLib lib("./badlib", DyLib::extension);
         EXPECT_EQ(true, false);
     }
-    catch (const DyLib::handle_error &e) {
+    catch (const DyLib::handle_error &) {
         EXPECT_EQ(true, true);
     }
     try {
         DyLib lib(prefix + std::string("dynlib"), nullptr);
         EXPECT_EQ(true, false);
     }
-    catch (const DyLib::handle_error &e) {
+    catch (const DyLib::handle_error &) {
         EXPECT_EQ(true, true);
     }
 }
@@ -193,7 +193,7 @@ TEST(os_detector, basic_test)
         auto pi = lib.getVariable<double>("pi_value");
         EXPECT_EQ(pi, 3.14159);
     }
-    catch (const DyLib::exception &e) {
+    catch (const DyLib::exception &) {
         EXPECT_EQ(true, false);
     }
 }
@@ -211,7 +211,7 @@ TEST(std_move, basic_test)
         other.getVariable<double>("pi_value");
         EXPECT_EQ(true, false);
     }
-    catch (const DyLib::handle_error &e) {
+    catch (const DyLib::handle_error &) {
         EXPECT_EQ(true, true);
     }
 }

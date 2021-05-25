@@ -25,29 +25,29 @@ class DyLib
 private:
 #if defined(_WIN32) || defined(_WIN64)
     HINSTANCE m_handle{nullptr};
-    static HINSTANCE m_openLib(const char *path) noexcept
+    static HINSTANCE openLib(const char *path) noexcept
     {
         return LoadLibrary(TEXT(path));
     }
-    FARPROC m_getSymbol(const char *name) const noexcept
+    FARPROC getSymbol(const char *name) const noexcept
     {
         return GetProcAddress(m_handle, name);
     }
-    void m_closeLib() noexcept
+    void closeLib() noexcept
     {
         FreeLibrary(m_handle);
     }
 #else
     void *m_handle{nullptr};
-    static void *m_openLib(const char *path) noexcept
+    static void *openLib(const char *path) noexcept
     {
         return dlopen(path, RTLD_NOW | RTLD_LOCAL);
     }
-    void *m_getSymbol(const char *name) const noexcept
+    void *getSymbol(const char *name) const noexcept
     {
         return dlsym(m_handle, name);
     }
-    void m_closeLib() noexcept
+    void closeLib() noexcept
     {
         dlclose(m_handle);
     }
@@ -172,7 +172,7 @@ public:
         this->close();
         if (!path)
             throw handle_error("Error while loading the dynamic library : (nullptr)");
-        m_handle = m_openLib(path);
+        m_handle = openLib(path);
         if (!m_handle)
             throw handle_error("Error while loading the dynamic library : " + std::string(path));
     }
@@ -188,7 +188,7 @@ public:
         if (!ext)
             throw handle_error("Bad extension name : (nullptr)");
         path += ext;
-        m_handle = m_openLib(path.c_str());
+        m_handle = openLib(path.c_str());
         if (!m_handle)
             throw handle_error("Error while loading the dynamic library : " + path);
     }
@@ -200,7 +200,7 @@ public:
             throw handle_error("Bad extension name : (nullptr)");
         std::string path_ext(path);
         path_ext += ext;
-        m_handle = m_openLib(path_ext.c_str());
+        m_handle = openLib(path_ext.c_str());
         if (!m_handle)
             throw handle_error("Error while loading the dynamic library : " + path_ext);
     }
@@ -221,7 +221,7 @@ public:
             throw handle_error("Error : no dynamic library loaded");
         if (!name)
             throw symbol_error("Error while loading function : (nullptr)");
-        auto sym = m_getSymbol(name);
+        auto sym = getSymbol(name);
         if (!sym)
             throw symbol_error("Error while loading function : " + std::string(name));
         return reinterpret_cast<Type *>(sym);
@@ -248,7 +248,7 @@ public:
             throw handle_error("Error : no dynamic library loaded");
         if (!name)
             throw symbol_error("Error while loading global variable : (nullptr)");
-        auto sym = m_getSymbol(name);
+        auto sym = getSymbol(name);
         if (!sym)
             throw symbol_error("Error while loading global variable : " + std::string(name));
         return *reinterpret_cast<Type *>(sym);
@@ -266,7 +266,7 @@ public:
     void close() noexcept
     {
         if (m_handle)
-            m_closeLib();
+            closeLib();
         m_handle = nullptr;
     }
 };
