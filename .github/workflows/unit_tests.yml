@@ -25,7 +25,7 @@ jobs:
 
             - name: Generate Project Files
               working-directory: build
-              run: cmake .. -DCMAKE_BUILD_TYPE=Release -DCODE_COVERAGE=ON
+              run: cmake .. -DCMAKE_BUILD_TYPE=Release
 
             - name: Build Dynamic Library and Unit Tests
               working-directory: build

@@ -18,7 +18,7 @@ endif()
 
 include(BuildDynLib.cmake)
 
-if (UNIX)
+if (UNIX AND NOT APPLE)
     add_compile_options(--coverage)
 endif()
 
@@ -28,6 +28,12 @@ add_executable(unit_tests
         test/tests.cpp)
 
 target_include_directories(unit_tests PRIVATE .)
+
+if (UNIX AND NOT APPLE)
+    target_link_libraries(unit_tests PRIVATE
+            gcov
+    )
+endif()
 
 target_link_libraries(unit_tests PRIVATE
         dl
