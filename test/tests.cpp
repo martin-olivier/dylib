@@ -4,7 +4,7 @@
 
 #if defined(_WIN32) || defined (_WIN64)
     static constexpr auto prefix = "";
-#elif defined(__unix__)
+#elif defined(__APPLE__) || defined(__unix__)
     static constexpr auto prefix = "./lib";
 #else
     #error "Unit Tests: Unknown OS"
