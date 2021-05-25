@@ -8,29 +8,32 @@ defaults:
 
 jobs:
     run_unit_tests:
+
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [windows-latest, ubuntu-latest, macos-latest]
+
         name: Unit Tests
-        runs-on: ubuntu-latest
+        runs-on: ${{ matrix.os }}
 
         steps:
             - uses: actions/checkout@v2
 
-            - name: Install gtest and gcov
-              run: |
-                sudo apt-get update
-                sudo apt-get install -y libgtest-dev gcovr
+            - name: Create Build Directory
+              run: mkdir build
 
-            - name: Build Dynamic Library
-              working-directory: tests
-              run: g++ -std=c++11 -fPIC -shared myDynLib.cpp -o myDynLib.so
+            - name: Generate Project Files
+              working-directory: build
+              run: cmake .. -DCMAKE_BUILD_TYPE=Release -DCODE_COVERAGE=ON
 
-            - name: Build Unit Tests
-              working-directory: tests
-              run: g++ -std=c++11 tests.cpp -o tests_run -ldl -lgtest -lpthread -lgcov --coverage
+            - name: Build Dynamic Library and Unit Tests
+              working-directory: build
+              run: cmake --build .
 
             - name: Run Unit Tests
-              working-directory: tests
-              run: ./tests_run
+              run: ./unit_tests
 
             - name: Send Coverage to codecov.io
-              working-directory: tests
+              if: ${{ matrix.os == 'ubuntu-latest' }}
               run: bash <(curl -s https://codecov.io/bash)

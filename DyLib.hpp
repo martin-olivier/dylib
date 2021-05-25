@@ -66,11 +66,11 @@ public:
     #error "DyLib : Unknown OS"
 #endif
 
-/**
- *  This exception is thrown when the DyLib library encountered an error. 
- *
- *  @return error message by calling what() member function
- */
+    /**
+     *  This exception is thrown when the DyLib library encountered an error.
+     *
+     *  @return error message by calling what() member function
+     */
     class exception : public std::exception
     {
     protected:
@@ -80,41 +80,41 @@ public:
         [[nodiscard]] const char *what() const noexcept override {return m_error.c_str();};
     };
 
-/**
- *  This exception is thrown when the library failed to load 
- *  or the library encountered symbol resolution issues
- *
- *  @param message error message
- */
+    /**
+     *  This exception is thrown when the library failed to load
+     *  or the library encountered symbol resolution issues
+     *
+     *  @param message error message
+     */
     class handle_error : public exception
     {
     public:
         explicit handle_error(std::string &&message) : exception(std::move(message)) {};
     };
 
-/**
- *  This exception is thrown when the library failed to load a symbol. 
- *  This usually happens when you forgot to mark a library function or variable as extern "C"
- *
- *  @param message error message
- */
+    /**
+     *  This exception is thrown when the library failed to load a symbol.
+     *  This usually happens when you forgot to mark a library function or variable as extern "C"
+     *
+     *  @param message error message
+     */
     class symbol_error : public exception
     {
     public:
         explicit symbol_error(std::string &&message) : exception(std::move(message)) {};
     };
 
-/** Creates a dynamic library object
- */
+    /** Creates a dynamic library object
+     */
     DyLib() noexcept = default;
     DyLib(const DyLib&) = delete;
     DyLib& operator=(const DyLib&) = delete;
 
-/**
- *  Move constructor : move a dynamic library instance to build this object
- *
- *  @param other ref on rvalue of the other DyLib (use std::move)
- */
+    /**
+     *  Move constructor : move a dynamic library instance to build this object
+     *
+     *  @param other ref on rvalue of the other DyLib (use std::move)
+     */
     DyLib(DyLib &&other) noexcept
     {
         m_handle = other.m_handle;
@@ -131,12 +131,12 @@ public:
         return *this;
     }
 
-/**
- *  Creates a dynamic library instance
- *
- *  @param path path to the dynamic library to load
- *  @param ext use DyLib::extension to specify the os extension (optional parameter)
- */
+    /**
+     *  Creates a dynamic library instance
+     *
+     *  @param path path to the dynamic library to load
+     *  @param ext use DyLib::extension to specify the os extension (optional parameter)
+     */
     explicit DyLib(const char *path)
     {
         this->open(path);
@@ -162,13 +162,13 @@ public:
         this->close();
     }
 
-/**
- *  Load a dynamic library into the object. 
- *  If a dynamic library was already opened, it will be unload and replaced
- *
- *  @param path path to the dynamic library to load
- *  @param ext use DyLib::extension to specify the os extension (optional parameter)
- */
+    /**
+     *  Load a dynamic library into the object.
+     *  If a dynamic library was already opened, it will be unload and replaced
+     *
+     *  @param path path to the dynamic library to load
+     *  @param ext use DyLib::extension to specify the os extension (optional parameter)
+     */
     void open(const char *path)
     {
         this->close();
@@ -207,15 +207,15 @@ public:
             throw handle_error("Error while loading the dynamic library : " + path_ext);
     }
 
-/**
- *  Get a function from the dynamic library currently loaded in the object
- *
- *  @param template_Type the template argument must be the function prototype
- *  it must be the same pattern as the template of std::function
- *  @param name symbol name of the function to get from the dynamic library
- *
- *  @returns std::function<Type> that contains the function
- */
+    /**
+     *  Get a function from the dynamic library currently loaded in the object
+     *
+     *  @param template_Type the template argument must be the function prototype
+     *  it must be the same pattern as the template of std::function
+     *  @param name symbol name of the function to get from the dynamic library
+     *
+     *  @returns std::function<Type> that contains the function
+     */
     template<typename Type>
     std::function<Type> getFunction(const char *name) const
     {
@@ -235,14 +235,14 @@ public:
         return getFunction<Type>(name.c_str());
     }
 
-/**
- *  Get a global variable from the dynamic library currently loaded in the object
- *
- *  @param template_Type type of the global variable
- *  @param name name of the global variable to get from the dynamic library
- *
- *  @returns global variable of type <Type>
- */
+    /**
+     *  Get a global variable from the dynamic library currently loaded in the object
+     *
+     *  @param template_Type type of the global variable
+     *  @param name name of the global variable to get from the dynamic library
+     *
+     *  @returns global variable of type <Type>
+     */
     template<typename Type>
     Type getVariable(const char *name) const
     {
@@ -262,9 +262,9 @@ public:
         return getVariable<Type>(name.c_str());
     }
 
-/** Close the dynamic library currently loaded in the object. 
- *  This function will be automatically called by the class destructor
- */
+    /** Close the dynamic library currently loaded in the object.
+     *  This function will be automatically called by the class destructor
+     */
     void close() noexcept
     {
         if (m_handle)
