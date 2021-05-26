@@ -102,7 +102,8 @@ public:
         explicit symbol_error(std::string &&message) : exception(std::move(message)) {};
     };
 
-    /** Creates a dynamic library object
+    /**
+     *  Creates a dynamic library object
      */
     DyLib() noexcept = default;
     DyLib(const DyLib&) = delete;
@@ -260,7 +261,8 @@ public:
         return getVariable<Type>(name.c_str());
     }
 
-    /** Close the dynamic library currently loaded in the object.
+    /**
+     *  Close the dynamic library currently loaded in the object.
      *  This function will be automatically called by the class destructor
      */
     void close() noexcept

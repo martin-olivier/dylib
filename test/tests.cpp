@@ -17,12 +17,13 @@ class OSRedirector {
         std::ostream &_c;
 
     public:
+        OSRedirector(OSRedirector &) = delete;
+        OSRedirector &operator=(OSRedirector &) = delete;
+
         OSRedirector(std::ostream &c) : _c(c) {
             _backup = _c.rdbuf();
             _c.rdbuf(_oss.rdbuf());
         }
-
-        OSRedirector(OSRedirector &) = delete;
 
         ~OSRedirector() {
             _c.rdbuf(_backup);
@@ -32,8 +33,6 @@ class OSRedirector {
             _oss << std::flush;
             return _oss.str();
         }
-
-        OSRedirector &operator=(OSRedirector &) = delete;
 };
 
 TEST(exemple, exemple_test)
