@@ -2,14 +2,6 @@
 #include <utility>
 #include "DyLib.hpp"
 
-#if defined(_WIN32) || defined (_WIN64)
-    static constexpr auto prefix = "";
-#elif defined(__APPLE__) || defined(__unix__)
-    static constexpr auto prefix = "./lib";
-#else
-    #error "Unit Tests: Unknown OS"
-#endif
-
 class OSRedirector {
     private:
         std::ostringstream _oss{};
@@ -40,7 +32,7 @@ TEST(exemple, exemple_test)
     OSRedirector oss(std::cout);
 
     try {
-        DyLib lib(prefix + std::string("dynlib") + std::string(DyLib::extension));
+        DyLib lib(std::string("./dynlib") + std::string(DyLib::extension));
 
         auto adder = lib.getFunction<double(double, double)>("adder");
         EXPECT_EQ(adder(5, 10), 15);
@@ -77,8 +69,8 @@ TEST(dtor, mutiple_open_close)
         DyLib lib;
         lib.close();
         lib.close();
-        lib.open(prefix + std::string("dynlib") + std::string(DyLib::extension));
-        lib.open(prefix + std::string("dynlib") + std::string(DyLib::extension));
+        lib.open(std::string("./dynlib") + std::string(DyLib::extension));
+        lib.open(std::string("./dynlib") + std::string(DyLib::extension));
         EXPECT_EQ(lib.getFunction<double(double, double)>("adder")(1, 1), 2);
         lib.close();
         lib.close();
@@ -93,7 +85,7 @@ TEST(dtor, mutiple_open_close)
 TEST(getFunction, bad_handler)
 {
     try {
-        DyLib lib(prefix + std::string("dynlib") + std::string(DyLib::extension));
+        DyLib lib(std::string("./dynlib") + std::string(DyLib::extension));
         lib.close();
         auto adder = lib.getFunction<double(double, double)>("adder");
         EXPECT_EQ(true, false);
@@ -106,7 +98,7 @@ TEST(getFunction, bad_handler)
 TEST(getFunction, bad_symbol)
 {
     try {
-        DyLib lib(prefix + std::string("dynlib") + std::string(DyLib::extension));
+        DyLib lib(std::string("./dynlib") + std::string(DyLib::extension));
         auto adder = lib.getFunction<double(double, double)>("unknow");
         EXPECT_EQ(true, false);
     }
@@ -118,7 +110,7 @@ TEST(getFunction, bad_symbol)
 TEST(getVariable, bad_handler)
 {
     try {
-        DyLib lib(prefix + std::string("dynlib") + std::string(DyLib::extension));
+        DyLib lib(std::string("./dynlib") + std::string(DyLib::extension));
         lib.close();
         lib.getVariable<double>("pi_value");
         EXPECT_EQ(true, false);
@@ -131,7 +123,7 @@ TEST(getVariable, bad_handler)
 TEST(getVariable, bad_symbol)
 {
     try {
-        DyLib lib(prefix + std::string("dynlib") + std::string(DyLib::extension));
+        DyLib lib(std::string("./dynlib") + std::string(DyLib::extension));
         lib.getVariable<double>("unknow");
         EXPECT_EQ(true, false);
     }
@@ -150,7 +142,7 @@ TEST(bad_arguments, null_pointer)
         EXPECT_EQ(true, true);
     }
     try {
-        DyLib lib(prefix + std::string("dynlib") + std::string(DyLib::extension));
+        DyLib lib(std::string("./dynlib") + std::string(DyLib::extension));
         auto nothing = lib.getFunction<void()>(nullptr);
         EXPECT_EQ(true, false);
     }
@@ -158,7 +150,7 @@ TEST(bad_arguments, null_pointer)
         EXPECT_EQ(true, true);
     }
     try {
-        DyLib lib(prefix + std::string("dynlib") + std::string(DyLib::extension));
+        DyLib lib(std::string("./dynlib") + std::string(DyLib::extension));
         lib.getVariable<void *>(nullptr);
         EXPECT_EQ(true, false);
     }
@@ -177,7 +169,7 @@ TEST(bad_arguments, handle_and_ext)
         EXPECT_EQ(true, true);
     }
     try {
-        DyLib lib(prefix + std::string("dynlib"), nullptr);
+        DyLib lib(std::string("./dynlib"), nullptr);
         EXPECT_EQ(true, false);
     }
     catch (const DyLib::handle_error &) {
@@ -188,7 +180,7 @@ TEST(bad_arguments, handle_and_ext)
 TEST(os_detector, basic_test)
 {
     try {
-        DyLib lib(prefix + std::string("dynlib"), DyLib::extension);
+        DyLib lib(std::string("./dynlib"), DyLib::extension);
         auto pi = lib.getVariable<double>("pi_value");
         EXPECT_EQ(pi, 3.14159);
     }
@@ -200,7 +192,7 @@ TEST(os_detector, basic_test)
 TEST(std_move, basic_test)
 {
     try {
-        DyLib lib(prefix + std::string("dynlib"), DyLib::extension);
+        DyLib lib(std::string("./dynlib"), DyLib::extension);
         DyLib other(std::move(lib));
         auto pi = other.getVariable<double>("pi_value");
         EXPECT_EQ(pi, 3.14159);
