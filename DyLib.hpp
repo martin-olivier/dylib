@@ -105,7 +105,7 @@ public:
     /**
      *  Creates a dynamic library object
      */
-    DyLib() noexcept = default;
+    constexpr DyLib() noexcept = default;
     DyLib(const DyLib&) = delete;
     DyLib& operator=(const DyLib&) = delete;
 
