@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 
-include(FindGTest.cmake)
+include(cmake/FindGTest.cmake)
 
 if (UNIX)
     add_compile_options(-Wall -Wextra -Weffc++)
@@ -17,7 +17,7 @@ else ()
     add_compile_options(/W4)
 endif()
 
-include(BuildDynLib.cmake)
+include(cmake/BuildDynLib.cmake)
 
 if (UNIX AND NOT APPLE)
     add_compile_options(--coverage)
