@@ -12,16 +12,15 @@
 
 [![GitHub download](https://img.shields.io/github/downloads/tocola/DyLib/total?style=for-the-badge)](https://github.com/tocola/DyLib/releases/download/v1.4.2/DyLib.hpp)
 
-The goal of this C++ Library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.  
-
-Don't forget to leave a star 🌟
+The goal of this C++ Library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
 
 # Compatibility
 Works on `Linux`, `Windows`, `MacOS`
 
 # Installation
 
-Click [HERE](https://github.com/tocola/DyLib/releases/download/v1.4.2/DyLib.hpp) to download the DyLib header file
+Click [HERE](https://github.com/tocola/DyLib/releases/download/v1.4.2/DyLib.hpp) to download the DyLib header file  
+`Don't forget to leave a star 🌟`
 
 # Documentation
 
