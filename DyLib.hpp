@@ -2,7 +2,7 @@
  * \file DyLib.hpp
  * \brief Cross-platform Dynamic Library Loader
  * \author Martin Olivier
- * \version 1.4.2
+ * \version 1.5.0
  * 
  * MIT License
  * Copyright (c) 2021 Martin Olivier
@@ -58,14 +58,12 @@ public:
     static constexpr auto extension = ".dll";
 #elif defined(__APPLE__)
     static constexpr auto extension = ".dylib";
-#elif defined(__unix__)
-    static constexpr auto extension = ".so";
 #else
-    #error "DyLib : Unknown OS"
+    static constexpr auto extension = ".so";
 #endif
 
     /**
-     *  This exception is thrown when the DyLib library encountered an error.
+     *  This exception is thrown when the DyLib class encountered an error.
      *
      *  @return error message by calling what() member function
      */
@@ -74,8 +72,8 @@ public:
     protected:
         const std::string m_error;
     public:
-        explicit exception(std::string &&message) : m_error(std::move(message)) {};
-        const char *what() const noexcept override {return m_error.c_str();};
+        explicit exception(std::string &&message) : m_error(std::move(message)) {}
+        const char *what() const noexcept override {return m_error.c_str();}
     };
 
     /**
@@ -87,7 +85,7 @@ public:
     class handle_error : public exception
     {
     public:
-        explicit handle_error(std::string &&message) : exception(std::move(message)) {};
+        explicit handle_error(std::string &&message) : exception(std::move(message)) {}
     };
 
     /**
@@ -99,7 +97,7 @@ public:
     class symbol_error : public exception
     {
     public:
-        explicit symbol_error(std::string &&message) : exception(std::move(message)) {};
+        explicit symbol_error(std::string &&message) : exception(std::move(message)) {}
     };
 
     /**
@@ -209,14 +207,14 @@ public:
     /**
      *  Get a function from the dynamic library currently loaded in the object
      *
-     *  @param template_Type the template argument must be the function prototype
+     *  @param T the template argument must be the function prototype. 
      *  it must be the same pattern as the template of std::function
      *  @param name symbol name of the function to get from the dynamic library
      *
-     *  @returns std::function<Type> that contains the function
+     *  @returns std::function<T> that contains the function
      */
-    template<typename Type>
-    std::function<Type> getFunction(const char *name) const
+    template<typename T>
+    std::function<T> getFunction(const char *name) const
     {
         if (!m_handle)
             throw handle_error("Error : no dynamic library loaded");
@@ -225,25 +223,25 @@ public:
         auto sym = getSymbol(name);
         if (!sym)
             throw symbol_error("Error while loading function : " + std::string(name));
-        return reinterpret_cast<Type *>(sym);
+        return reinterpret_cast<T *>(sym);
     }
 
-    template<typename Type>
-    std::function<Type> getFunction(const std::string &name) const
+    template<typename T>
+    std::function<T> getFunction(const std::string &name) const
     {
-        return getFunction<Type>(name.c_str());
+        return getFunction<T>(name.c_str());
     }
 
     /**
      *  Get a global variable from the dynamic library currently loaded in the object
      *
-     *  @param template_Type type of the global variable
+     *  @param T type of the global variable
      *  @param name name of the global variable to get from the dynamic library
      *
-     *  @returns global variable of type <Type>
+     *  @returns global variable of type <T>
      */
-    template<typename Type>
-    Type getVariable(const char *name) const
+    template<typename T>
+    T getVariable(const char *name) const
     {
         if (!m_handle)
             throw handle_error("Error : no dynamic library loaded");
@@ -252,13 +250,13 @@ public:
         auto sym = getSymbol(name);
         if (!sym)
             throw symbol_error("Error while loading global variable : " + std::string(name));
-        return *reinterpret_cast<Type *>(sym);
+        return *reinterpret_cast<T *>(sym);
     }
 
-    template<typename Type>
-    Type getVariable(const std::string &name) const
+    template<typename T>
+    T getVariable(const std::string &name) const
     {
-        return getVariable<Type>(name.c_str());
+        return getVariable<T>(name.c_str());
     }
 
     /**
