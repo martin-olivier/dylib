@@ -20,7 +20,7 @@ Works on `Linux`, `Windows`, `MacOS`
 # Installation
 
 Click [HERE](https://github.com/tocola/DyLib/releases/download/v1.5.0/DyLib.hpp) to download the DyLib header file  
-`Don't forget to leave a star 🌟`
+`Don't forget to put a star on the project 🌟`
 
 # Documentation
 
