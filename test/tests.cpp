@@ -59,7 +59,7 @@ TEST(ctor, bad_library)
         EXPECT_EQ(true, false);
     }
     catch (const DyLib::exception &e) {
-        EXPECT_EQ(std::string(e.what()), "Error while loading the dynamic library : ./null.so");
+        EXPECT_EQ(std::string(e.what()), "error while loading the dynamic library : ./null.so");
     }
 }
 
