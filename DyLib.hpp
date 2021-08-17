@@ -2,7 +2,7 @@
  * \file DyLib.hpp
  * \brief Cross-platform Dynamic Library Loader
  * \author Martin Olivier
- * \version 1.5.0
+ * \version 1.5.1
  * 
  * MIT License
  * Copyright (c) 2021 Martin Olivier
@@ -121,7 +121,7 @@ public:
     DyLib& operator=(DyLib &&other) noexcept
     {
         if (this != &other) {
-            this->close();
+            close();
             m_handle = other.m_handle;
             other.m_handle = nullptr;
         }
@@ -136,27 +136,27 @@ public:
      */
     explicit DyLib(const char *path)
     {
-        this->open(path);
+        open(path);
     }
 
     explicit DyLib(const std::string &path)
     {
-        this->open(path.c_str());
+        open(path.c_str());
     }
 
     DyLib(std::string &&path, const char *ext)
     {
-        this->open(std::move(path), ext);
+        open(std::move(path), ext);
     }
 
     DyLib(const std::string &path, const char *ext)
     {
-        this->open(path, ext);
+        open(path, ext);
     }
 
     ~DyLib()
     {
-        this->close();
+        close();
     }
 
     /**
@@ -168,12 +168,12 @@ public:
      */
     void open(const char *path)
     {
-        this->close();
+        close();
         if (!path)
-            throw handle_error("Error while loading the dynamic library : (nullptr)");
+            throw handle_error("error while loading the dynamic library : (nullptr)");
         m_handle = openLib(path);
         if (!m_handle)
-            throw handle_error("Error while loading the dynamic library : " + std::string(path));
+            throw handle_error("error while loading the dynamic library : " + std::string(path));
     }
 
     void open(const std::string &path)
@@ -183,25 +183,25 @@ public:
 
     void open(std::string &&path, const char *ext)
     {
-        this->close();
+        close();
         if (!ext)
-            throw handle_error("Bad extension name : (nullptr)");
+            throw handle_error("bad extension name : (nullptr)");
         path += ext;
         m_handle = openLib(path.c_str());
         if (!m_handle)
-            throw handle_error("Error while loading the dynamic library : " + path);
+            throw handle_error("error while loading the dynamic library : " + path);
     }
 
     void open(const std::string &path, const char *ext)
     {
-        this->close();
+        close();
         if (!ext)
-            throw handle_error("Bad extension name : (nullptr)");
+            throw handle_error("bad extension name : (nullptr)");
         std::string path_ext(path);
         path_ext += ext;
         m_handle = openLib(path_ext.c_str());
         if (!m_handle)
-            throw handle_error("Error while loading the dynamic library : " + path_ext);
+            throw handle_error("error while loading the dynamic library : " + path_ext);
     }
 
     /**
@@ -217,12 +217,12 @@ public:
     std::function<T> getFunction(const char *name) const
     {
         if (!m_handle)
-            throw handle_error("Error : no dynamic library loaded");
+            throw handle_error("error : no dynamic library loaded");
         if (!name)
-            throw symbol_error("Error while loading function : (nullptr)");
+            throw symbol_error("error while loading function : (nullptr)");
         auto sym = getSymbol(name);
         if (!sym)
-            throw symbol_error("Error while loading function : " + std::string(name));
+            throw symbol_error("error while loading function : " + std::string(name));
         return reinterpret_cast<T *>(sym);
     }
 
@@ -244,12 +244,12 @@ public:
     T getVariable(const char *name) const
     {
         if (!m_handle)
-            throw handle_error("Error : no dynamic library loaded");
+            throw handle_error("error : no dynamic library loaded");
         if (!name)
-            throw symbol_error("Error while loading global variable : (nullptr)");
+            throw symbol_error("error while loading global variable : (nullptr)");
         auto sym = getSymbol(name);
         if (!sym)
-            throw symbol_error("Error while loading global variable : " + std::string(name));
+            throw symbol_error("error while loading global variable : " + std::string(name));
         return *reinterpret_cast<T *>(sym);
     }
 
@@ -265,8 +265,9 @@ public:
      */
     void close() noexcept
     {
-        if (m_handle)
+        if (m_handle) {
             closeLib();
-        m_handle = nullptr;
+            m_handle = nullptr;
+        }
     }
 };
