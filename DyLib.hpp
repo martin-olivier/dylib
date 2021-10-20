@@ -2,7 +2,7 @@
  * \file DyLib.hpp
  * \brief Cross-platform Dynamic Library Loader
  * \author Martin Olivier
- * \version 1.5.1
+ * \version 1.6.0
  * 
  * MIT License
  * Copyright (c) 2021 Martin Olivier
@@ -29,6 +29,14 @@ private:
     {
         return LoadLibrary(TEXT(path));
     }
+    static std::string getHandleError(const std::string &name)
+    {
+        return "error while loading dynamic library : " + name;
+    }
+    static std::string getSymbolError(const std::string &name)
+    {
+        return "error while loading symbol : " + name;
+    }
     FARPROC getSymbol(const char *name) const noexcept
     {
         return GetProcAddress(m_handle, name);
@@ -42,6 +50,20 @@ private:
     static void *openLib(const char *path) noexcept
     {
         return dlopen(path, RTLD_NOW | RTLD_LOCAL);
+    }
+    static std::string getHandleError(const std::string &name)
+    {
+        auto err = dlerror();
+        if (!err)
+            return "error while loading dynamic library : " + name;
+        return err;
+    }
+    static std::string getSymbolError(const std::string &name)
+    {
+        auto err = dlerror();
+        if (!err)
+            return "error while loading symbol : " + name;
+        return err;
     }
     void *getSymbol(const char *name) const noexcept
     {
@@ -77,7 +99,7 @@ public:
     };
 
     /**
-     *  This exception is thrown when the library failed to load
+     *  This exception is thrown when the library failed to load 
      *  or the library encountered symbol resolution issues
      *
      *  @param message error message
@@ -89,7 +111,7 @@ public:
     };
 
     /**
-     *  This exception is thrown when the library failed to load a symbol.
+     *  This exception is thrown when the library failed to load a symbol. 
      *  This usually happens when you forgot to mark a library function or variable as extern "C"
      *
      *  @param message error message
@@ -104,6 +126,7 @@ public:
      *  Creates a dynamic library object
      */
     constexpr DyLib() noexcept = default;
+
     DyLib(const DyLib&) = delete;
     DyLib& operator=(const DyLib&) = delete;
 
@@ -144,14 +167,9 @@ public:
         open(path.c_str());
     }
 
-    DyLib(std::string &&path, const char *ext)
+    DyLib(std::string path, const char *ext)
     {
         open(std::move(path), ext);
-    }
-
-    DyLib(const std::string &path, const char *ext)
-    {
-        open(path, ext);
     }
 
     ~DyLib()
@@ -170,10 +188,10 @@ public:
     {
         close();
         if (!path)
-            throw handle_error("error while loading the dynamic library : (nullptr)");
+            throw handle_error(getHandleError("(nullptr)"));
         m_handle = openLib(path);
         if (!m_handle)
-            throw handle_error("error while loading the dynamic library : " + std::string(path));
+            throw handle_error(getHandleError(path));
     }
 
     void open(const std::string &path)
@@ -181,27 +199,15 @@ public:
         open(path.c_str());
     }
 
-    void open(std::string &&path, const char *ext)
+    void open(std::string path, const char *ext)
     {
         close();
         if (!ext)
-            throw handle_error("bad extension name : (nullptr)");
+            throw handle_error(getHandleError("bad extension name : (nullptr)"));
         path += ext;
         m_handle = openLib(path.c_str());
         if (!m_handle)
-            throw handle_error("error while loading the dynamic library : " + path);
-    }
-
-    void open(const std::string &path, const char *ext)
-    {
-        close();
-        if (!ext)
-            throw handle_error("bad extension name : (nullptr)");
-        std::string path_ext(path);
-        path_ext += ext;
-        m_handle = openLib(path_ext.c_str());
-        if (!m_handle)
-            throw handle_error("error while loading the dynamic library : " + path_ext);
+            throw handle_error(getHandleError(path));
     }
 
     /**
@@ -219,10 +225,10 @@ public:
         if (!m_handle)
             throw handle_error("error : no dynamic library loaded");
         if (!name)
-            throw symbol_error("error while loading function : (nullptr)");
+            throw symbol_error(getSymbolError("(nullptr)"));
         auto sym = getSymbol(name);
         if (!sym)
-            throw symbol_error("error while loading function : " + std::string(name));
+            throw symbol_error(getSymbolError(name));
         return reinterpret_cast<T *>(sym);
     }
 
@@ -241,20 +247,20 @@ public:
      *  @returns global variable of type <T>
      */
     template<typename T>
-    T getVariable(const char *name) const
+    T &getVariable(const char *name) const
     {
         if (!m_handle)
             throw handle_error("error : no dynamic library loaded");
         if (!name)
-            throw symbol_error("error while loading global variable : (nullptr)");
+            throw symbol_error(getSymbolError("(nullptr)"));
         auto sym = getSymbol(name);
         if (!sym)
-            throw symbol_error("error while loading global variable : " + std::string(name));
+            throw symbol_error(getSymbolError(name));
         return *reinterpret_cast<T *>(sym);
     }
 
     template<typename T>
-    T getVariable(const std::string &name) const
+    T &getVariable(const std::string &name) const
     {
         return getVariable<T>(name.c_str());
     }
