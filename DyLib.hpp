@@ -43,13 +43,8 @@ private:
         if (!errorCode)
             return nullptr;
         static char msg[512];
-        const DWORD len = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                                       nullptr,
-                                       errorCode,
-                                       MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-                                       msg,
-                                       512,
-                                       nullptr);
+        auto lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
+        const DWORD len = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, errorCode, lang, msg, 512, nullptr);
         if (len > 0)
             return msg;
         return nullptr;
