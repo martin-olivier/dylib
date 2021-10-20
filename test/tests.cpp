@@ -59,6 +59,7 @@ TEST(ctor, bad_library)
         EXPECT_EQ(true, false);
     }
     catch (const DyLib::exception &e) {
+        e.what();
         EXPECT_EQ(true, true);
     }
 }
