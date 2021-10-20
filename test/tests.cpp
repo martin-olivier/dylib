@@ -45,7 +45,7 @@ TEST(exemple, exemple_test)
         EXPECT_EQ(pi_value, 3.14159);
 
         void *ptr = lib.getVariable<void *>("ptr");
-        EXPECT_EQ(ptr, nullptr);
+        EXPECT_EQ(ptr, (void *)1);
     }
     catch (const DyLib::exception &) {
         EXPECT_EQ(true, false);
@@ -59,7 +59,7 @@ TEST(ctor, bad_library)
         EXPECT_EQ(true, false);
     }
     catch (const DyLib::exception &e) {
-        EXPECT_EQ(std::string(e.what()), "error while loading the dynamic library : ./null.so");
+        EXPECT_EQ(true, true);
     }
 }
 
@@ -132,6 +132,28 @@ TEST(getVariable, bad_symbol)
     }
 }
 
+TEST(getVariable, alter_variables)
+{
+    try {
+        DyLib lib(std::string("./dynlib"), DyLib::extension);
+        DyLib other(std::move(lib));
+        auto &pi = other.getVariable<double>("pi_value");
+        EXPECT_EQ(pi, 3.14159);
+        pi = 123;
+        auto &pi1 = other.getVariable<double>("pi_value");
+        EXPECT_EQ(pi1, 123);
+
+        auto &ptr = other.getVariable<void *>("ptr");
+        EXPECT_EQ(ptr, (void *)1);
+        ptr = &lib;
+        auto &ptr1 = other.getVariable<void *>("ptr");
+        EXPECT_EQ(ptr1, &lib);
+    }
+    catch (const DyLib::handle_error &) {
+        EXPECT_EQ(true, false);
+    }
+}
+
 TEST(bad_arguments, null_pointer)
 {
     try {
@@ -198,7 +220,7 @@ TEST(std_move, basic_test)
         EXPECT_EQ(pi, 3.14159);
         lib = std::move(other);
         auto ptr = lib.getVariable<void *>("ptr");
-        EXPECT_EQ(ptr, nullptr);
+        EXPECT_EQ(ptr, (void *)1);
         other.getVariable<double>("pi_value");
         EXPECT_EQ(true, false);
     }

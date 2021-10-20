@@ -1,5 +1,5 @@
 # DyLib - Dynamic Library Loader for C++  
-[![DyLib](https://img.shields.io/badge/DyLib-v1.5.1-blue.svg)](https://github.com/tocola/DyLib/releases/tag/v1.5.1)
+[![DyLib](https://img.shields.io/badge/DyLib-v1.6.0-blue.svg)](https://github.com/tocola/DyLib/releases/tag/v1.6.0)
 [![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/tocola/DyLib/blob/main/LICENSE)
 [![CPP Version](https://img.shields.io/badge/C++-11/14/17/20-darkgreen.svg)](https://isocpp.org/)
 
@@ -10,7 +10,7 @@
 [![workflow](https://github.com/tocola/DyLib/actions/workflows/unit_tests.yml/badge.svg)](https://github.com/tocola/DyLib/actions/workflows/unit_tests.yml)
 [![codecov](https://codecov.io/gh/tocola/DyLib/branch/main/graph/badge.svg?token=4V6A9B7PII)](https://codecov.io/gh/tocola/DyLib)
 
-[![GitHub download](https://img.shields.io/github/downloads/tocola/DyLib/total?style=for-the-badge)](https://github.com/tocola/DyLib/releases/download/v1.5.1/DyLib.hpp)
+[![GitHub download](https://img.shields.io/github/downloads/tocola/DyLib/total?style=for-the-badge)](https://github.com/tocola/DyLib/releases/download/v1.6.0/DyLib.hpp)
 
 The goal of this C++ Library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
 
@@ -19,7 +19,7 @@ Works on `Linux`, `Windows`, `MacOS`
 
 # Installation
 
-Click [HERE](https://github.com/tocola/DyLib/releases/download/v1.5.1/DyLib.hpp) to download the DyLib header file  
+Click [HERE](https://github.com/tocola/DyLib/releases/download/v1.6.0/DyLib.hpp) to download the DyLib header file  
 `Don't forget to put a star on the project 🌟`
 
 # Documentation
@@ -120,7 +120,7 @@ Lets write some functions in our future dynamic library :
 
 extern "C" {
     double pi_value = 3.14159;
-    void *ptr = nullptr;
+    void *ptr = (void *)1;
 
     double adder(double a, double b)
     {
@@ -159,9 +159,9 @@ int main()
         double pi_value = lib.getVariable<double>("pi_value");
         std::cout << pi_value << std::endl;
 
-        void *ptr = lib.getVariable<void *>("ptr");
-        if (ptr == nullptr)
-            std::cout << "nullptr" << std::endl;
+        auto &ptr = lib.getVariable<void *>("ptr");
+        if (ptr == (void *)1)
+            std::cout << "1" << std::endl;
     }
     catch (const DyLib::exception &e) {
         std::cerr << e.what() << std::endl;
@@ -180,5 +180,5 @@ Output :
 15
 Hello!
 3.14159
-nullptr
+1
 ```
