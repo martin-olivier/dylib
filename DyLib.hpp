@@ -27,15 +27,7 @@ private:
     HINSTANCE m_handle{nullptr};
     static HINSTANCE openLib(const char *path) noexcept
     {
-        return LoadLibrary(TEXT(path));
-    }
-    static std::string getHandleError(const std::string &name)
-    {
-        return "error while loading dynamic library \"" + name + "\": error code " + std::to_string(GetLastError());
-    }
-    static std::string getSymbolError(const std::string &name)
-    {
-        return "error while loading symbol \"" + name + "\": error code " + std::to_string(GetLastError());
+        return LoadLibraryA(path);
     }
     FARPROC getSymbol(const char *name) const noexcept
     {
@@ -45,25 +37,28 @@ private:
     {
         FreeLibrary(m_handle);
     }
+    static char *getErrorMessage() noexcept
+    {
+        auto errorCode = GetLastError();
+        if (!errorCode)
+            return nullptr;
+        static char msg[512];
+        const DWORD len = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                                       nullptr,
+                                       errorCode,
+                                       MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+                                       msg,
+                                       512,
+                                       nullptr);
+        if (len > 0)
+            return msg;
+        return nullptr;
+    }
 #else
     void *m_handle{nullptr};
     static void *openLib(const char *path) noexcept
     {
         return dlopen(path, RTLD_NOW | RTLD_LOCAL);
-    }
-    static std::string getHandleError(const std::string &name)
-    {
-        auto err = dlerror();
-        if (!err)
-            return "error while loading dynamic library \"" + name + "\"";
-        return err;
-    }
-    static std::string getSymbolError(const std::string &name)
-    {
-        auto err = dlerror();
-        if (!err)
-            return "error while loading symbol \"" + name + "\"";
-        return err;
     }
     void *getSymbol(const char *name) const noexcept
     {
@@ -73,7 +68,26 @@ private:
     {
         dlclose(m_handle);
     }
+    static char *getErrorMessage() noexcept
+    {
+        return dlerror();
+    }
 #endif
+    static std::string getHandleError(const std::string &name)
+    {
+        auto err = getErrorMessage();
+        if (!err)
+            return "error while loading dynamic library \"" + name + "\"";
+        return err;
+    }
+    static std::string getSymbolError(const std::string &name)
+    {
+        auto err = getErrorMessage();
+        if (!err)
+            return "error while loading symbol \"" + name + "\"";
+        return err;
+    }
+
 public:
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -203,7 +217,7 @@ public:
     {
         close();
         if (!ext)
-            throw handle_error(getHandleError("bad extension name : (nullptr)"));
+            throw handle_error("bad extension : (nullptr)");
         path += ext;
         m_handle = openLib(path.c_str());
         if (!m_handle)
