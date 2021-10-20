@@ -31,11 +31,11 @@ private:
     }
     static std::string getHandleError(const std::string &name)
     {
-        return "error while loading dynamic library : " + name;
+        return "error while loading dynamic library \"" + name + "\": error code " + std::to_string(GetLastError());
     }
     static std::string getSymbolError(const std::string &name)
     {
-        return "error while loading symbol : " + name;
+        return "error while loading symbol \"" + name + "\": error code " + std::to_string(GetLastError());
     }
     FARPROC getSymbol(const char *name) const noexcept
     {
@@ -55,14 +55,14 @@ private:
     {
         auto err = dlerror();
         if (!err)
-            return "error while loading dynamic library : " + name;
+            return "error while loading dynamic library \"" + name + "\"";
         return err;
     }
     static std::string getSymbolError(const std::string &name)
     {
         auto err = dlerror();
         if (!err)
-            return "error while loading symbol : " + name;
+            return "error while loading symbol \"" + name + "\"";
         return err;
     }
     void *getSymbol(const char *name) const noexcept
