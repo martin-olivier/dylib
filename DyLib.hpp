@@ -39,12 +39,13 @@ private:
     }
     static char *getErrorMessage() noexcept
     {
+        constexpr size_t bufSize = 512;
         auto errorCode = GetLastError();
         if (!errorCode)
             return nullptr;
-        static char msg[512];
+        static char msg[bufSize];
         auto lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
-        const DWORD len = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, errorCode, lang, msg, 512, nullptr);
+        const DWORD len = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, errorCode, lang, msg, bufSize, nullptr);
         if (len > 0)
             return msg;
         return nullptr;
