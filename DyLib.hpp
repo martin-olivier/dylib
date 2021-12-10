@@ -2,7 +2,7 @@
  * \file DyLib.hpp
  * \brief Cross-platform Dynamic Library Loader
  * \author Martin Olivier
- * \version 1.6.1
+ * \version 1.6.2
  * 
  * MIT License
  * Copyright (c) 2021 Martin Olivier
