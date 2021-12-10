@@ -15,11 +15,16 @@
 #include <exception>
 #include <utility>
 #if defined(_WIN32) || defined(_WIN64)
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #else
 #include <dlfcn.h>
 #endif
 
+/**
+ *  The DyLib class can hold a dynamic library instance and interact with it
+ *  by getting its symbols like functions or global variables
+ */
 class DyLib
 {
 private:
@@ -135,7 +140,7 @@ public:
     /**
      *  Creates a dynamic library object
      */
-    constexpr DyLib() noexcept = default;
+    DyLib() noexcept = default;
 
     DyLib(const DyLib&) = delete;
     DyLib& operator=(const DyLib&) = delete;
