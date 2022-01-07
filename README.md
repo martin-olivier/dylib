@@ -20,7 +20,7 @@ Works on `Linux`, `Windows`, `MacOS`
 # Installation
 
 Click [HERE](https://github.com/tocola/DyLib/releases/download/v1.7.0/DyLib.hpp) to download the DyLib header file  
-`:star: Don't forget to put a star if you like the project ! :star:`
+`⭐ Don't forget to put a star if you like the project ! ⭐`
 
 # Documentation
 
@@ -183,13 +183,16 @@ Hello!
 3.14159
 1
 ```
-> :bulb: If you are using CMake to build a dynamic librariy, you can remove the prefix `lib` for macOS and linux to ensure the library has the same name on all platforms with this CMake rule :
+
+# Tips
+
+> If you are using CMake to build a dynamic librariy, you can remove the prefix `lib` for macOS and linux to ensure the library has the same name on all platforms with this CMake rule :
 
 ```cmake
 set_target_properties(target PROPERTIES PREFIX "")
 ```
-|          | With prefix       | Without prefix |
-| :------: | :---------------- | :------------- |
-| Linux    | `lib`malloc.so    | malloc.so      |
-| MacOS    | `lib`malloc.dylib | malloc.dylib   |
-| Windows  | malloc.dll        | malloc.dll     |
+|          | With prefix         | Without prefix |
+| :------: | :------------------ | :------------- |
+| Linux    | **lib**malloc.so    | malloc.so      |
+| MacOS    | **lib**malloc.dylib | malloc.dylib   |
+| Windows  | malloc.dll          | malloc.dll     |
