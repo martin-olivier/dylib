@@ -184,7 +184,7 @@ Hello!
 
 # Tips
 
-> If you are using CMake to build a dynamic library, you can remove the prefix `lib` for macOS and linux to ensure the library has the same name on all platforms with this CMake rule :
+> If you are using CMake to build a dynamic library, you can remove the prefix `lib` for macOS and linux to ensure the library has the same name on all platforms with this CMake rule:
 
 ```cmake
 set_target_properties(target PROPERTIES PREFIX "")
