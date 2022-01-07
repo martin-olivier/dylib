@@ -8,7 +8,6 @@ defaults:
 
 jobs:
     run_unit_tests:
-
         strategy:
             fail-fast: false
             matrix:
