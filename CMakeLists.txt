@@ -21,7 +21,7 @@ else ()
 endif()
 
 add_library(dynlib SHARED test/myDynLib.cpp)
-target_include_directories(dynlib PUBLIC .)
+target_include_directories(dynlib PRIVATE .)
 set_target_properties(dynlib PROPERTIES PREFIX "")
 
 if (UNIX AND NOT APPLE)
