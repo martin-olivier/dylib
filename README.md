@@ -127,7 +127,7 @@ DYLIB_API double adder(double a, double b)
     return a + b;
 }
 
-DYLIB_API void printHello()
+DYLIB_API void print_hello()
 {
     std::cout << "Hello!" << std::endl;
 }
@@ -152,7 +152,7 @@ int main()
         auto adder = lib.get_function<double(double, double)>("adder");
         std::cout << adder(5, 10) << std::endl;
 
-        auto printer = lib.get_function<void()>("printHello");
+        auto printer = lib.get_function<void()>("print_hello");
         printer();
 
         double pi_value = lib.get_variable<double>("pi_value");
