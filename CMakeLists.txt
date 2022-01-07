@@ -12,7 +12,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 option(WITH_TESTS "Enable testing" ON)
 
 if(WITH_TESTS)
-include(cmake/FindGTest.cmake)
+include(import/FetchGoogleTest.cmake)
 
 if (UNIX)
     add_compile_options(-Wall -Wextra -Weffc++)
@@ -20,7 +20,9 @@ else ()
     add_compile_options(/W4)
 endif()
 
-include(cmake/BuildDynLib.cmake)
+add_library(dynlib SHARED test/myDynLib.cpp)
+target_include_directories(dynlib PUBLIC .)
+set_target_properties(dynlib PROPERTIES PREFIX "")
 
 if (UNIX AND NOT APPLE)
     add_compile_options(--coverage)
