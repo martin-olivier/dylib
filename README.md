@@ -1,7 +1,7 @@
 # DyLib - Dynamic Library Loader for C++  
-[![DyLib](https://img.shields.io/badge/DyLib-v1.6.2-blue.svg)](https://github.com/tocola/DyLib/releases/tag/v1.6.2)
+[![DyLib](https://img.shields.io/badge/DyLib-v1.7.0-blue.svg)](https://github.com/tocola/DyLib/releases/tag/v1.7.0)
 [![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/tocola/DyLib/blob/main/LICENSE)
-[![CPP Version](https://img.shields.io/badge/C++-11/14/17/20-darkgreen.svg)](https://isocpp.org/)
+[![CPP Version](https://img.shields.io/badge/C++-11-darkgreen.svg)](https://isocpp.org/)
 
 [![GitHub watchers](https://img.shields.io/github/watchers/tocola/DyLib?style=social)](https://github.com/tocola/DyLib/watchers/)
 [![GitHub forks](https://img.shields.io/github/forks/tocola/DyLib?style=social)](https://github.com/tocola/DyLib/network/members/)
@@ -10,7 +10,7 @@
 [![workflow](https://github.com/tocola/DyLib/actions/workflows/unit_tests.yml/badge.svg)](https://github.com/tocola/DyLib/actions/workflows/unit_tests.yml)
 [![codecov](https://codecov.io/gh/tocola/DyLib/branch/main/graph/badge.svg?token=4V6A9B7PII)](https://codecov.io/gh/tocola/DyLib)
 
-[![GitHub download](https://img.shields.io/github/downloads/tocola/DyLib/total?style=for-the-badge)](https://github.com/tocola/DyLib/releases/download/v1.6.2/DyLib.hpp)
+[![GitHub download](https://img.shields.io/github/downloads/tocola/DyLib/total?style=for-the-badge)](https://github.com/tocola/DyLib/releases/download/v1.7.0/DyLib.hpp)
 
 The goal of this C++ Library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
 
@@ -19,8 +19,8 @@ Works on `Linux`, `Windows`, `MacOS`
 
 # Installation
 
-Click [HERE](https://github.com/tocola/DyLib/releases/download/v1.6.2/DyLib.hpp) to download the DyLib header file  
-`Don't forget to put a star on the project 🌟`
+Click [HERE](https://github.com/tocola/DyLib/releases/download/v1.7.0/DyLib.hpp) to download the DyLib header file  
+`:star: Don't forget to put a star if you like the project ! :star:`
 
 # Documentation
 
@@ -93,7 +93,7 @@ This exception is thrown when the library failed to load or the library encounte
 
 `symbol_error`  
 This exception is thrown when the library failed to load a symbol.
-This usualy happens when you forgot to mark a library function or variable as `extern "C"`  
+This usualy happens when you forgot to put `export_symbol` before a library function or variable  
 
 
 Those exceptions inherits from `DyLib::exception`
@@ -117,11 +117,12 @@ Lets write some functions in our future dynamic library :
 // myDynLib.cpp
 
 #include <iostream>
+#include "DyLib.hpp"
 
-extern "C" {
-    double pi_value = 3.14159;
-    void *ptr = (void *)1;
+export_symbol double pi_value = 3.14159;
+export_symbol void *ptr = (void *)1;
 
+export_symbol {
     double adder(double a, double b)
     {
         return a + b;
@@ -182,3 +183,13 @@ Hello!
 3.14159
 1
 ```
+> :bulb: If you are using CMake to build a dynamic librariy, you can remove the prefix `lib` for macOS and linux to ensure the library has the same name on all platforms with this CMake rule :
+
+```cmake
+set_target_properties(target PROPERTIES PREFIX "")
+```
+|          | With prefix       | Without prefix |
+| :------: | :---------------- | :------------- |
+| Linux    | `lib`malloc.so    | malloc.so      |
+| MacOS    | `lib`malloc.dylib | malloc.dylib   |
+| Windows  | malloc.dll        | malloc.dll     |
