@@ -1,5 +1,5 @@
 /**
- * \file DyLib.hpp
+ * \file dylib.hpp
  * \brief Cross-platform Dynamic Library Loader
  * \author Martin Olivier
  * \version 1.7.0
@@ -24,27 +24,27 @@
 #endif
 
 /**
- *  The DyLib class can hold a dynamic library instance and interact with it 
+ *  The dylib class can hold a dynamic library instance and interact with it 
  *  by getting its symbols like functions or global variables
  */
-class DyLib
+class dylib
 {
 private:
 #if defined(_WIN32) || defined(_WIN64)
     HINSTANCE m_handle{nullptr};
-    static HINSTANCE openLib(const char *path) noexcept
+    static HINSTANCE open_lib(const char *path) noexcept
     {
         return LoadLibraryA(path);
     }
-    FARPROC getSymbol(const char *name) const noexcept
+    FARPROC get_symbol(const char *name) const noexcept
     {
         return GetProcAddress(m_handle, name);
     }
-    void closeLib() noexcept
+    void close_lib() noexcept
     {
         FreeLibrary(m_handle);
     }
-    static char *getErrorMessage() noexcept
+    static char *get_error_message() noexcept
     {
         constexpr size_t bufSize = 512;
         auto errorCode = GetLastError();
@@ -59,33 +59,33 @@ private:
     }
 #else
     void *m_handle{nullptr};
-    static void *openLib(const char *path) noexcept
+    static void *open_lib(const char *path) noexcept
     {
         return dlopen(path, RTLD_NOW | RTLD_LOCAL);
     }
-    void *getSymbol(const char *name) const noexcept
+    void *get_symbol(const char *name) const noexcept
     {
         return dlsym(m_handle, name);
     }
-    void closeLib() noexcept
+    void close_lib() noexcept
     {
         dlclose(m_handle);
     }
-    static char *getErrorMessage() noexcept
+    static char *get_error_message() noexcept
     {
         return dlerror();
     }
 #endif
-    static std::string getHandleError(const std::string &name)
+    static std::string get_handle_error(const std::string &name)
     {
-        auto err = getErrorMessage();
+        auto err = get_error_message();
         if (!err)
             return "error while loading dynamic library \"" + name + "\"";
         return err;
     }
-    static std::string getSymbolError(const std::string &name)
+    static std::string get_symbol_error(const std::string &name)
     {
-        auto err = getErrorMessage();
+        auto err = get_error_message();
         if (!err)
             return "error while loading symbol \"" + name + "\"";
         return err;
@@ -102,7 +102,7 @@ public:
 #endif
 
     /**
-     *  This exception is thrown when the DyLib class encountered an error
+     *  This exception is thrown when the dylib class encountered an error
      *
      *  @return the error message by calling what() member function
      */
@@ -139,16 +139,16 @@ public:
         explicit symbol_error(std::string &&message) : exception(std::move(message)) {}
     };
 
-    DyLib(const DyLib&) = delete;
-    DyLib& operator=(const DyLib&) = delete;
+    dylib(const dylib&) = delete;
+    dylib& operator=(const dylib&) = delete;
 
-    DyLib(DyLib &&other) noexcept
+    dylib(dylib &&other) noexcept
     {
         m_handle = other.m_handle;
         other.m_handle = nullptr;
     }
 
-    DyLib& operator=(DyLib &&other) noexcept
+    dylib& operator=(dylib &&other) noexcept
     {
         if (this != &other) {
             close();
@@ -158,30 +158,30 @@ public:
         return *this;
     }
 
-    DyLib() noexcept = default;
+    dylib() noexcept = default;
 
     /**
      *  Creates a dynamic library instance
      *
      *  @param path path to the dynamic library to load
-     *  @param ext use DyLib::extension to specify the os extension (optional parameter)
+     *  @param ext use dylib::extension to specify the os extension (optional parameter)
      */
-    explicit DyLib(const char *path)
+    explicit dylib(const char *path)
     {
         open(path);
     }
 
-    explicit DyLib(const std::string &path)
+    explicit dylib(const std::string &path)
     {
         open(path.c_str());
     }
 
-    DyLib(std::string path, const char *ext)
+    dylib(std::string path, const char *ext)
     {
         open(std::move(path), ext);
     }
 
-    ~DyLib()
+    ~dylib()
     {
         close();
     }
@@ -191,16 +191,16 @@ public:
      *  If a dynamic library was already opened, it will be unload and replaced
      *
      *  @param path the path of the dynamic library to load
-     *  @param ext use DyLib::extension to detect the current os extension (optional parameter)
+     *  @param ext use dylib::extension to detect the current os extension (optional parameter)
      */
     void open(const char *path)
     {
         close();
         if (!path)
-            throw handle_error(getHandleError("(nullptr)"));
-        m_handle = openLib(path);
+            throw handle_error(get_handle_error("(nullptr)"));
+        m_handle = open_lib(path);
         if (!m_handle)
-            throw handle_error(getHandleError(path));
+            throw handle_error(get_handle_error(path));
     }
 
     void open(const std::string &path)
@@ -214,9 +214,9 @@ public:
         if (!ext)
             throw handle_error("bad extension : (nullptr)");
         path += ext;
-        m_handle = openLib(path.c_str());
+        m_handle = open_lib(path.c_str());
         if (!m_handle)
-            throw handle_error(getHandleError(path));
+            throw handle_error(get_handle_error(path));
     }
 
     /**
@@ -229,22 +229,22 @@ public:
      *  @returns std::function<T> that contains the function
      */
     template<typename T>
-    std::function<T> getFunction(const char *name) const
+    std::function<T> get_function(const char *name) const
     {
         if (!m_handle)
             throw handle_error("error : no dynamic library loaded");
         if (!name)
-            throw symbol_error(getSymbolError("(nullptr)"));
-        auto sym = getSymbol(name);
+            throw symbol_error(get_symbol_error("(nullptr)"));
+        auto sym = get_symbol(name);
         if (!sym)
-            throw symbol_error(getSymbolError(name));
+            throw symbol_error(get_symbol_error(name));
         return reinterpret_cast<T *>(sym);
     }
 
     template<typename T>
-    std::function<T> getFunction(const std::string &name) const
+    std::function<T> get_function(const std::string &name) const
     {
-        return getFunction<T>(name.c_str());
+        return get_function<T>(name.c_str());
     }
 
     /**
@@ -256,22 +256,22 @@ public:
      *  @returns global variable of type <T>
      */
     template<typename T>
-    T &getVariable(const char *name) const
+    T &get_variable(const char *name) const
     {
         if (!m_handle)
             throw handle_error("error : no dynamic library loaded");
         if (!name)
-            throw symbol_error(getSymbolError("(nullptr)"));
-        auto sym = getSymbol(name);
+            throw symbol_error(get_symbol_error("(nullptr)"));
+        auto sym = get_symbol(name);
         if (!sym)
-            throw symbol_error(getSymbolError(name));
+            throw symbol_error(get_symbol_error(name));
         return *reinterpret_cast<T *>(sym);
     }
 
     template<typename T>
-    T &getVariable(const std::string &name) const
+    T &get_variable(const std::string &name) const
     {
-        return getVariable<T>(name.c_str());
+        return get_variable<T>(name.c_str());
     }
 
     /**
@@ -281,7 +281,7 @@ public:
     void close() noexcept
     {
         if (m_handle) {
-            closeLib();
+            close_lib();
             m_handle = nullptr;
         }
     }

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(DyLib)
+project(dylib)
 
 set(CMAKE_VERBOSE_MAKEFILE off)
 
@@ -28,26 +28,25 @@ endif()
 
 enable_testing()
 
-add_executable(unit_tests
-        test/tests.cpp)
+add_executable(unit_tests test/tests.cpp)
 
 target_include_directories(unit_tests PRIVATE .)
 
 if (UNIX AND NOT APPLE)
     target_link_libraries(unit_tests PRIVATE
-            gcov
+        gcov
     )
 endif()
 
 if (UNIX)
     target_link_libraries(unit_tests PRIVATE
-            dl
-            pthread
+        dl
+        pthread
     )
 endif()
 
 target_link_libraries(unit_tests PRIVATE
-        gtest_main
+    gtest_main
 )
 
 include(GoogleTest)
@@ -57,7 +56,7 @@ gtest_discover_tests(unit_tests)
 add_dependencies(unit_tests dynlib)
 endif(WITH_TESTS)
 
-set(CPACK_PACKAGE_NAME "DyLib")
+set(CPACK_PACKAGE_NAME "dylib")
 set(CPACK_PACKAGE_VENDOR "Martin Olivier")
 set(CPACK_PACKAGE_VERSION_MAJOR "1")
 set(CPACK_PACKAGE_VERSION_MINOR "7")
@@ -72,7 +71,7 @@ include(CMakePackageConfigHelpers)
 
 set(PackagingTemplatesDir "${CMAKE_CURRENT_SOURCE_DIR}/packaging")
 
-set(LIB_NAME "DyLib")
+set(LIB_NAME "dylib")
 string(TOUPPER "${LIB_NAME}" LIB_NAME_UPPER)
 set(CMAKE_EXPORT_NAME "${LIB_NAME}")
 set(PKG_CONFIG_NAME "${LIB_NAME}")
@@ -123,7 +122,7 @@ set("CPACK_RPM_DEV_PACKAGE_SUGGESTS" "${CPACK_DEBIAN_DEV_PACKAGE_SUGGESTS}")
 
 set(CPACK_COMPONENTS_ALL "dev")
 
-set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/tocola/DyLib")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/tocola/dylib")
 set(CPACK_PACKAGE_MAINTAINER "${CPACK_PACKAGE_VENDOR}")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_MAINTAINER}")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")

@@ -1,16 +1,16 @@
-# DyLib - Dynamic Library Loader for C++  
-[![DyLib](https://img.shields.io/badge/DyLib-v1.7.0-blue.svg)](https://github.com/tocola/DyLib/releases/tag/v1.7.0)
-[![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/tocola/DyLib/blob/main/LICENSE)
+# Dylib - Dynamic Library Loader for C++  
+[![Dylib](https://img.shields.io/badge/Dylib-v1.7.0-blue.svg)](https://github.com/tocola/dylib/releases/tag/v1.7.0)
+[![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/tocola/dylib/blob/main/LICENSE)
 [![CPP Version](https://img.shields.io/badge/C++-11-darkgreen.svg)](https://isocpp.org/)
 
-[![GitHub watchers](https://img.shields.io/github/watchers/tocola/DyLib?style=social)](https://github.com/tocola/DyLib/watchers/)
-[![GitHub forks](https://img.shields.io/github/forks/tocola/DyLib?style=social)](https://github.com/tocola/DyLib/network/members/)
-[![GitHub stars](https://img.shields.io/github/stars/tocola/DyLib?style=social)](https://github.com/tocola/DyLib/stargazers/)
+[![GitHub watchers](https://img.shields.io/github/watchers/tocola/dylib?style=social)](https://github.com/tocola/dylib/watchers/)
+[![GitHub forks](https://img.shields.io/github/forks/tocola/dylib?style=social)](https://github.com/tocola/dylib/network/members/)
+[![GitHub stars](https://img.shields.io/github/stars/tocola/dylib?style=social)](https://github.com/tocola/dylib/stargazers/)
 
-[![workflow](https://github.com/tocola/DyLib/actions/workflows/unit_tests.yml/badge.svg)](https://github.com/tocola/DyLib/actions/workflows/unit_tests.yml)
-[![codecov](https://codecov.io/gh/tocola/DyLib/branch/main/graph/badge.svg?token=4V6A9B7PII)](https://codecov.io/gh/tocola/DyLib)
+[![workflow](https://github.com/tocola/dylib/actions/workflows/unit_tests.yml/badge.svg)](https://github.com/tocola/dylib/actions/workflows/unit_tests.yml)
+[![codecov](https://codecov.io/gh/tocola/dylib/branch/main/graph/badge.svg?token=4V6A9B7PII)](https://codecov.io/gh/tocola/dylib)
 
-[![GitHub download](https://img.shields.io/github/downloads/tocola/DyLib/total?style=for-the-badge)](https://github.com/tocola/DyLib/releases/download/v1.7.0/DyLib.hpp)
+[![GitHub download](https://img.shields.io/github/downloads/tocola/dylib/total?style=for-the-badge)](https://github.com/tocola/dylib/releases/download/v1.7.0/dylib.hpp)
 
 The goal of this C++ Library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
 
@@ -19,25 +19,25 @@ Works on `Linux`, `Windows`, `MacOS`
 
 # Installation
 
-Click [HERE](https://github.com/tocola/DyLib/releases/download/v1.7.0/DyLib.hpp) to download the DyLib header file  
+Click [HERE](https://github.com/tocola/dylib/releases/download/v1.7.0/dylib.hpp) to download the dylib header file  
 `⭐ Don't forget to put a star if you like the project!`
 
 # Documentation
 
-## DyLib Class
+## Dylib Class
 
-The DyLib class can load a dynamic library at runtime :
+The dylib class can load a dynamic library at runtime :
 ```c++
-DyLib lib("./myDynLib.so");
+dylib lib("./myDynLib.so");
 ```
-The DyLib class can detect the file extension of the actual os using `DyLib::extension` :
+The dylib class can detect the file extension of the actual os using `dylib::extension` :
 ```c++
-DyLib lib("./myDynLib", DyLib::extension);
+dylib lib("./myDynLib", dylib::extension);
 ```
 or
 ```c++
-DyLib lib;
-lib.open("./myDynLib", DyLib::extension);
+dylib lib;
+lib.open("./myDynLib", dylib::extension);
 ```
 
 ## Open and Close
@@ -50,7 +50,7 @@ Close the dynamic library currently loaded in the object. This function will be 
 ```c++
 // Load ./myDynLib.so
 
-DyLib lib("./myDynLib.so");
+dylib lib("./myDynLib.so");
 
 // Unload ./myDynLib.so and load ./otherLib.so
 
@@ -63,30 +63,30 @@ lib.close();
 
 ## Get a Function or a Variable
 
-`getFunction`  
+`get_function`  
 Get a function from the dynamic library currently loaded in the object.  
 
-`getVariable`  
+`get_variable`  
 Get a global variable from the dynamic library currently loaded in the object.
 ```c++
 // Load ./myDynLib.so
 
-DyLib lib("./myDynLib.so");
+dylib lib("./myDynLib.so");
 
 // Get the global function adder
 
-auto adder = lib.getFunction<double(double, double)>("adder");
+auto adder = lib.get_function<double(double, double)>("adder");
 
 // Get the global variable pi_value
 
-double pi = lib.getVariable<double>("pi_value");
+double pi = lib.get_variable<double>("pi_value");
 
 // Use the function adder with pi_value
 
 double result = adder(pi, pi);
 ```
 
-## DyLib Exceptions
+## Dylib Exceptions
 
 `handle_error`  
 This exception is thrown when the library failed to load or the library encountered symbol resolution issues  
@@ -96,14 +96,14 @@ This exception is thrown when the library failed to load a symbol.
 This usualy happens when you forgot to put `DYLIB_API` before a library function or variable  
 
 
-Those exceptions inherits from `DyLib::exception`
+Those exceptions inherits from `dylib::exception`
 ```c++
 try {
-    DyLib lib("./myDynLib.so");
-    double pi_value = lib.getVariable<double>("pi_value");
+    dylib lib("./myDynLib.so");
+    double pi_value = lib.get_variable<double>("pi_value");
     std::cout << pi_value << std::endl;
 }
-catch (const DyLib::exception &e) {
+catch (const dylib::exception &e) {
     std::cerr << e.what() << std::endl;
     return EXIT_FAILURE;
 }
@@ -117,7 +117,7 @@ Lets write some functions in our future dynamic library :
 // myDynLib.cpp
 
 #include <iostream>
-#include "DyLib.hpp"
+#include "dylib.hpp"
 
 DYLIB_API double pi_value = 3.14159;
 DYLIB_API void *ptr = (void *)1;
@@ -142,27 +142,27 @@ Lets try to access the functions and global variables of our dynamic library at 
 // main.cpp
 
 #include <iostream>
-#include "DyLib.hpp"
+#include "dylib.hpp"
 
 int main()
 {
     try {
-        DyLib lib("./myDynLib.so");
+        dylib lib("./myDynLib.so");
 
-        auto adder = lib.getFunction<double(double, double)>("adder");
+        auto adder = lib.get_function<double(double, double)>("adder");
         std::cout << adder(5, 10) << std::endl;
 
-        auto printer = lib.getFunction<void()>("printHello");
+        auto printer = lib.get_function<void()>("printHello");
         printer();
 
-        double pi_value = lib.getVariable<double>("pi_value");
+        double pi_value = lib.get_variable<double>("pi_value");
         std::cout << pi_value << std::endl;
 
-        auto &ptr = lib.getVariable<void *>("ptr");
+        auto &ptr = lib.get_variable<void *>("ptr");
         if (ptr == (void *)1)
             std::cout << "1" << std::endl;
     }
-    catch (const DyLib::exception &e) {
+    catch (const dylib::exception &e) {
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
     }
