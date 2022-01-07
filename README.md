@@ -93,7 +93,7 @@ This exception is thrown when the library failed to load or the library encounte
 
 `symbol_error`  
 This exception is thrown when the library failed to load a symbol.
-This usualy happens when you forgot to put `export_symbol` before a library function or variable  
+This usualy happens when you forgot to put `DYLIB_API` before a library function or variable  
 
 
 Those exceptions inherits from `DyLib::exception`
@@ -119,15 +119,15 @@ Lets write some functions in our future dynamic library :
 #include <iostream>
 #include "DyLib.hpp"
 
-export_symbol double pi_value = 3.14159;
-export_symbol void *ptr = (void *)1;
+DYLIB_API double pi_value = 3.14159;
+DYLIB_API void *ptr = (void *)1;
 
-export_symbol double adder(double a, double b)
+DYLIB_API double adder(double a, double b)
 {
     return a + b;
 }
 
-export_symbol void printHello()
+DYLIB_API void printHello()
 {
     std::cout << "Hello!" << std::endl;
 }

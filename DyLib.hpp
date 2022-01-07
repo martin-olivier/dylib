@@ -14,15 +14,12 @@
 #include <functional>
 #include <exception>
 #include <utility>
-#ifdef export_symbol
-#error DyLib: "export_symbol" is already defined
-#endif
 #if defined(_WIN32) || defined(_WIN64)
 #define WIN32_LEAN_AND_MEAN
-#define export_symbol extern "C" __declspec(dllexport)
+#define DYLIB_API extern "C" __declspec(dllexport)
 #include <windows.h>
 #else
-#define export_symbol extern "C"
+#define DYLIB_API extern "C"
 #include <dlfcn.h>
 #endif
 
@@ -132,7 +129,7 @@ public:
 
     /**
      *  This exception is thrown when the library failed to load a symbol. 
-     *  This usually happens when you forgot to put <export_symbol> before a library function or variable
+     *  This usually happens when you forgot to put <DYLIB_API> before a library function or variable
      *
      *  @param message the error message
      */
