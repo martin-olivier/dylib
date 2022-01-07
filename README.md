@@ -7,7 +7,7 @@
 [![GitHub forks](https://img.shields.io/github/forks/tocola/dylib?style=social)](https://github.com/tocola/dylib/network/members/)
 [![GitHub stars](https://img.shields.io/github/stars/tocola/dylib?style=social)](https://github.com/tocola/dylib/stargazers/)
 
-[![workflow](https://github.com/tocola/dylib/actions/workflows/unit_tests.yml/badge.svg)](https://github.com/tocola/dylib/actions/workflows/unit_tests.yml)
+[![workflow](https://github.com/tocola/dylib/actions/workflows/CI.yml/badge.svg)](https://github.com/tocola/dylib/actions/workflows/CI.yml)
 [![codecov](https://codecov.io/gh/tocola/dylib/branch/main/graph/badge.svg?token=4V6A9B7PII)](https://codecov.io/gh/tocola/dylib)
 
 [![GitHub download](https://img.shields.io/github/downloads/tocola/dylib/total?style=for-the-badge)](https://github.com/tocola/dylib/releases/download/v1.7.0/dylib.hpp)
