@@ -14,7 +14,7 @@ option(WITH_TESTS "Enable testing" ON)
 if(WITH_TESTS)
 include(import/FetchGoogleTest.cmake)
 
-if (UNIX)
+if(UNIX)
     add_compile_options(-Wall -Wextra -Weffc++)
 elseif(WIN32)
     add_compile_options(/W4)
@@ -30,12 +30,12 @@ add_executable(unit_tests test/tests.cpp)
 
 target_include_directories(unit_tests PRIVATE .)
 
-if (UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE)
     add_compile_options(--coverage)
 	target_link_libraries(unit_tests PRIVATE gcov)
 endif()
 
-if (UNIX)
+if(UNIX)
     target_link_libraries(unit_tests PRIVATE
         dl
         pthread
