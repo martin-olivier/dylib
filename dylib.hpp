@@ -15,9 +15,8 @@
 #include <exception>
 #include <utility>
 #if defined(_WIN32) || defined(_WIN64)
-#define WIN32_LEAN_AND_MEAN
 #define DYLIB_API extern "C" __declspec(dllexport)
-#include <windows.h>
+#include <libloaderapi.h>
 #else
 #define DYLIB_API extern "C"
 #include <dlfcn.h>

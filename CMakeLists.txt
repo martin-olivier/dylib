@@ -24,10 +24,6 @@ add_library(dynlib SHARED test/myDynLib.cpp)
 target_include_directories(dynlib PRIVATE .)
 set_target_properties(dynlib PROPERTIES PREFIX "")
 
-if (UNIX AND NOT APPLE)
-    add_compile_options(--coverage)
-endif()
-
 enable_testing()
 
 add_executable(unit_tests test/tests.cpp)
@@ -35,9 +31,8 @@ add_executable(unit_tests test/tests.cpp)
 target_include_directories(unit_tests PRIVATE .)
 
 if (UNIX AND NOT APPLE)
-    target_link_libraries(unit_tests PRIVATE
-        gcov
-    )
+    add_compile_options(--coverage)
+	target_link_libraries(unit_tests PRIVATE gcov)
 endif()
 
 if (UNIX)
@@ -47,9 +42,7 @@ if (UNIX)
     )
 endif()
 
-target_link_libraries(unit_tests PRIVATE
-    gtest_main
-)
+target_link_libraries(unit_tests PRIVATE gtest_main)
 
 include(GoogleTest)
 
