@@ -15,13 +15,13 @@ jobs:
                 include:
                   - os: windows-latest
                     bin: unit_tests.exe
-                    dir: Debug
+                    dir: ./Debug/
                   - os: ubuntu-latest
                     bin: unit_tests
-                    dir: .
+                    dir: ./
                   - os: macos-latest
                     bin: unit_tests
-                    dir: .
+                    dir: ./
 
         name: Unit Tests
         runs-on: ${{ matrix.os }}
@@ -36,8 +36,7 @@ jobs:
               run: cmake --build build/
 
             - name: Run Unit Tests
-              working-directory: ${{ matrix.dir }}
-              run: ./${{ matrix.bin }}
+              run: ${{ matrix.dir }}${{ matrix.bin }}
 
             - name: Send Coverage to codecov.io
               if: ${{ matrix.os == 'ubuntu-latest' }}
