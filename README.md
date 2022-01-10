@@ -1,7 +1,7 @@
 # Dylib - Dynamic Library Loader for C++  
 [![Dylib](https://img.shields.io/badge/Dylib-v1.7.0-blue.svg)](https://github.com/tocola/dylib/releases/tag/v1.7.0)
 [![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/tocola/dylib/blob/main/LICENSE)
-[![CPP Version](https://img.shields.io/badge/C++-11-darkgreen.svg)](https://isocpp.org/)
+[![CPP Version](https://img.shields.io/badge/C++-11_and_above-darkgreen.svg)](https://isocpp.org/)
 
 [![GitHub watchers](https://img.shields.io/github/watchers/tocola/dylib?style=social)](https://github.com/tocola/dylib/watchers/)
 [![GitHub forks](https://img.shields.io/github/forks/tocola/dylib?style=social)](https://github.com/tocola/dylib/network/members/)
