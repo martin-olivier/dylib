@@ -26,11 +26,11 @@ Click [HERE](https://github.com/tocola/dylib/releases/download/v1.7.0/dylib.hpp)
 
 ## Dylib Class
 
-The dylib class can load a dynamic library at runtime :
+The dylib class can load a dynamic library at runtime:
 ```c++
 dylib lib("./myDynLib.so");
 ```
-The dylib class can detect the file extension of the actual os using `dylib::extension` :
+The dylib class can detect the file extension of the actual os using `dylib::extension`:
 ```c++
 dylib lib("./myDynLib", dylib::extension);
 ```
@@ -89,10 +89,10 @@ double result = adder(pi, pi);
 ## Dylib Exceptions
 
 `handle_error`  
-This exception is thrown when the library failed to load or the library encountered symbol resolution issues  
+This exception is raised when the library failed to load or the library encountered symbol resolution issues  
 
 `symbol_error`  
-This exception is thrown when the library failed to load a symbol.
+This exception is raised when the library failed to load a symbol.
 This usually happens when you forgot to put `DYLIB_API` before a library function or variable  
 
 
@@ -112,7 +112,7 @@ return EXIT_SUCCESS;
 
 # Example
 
-Let's write some functions in our future dynamic library :
+Let's write some functions in our forthcoming dynamic library:
 ```c++
 // myDynLib.cpp
 
@@ -133,11 +133,11 @@ DYLIB_API void print_hello()
 }
 ```
 
-Let's build our code into a dynamic library :  
+Let's build our code into a dynamic library:  
 
 `g++ -std=c++11 -fPIC -shared myDynLib.cpp -o myDynLib.so`
 
-Let's try to access the functions and global variables of our dynamic library at runtime with this code :
+Let's try to access the functions and global variables of our dynamic library at runtime with this code:
 ```c++
 // main.cpp
 
@@ -170,11 +170,11 @@ int main()
 }
 ```
 
-Let's build and run our code :  
+Let's build and run our code:  
 `g++ -std=c++11 main.cpp -o out -ldl`  
 `./out`
 
-Output :
+Output:
 ```
 15
 Hello!
@@ -184,7 +184,7 @@ Hello!
 
 # Tips
 
-> If you are using CMake to build a dynamic library, you can remove the prefix `lib` for macOS and linux to ensure the library has the same name on all platforms with this CMake rule:
+> If you use CMake to build a dynamic library, running the below CMake rule will allow you to remove the prefix `lib` for macOS and linux, ensuring that the library shares the same name on all the different OS:
 
 ```cmake
 set_target_properties(target PROPERTIES PREFIX "")
@@ -192,8 +192,8 @@ set_target_properties(target PROPERTIES PREFIX "")
 
 ## Results
 
-|          | Without CMake rule    | With CMake rule |
-| :------: | :-------------------- | :-------------- |
-| Linux    | ***lib***malloc.so    | malloc.so       |
-| MacOS    | ***lib***malloc.dylib | malloc.dylib    |
-| Windows  | malloc.dll            | malloc.dll      |
+|         | Without CMake rule    | With CMake rule |
+|:-------:|:----------------------|:----------------|
+|  Linux  | ***lib***malloc.so    | malloc.so       |
+|  MacOS  | ***lib***malloc.dylib | malloc.dylib    |
+| Windows | malloc.dll            | malloc.dll      |
