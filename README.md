@@ -43,7 +43,7 @@ lib.open("./myDynLib", dylib::extension);
 ## Open and Close
 
 `open`  
-Load a dynamic library into the object. If a dynamic library was already opened, it will be unload and replaced  
+Load a dynamic library into the object. If a dynamic library was already opened, it will be unloaded and replaced  
 
 `close`  
 Close the dynamic library currently loaded in the object. This function will be automatically called by the class destructor
@@ -93,10 +93,10 @@ This exception is thrown when the library failed to load or the library encounte
 
 `symbol_error`  
 This exception is thrown when the library failed to load a symbol.
-This usualy happens when you forgot to put `DYLIB_API` before a library function or variable  
+This usually happens when you forgot to put `DYLIB_API` before a library function or variable  
 
 
-Those exceptions inherits from `dylib::exception`
+Those exceptions inherit from `dylib::exception`
 ```c++
 try {
     dylib lib("./myDynLib.so");
@@ -110,9 +110,9 @@ catch (const dylib::exception &e) {
 return EXIT_SUCCESS;
 ```
 
-# Exemple
+# Example
 
-Lets write some functions in our future dynamic library :
+Let's write some functions in our future dynamic library :
 ```c++
 // myDynLib.cpp
 
@@ -133,11 +133,11 @@ DYLIB_API void print_hello()
 }
 ```
 
-Lets build our code into a dynamic library :  
+Let's build our code into a dynamic library :  
 
 `g++ -std=c++11 -fPIC -shared myDynLib.cpp -o myDynLib.so`
 
-Lets try to access the functions and global variables of our dynamic library at runtime with this code :
+Let's try to access the functions and global variables of our dynamic library at runtime with this code :
 ```c++
 // main.cpp
 
@@ -170,7 +170,7 @@ int main()
 }
 ```
 
-Lets build and run our code :  
+Let's build and run our code :  
 `g++ -std=c++11 main.cpp -o out -ldl`  
 `./out`
 
