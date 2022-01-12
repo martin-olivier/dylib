@@ -1,16 +1,16 @@
 # Dylib - Dynamic Library Loader for C++  
-[![Dylib](https://img.shields.io/badge/Dylib-v1.7.0-blue.svg)](https://github.com/tocola/dylib/releases/tag/v1.7.0)
-[![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/tocola/dylib/blob/main/LICENSE)
+[![Dylib](https://img.shields.io/badge/Dylib-v1.7.0-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v1.7.0)
+[![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/martin-olivier/dylib/blob/main/LICENSE)
 [![CPP Version](https://img.shields.io/badge/C++-11_and_above-darkgreen.svg)](https://isocpp.org/)
 
-[![GitHub watchers](https://img.shields.io/github/watchers/tocola/dylib?style=social)](https://github.com/tocola/dylib/watchers/)
-[![GitHub forks](https://img.shields.io/github/forks/tocola/dylib?style=social)](https://github.com/tocola/dylib/network/members/)
-[![GitHub stars](https://img.shields.io/github/stars/tocola/dylib?style=social)](https://github.com/tocola/dylib/stargazers/)
+[![GitHub watchers](https://img.shields.io/github/watchers/martin-olivier/dylib?style=social)](https://github.com/martin-olivier/dylib/watchers/)
+[![GitHub forks](https://img.shields.io/github/forks/martin-olivier/dylib?style=social)](https://github.com/martin-olivier/dylib/network/members/)
+[![GitHub stars](https://img.shields.io/github/stars/martin-olivier/dylib?style=social)](https://github.com/martin-olivier/dylib/stargazers/)
 
-[![workflow](https://github.com/tocola/dylib/actions/workflows/CI.yml/badge.svg)](https://github.com/tocola/dylib/actions/workflows/CI.yml)
-[![codecov](https://codecov.io/gh/tocola/dylib/branch/main/graph/badge.svg?token=4V6A9B7PII)](https://codecov.io/gh/tocola/dylib)
+[![workflow](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml/badge.svg)](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml)
+[![codecov](https://codecov.io/gh/martin-olivier/dylib/branch/main/graph/badge.svg?token=4V6A9B7PII)](https://codecov.io/gh/martin-olivier/dylib)
 
-[![GitHub download](https://img.shields.io/github/downloads/tocola/dylib/total?style=for-the-badge)](https://github.com/tocola/dylib/releases/download/v1.7.0/dylib.hpp)
+[![GitHub download](https://img.shields.io/github/downloads/martin-olivier/dylib/total?style=for-the-badge)](https://github.com/martin-olivier/dylib/releases/download/v1.7.0/dylib.hpp)
 
 The goal of this C++ Library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
 
@@ -19,7 +19,7 @@ Works on `Linux`, `Windows`, `MacOS`
 
 # Installation
 
-Click [HERE](https://github.com/tocola/dylib/releases/download/v1.7.0/dylib.hpp) to download the dylib header file  
+Click [HERE](https://github.com/martin-olivier/dylib/releases/download/v1.7.0/dylib.hpp) to download the dylib header file  
 `⭐ Don't forget to put a star if you like the project!`
 
 # Documentation
