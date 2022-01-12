@@ -8,7 +8,6 @@ defaults:
 
 jobs:
     run_unit_tests:
-
         strategy:
             fail-fast: false
             matrix:
@@ -16,13 +15,13 @@ jobs:
                 include:
                   - os: windows-latest
                     bin: unit_tests.exe
-                    dir: Debug
+                    dir: ./Debug/
                   - os: ubuntu-latest
                     bin: unit_tests
-                    dir: .
+                    dir: ./
                   - os: macos-latest
                     bin: unit_tests
-                    dir: .
+                    dir: ./
 
         name: Unit Tests
         runs-on: ${{ matrix.os }}
@@ -30,20 +29,14 @@ jobs:
         steps:
             - uses: actions/checkout@v2
 
-            - name: Create Build Directory
-              run: mkdir build
-
             - name: Generate Project Files
-              working-directory: build
-              run: cmake -DCMAKE_BUILD_TYPE=Release ..
+              run: cmake . -B build/ -DCMAKE_BUILD_TYPE=Release
 
             - name: Build Dynamic Library and Unit Tests
-              working-directory: build
-              run: cmake --build .
+              run: cmake --build build/
 
             - name: Run Unit Tests
-              working-directory: ${{ matrix.dir }}
-              run: ./${{ matrix.bin }}
+              run: ${{ matrix.dir }}${{ matrix.bin }}
 
             - name: Send Coverage to codecov.io
               if: ${{ matrix.os == 'ubuntu-latest' }}
