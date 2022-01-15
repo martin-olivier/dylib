@@ -11,5 +11,5 @@ DYLIB_API double adder(double a, double b)
 
 DYLIB_API void print_hello()
 {
-    std::cout << "Hello!" << std::endl;
+    std::cout << "Hello" << std::endl;
 }

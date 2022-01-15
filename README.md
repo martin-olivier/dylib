@@ -28,16 +28,16 @@ Click [HERE](https://github.com/martin-olivier/dylib/releases/download/v1.7.0/dy
 
 The dylib class can load a dynamic library at runtime:
 ```c++
-dylib lib("./myDynLib.so");
+dylib lib("./dynamic_lib.so");
 ```
 The dylib class can detect the file extension of the actual os using `dylib::extension`:
 ```c++
-dylib lib("./myDynLib", dylib::extension);
+dylib lib("./dynamic_lib", dylib::extension);
 ```
 or
 ```c++
 dylib lib;
-lib.open("./myDynLib", dylib::extension);
+lib.open("./dynamic_lib", dylib::extension);
 ```
 
 ## Open and Close
@@ -48,15 +48,15 @@ Load a dynamic library into the object. If a dynamic library was already opened,
 `close`  
 Close the dynamic library currently loaded in the object. This function will be automatically called by the class destructor
 ```c++
-// Load ./myDynLib.so
+// Load ./dynamic_lib.so
 
-dylib lib("./myDynLib.so");
+dylib lib("./dynamic_lib.so");
 
-// Unload ./myDynLib.so and load ./otherLib.so
+// Unload ./dynamic_lib.so and load ./other_dynamic_lib.so
 
-lib.open("./otherLib.so");
+lib.open("./other_dynamic_lib.so");
 
-// Close ./otherLib.so
+// Close ./other_dynamic_lib.so
 
 lib.close();
 ```
@@ -69,9 +69,9 @@ Get a function from the dynamic library currently loaded in the object.
 `get_variable`  
 Get a global variable from the dynamic library currently loaded in the object.
 ```c++
-// Load ./myDynLib.so
+// Load ./dynamic_lib.so
 
-dylib lib("./myDynLib.so");
+dylib lib("./dynamic_lib.so");
 
 // Get the global function adder
 
@@ -99,7 +99,7 @@ This usually happens when you forgot to put `DYLIB_API` before a library functio
 Those exceptions inherit from `dylib::exception`
 ```c++
 try {
-    dylib lib("./myDynLib.so");
+    dylib lib("./dynamic_lib.so");
     double pi_value = lib.get_variable<double>("pi_value");
     std::cout << pi_value << std::endl;
 }
@@ -129,7 +129,7 @@ DYLIB_API double adder(double a, double b)
 
 DYLIB_API void print_hello()
 {
-    std::cout << "Hello!" << std::endl;
+    std::cout << "Hello" << std::endl;
 }
 ```
 
@@ -185,7 +185,7 @@ Let's run our binary:
 ```sh
 > ./bin
 15
-Hello!
+Hello
 3.14159
 1
 ```

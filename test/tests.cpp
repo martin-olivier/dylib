@@ -39,7 +39,7 @@ TEST(exemple, exemple_test)
 
         auto printer = lib.get_function<void()>("print_hello");
         printer();
-        EXPECT_EQ(oss.getContent(), "Hello!\n");
+        EXPECT_EQ(oss.getContent(), "Hello\n");
 
         double pi_value = lib.get_variable<double>("pi_value");
         EXPECT_EQ(pi_value, 3.14159);
