@@ -30,10 +30,10 @@ jobs:
             - uses: actions/checkout@v2
 
             - name: Generate Project Files
-              run: cmake . -B build/ -DCMAKE_BUILD_TYPE=Release
+              run: cmake . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON
 
             - name: Build Dynamic Library and Unit Tests
-              run: cmake --build build/
+              run: cmake --build build
 
             - name: Run Unit Tests
               run: ${{ matrix.dir }}${{ matrix.bin }}

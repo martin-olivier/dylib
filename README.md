@@ -114,7 +114,7 @@ return EXIT_SUCCESS;
 
 Let's write some functions in our forthcoming dynamic library:
 ```c++
-// myDynLib.cpp
+// dynamic_lib.cpp
 
 #include <iostream>
 #include "dylib.hpp"
@@ -135,7 +135,10 @@ DYLIB_API void print_hello()
 
 Let's build our code into a dynamic library:  
 
-`g++ -std=c++11 -fPIC -shared myDynLib.cpp -o myDynLib.so`
+```cmake
+add_library(dynamic_lib SHARED dynamic_lib.cpp)
+set_target_properties(dynamic_lib PROPERTIES PREFIX "")
+```
 
 Let's try to access the functions and global variables of our dynamic library at runtime with this code:
 ```c++
@@ -147,7 +150,7 @@ Let's try to access the functions and global variables of our dynamic library at
 int main()
 {
     try {
-        dylib lib("./myDynLib.so");
+        dylib lib("./dynamic_lib", dylib::extension);
 
         auto adder = lib.get_function<double(double, double)>("adder");
         std::cout << adder(5, 10) << std::endl;
@@ -170,12 +173,17 @@ int main()
 }
 ```
 
-Let's build and run our code:  
-`g++ -std=c++11 main.cpp -o out -ldl`  
-`./out`
-
-Output:
+Let's build our code:  
+```cmake
+add_executable(bin main.cpp)
+if(UNIX)
+    target_link_libraries(bin PRIVATE dl)
+endif()
 ```
+
+Let's run our binary:
+```sh
+> ./bin
 15
 Hello!
 3.14159
@@ -184,16 +192,24 @@ Hello!
 
 # Tips
 
+## Remove the lib prefix
+
 > If you use CMake to build a dynamic library, running the below CMake rule will allow you to remove the prefix `lib` for macOS and linux, ensuring that the library shares the same name on all the different OS:
 
 ```cmake
 set_target_properties(target PROPERTIES PREFIX "")
 ```
 
-## Results
-
 |         | Without CMake rule    | With CMake rule |
 |:-------:|:----------------------|:----------------|
 |  Linux  | ***lib***malloc.so    | malloc.so       |
 |  MacOS  | ***lib***malloc.dylib | malloc.dylib    |
 | Windows | malloc.dll            | malloc.dll      |
+
+## Build and run unit tests
+
+```sh
+cmake . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON
+cmake --build build
+./unit_tests
+```

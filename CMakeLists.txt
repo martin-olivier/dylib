@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 project(dylib)
 
-set(CMAKE_VERBOSE_MAKEFILE off)
+set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -9,9 +9,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 
-option(WITH_TESTS "Enable testing" ON)
+option(BUILD_TESTS "when set to ON, build unit tests" OFF)
 
-if(WITH_TESTS)
+if(BUILD_TESTS)
 include(import/FetchGoogleTest.cmake)
 
 if(UNIX)
@@ -49,7 +49,8 @@ include(GoogleTest)
 gtest_discover_tests(unit_tests)
 
 add_dependencies(unit_tests dynlib)
-endif(WITH_TESTS)
+
+else()
 
 set(CPACK_PACKAGE_NAME "dylib")
 set(CPACK_PACKAGE_VENDOR "Martin Olivier")
@@ -95,7 +96,6 @@ configure_package_config_file("${PackagingTemplatesDir}/CMakeConfig.cmake.in" "$
 	INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake"
 )
 
-
 set(CMAKE_CONFIG_VERSION_FILE_NAME "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CONFIG_VERSION_FILE_BASENAME}")
 write_basic_package_version_file(
 	"${CMAKE_CONFIG_VERSION_FILE_NAME}"
@@ -129,3 +129,5 @@ set(CPACK_NSIS_COMPONENT_INSTALL ON)
 set(CPACK_DEBIAN_COMPRESSION_TYPE "xz")
 
 include(CPack)
+
+endif()
