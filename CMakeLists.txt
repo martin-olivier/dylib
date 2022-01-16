@@ -11,6 +11,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 option(BUILD_TESTS "when set to ON, build unit tests" OFF)
 
+include_directories(.)
+
 if(BUILD_TESTS)
 include(import/FetchGoogleTest.cmake)
 
@@ -21,14 +23,11 @@ elseif(WIN32)
 endif()
 
 add_library(dynlib SHARED test/myDynLib.cpp)
-target_include_directories(dynlib PRIVATE .)
 set_target_properties(dynlib PROPERTIES PREFIX "")
 
 enable_testing()
 
 add_executable(unit_tests test/tests.cpp)
-
-target_include_directories(unit_tests PRIVATE .)
 
 if(UNIX AND NOT APPLE)
     add_compile_options(--coverage)
