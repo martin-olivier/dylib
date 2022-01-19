@@ -22,8 +22,8 @@ elseif(WIN32)
     add_compile_options(/W4)
 endif()
 
-add_library(dynlib SHARED test/myDynLib.cpp)
-set_target_properties(dynlib PROPERTIES PREFIX "")
+add_library(dynamic_lib SHARED test/dynamic_lib.cpp)
+set_target_properties(dynamic_lib PROPERTIES PREFIX "")
 
 enable_testing()
 
@@ -47,7 +47,7 @@ include(GoogleTest)
 
 gtest_discover_tests(unit_tests)
 
-add_dependencies(unit_tests dynlib)
+add_dependencies(unit_tests dynamic_lib)
 
 else()
 

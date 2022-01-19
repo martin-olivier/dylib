@@ -79,17 +79,23 @@ private:
 #endif
     static std::string get_handle_error(const std::string &name)
     {
+        std::string msg = "dylib: error while loading dynamic library \"" + name + "\"";
         auto err = get_error_message();
         if (!err)
-            return "error while loading dynamic library \"" + name + "\"";
-        return err;
+            return msg;
+        return msg + '\n' + err;
     }
     static std::string get_symbol_error(const std::string &name)
     {
+        std::string msg = "dylib: error while loading symbol \"" + name + "\"";
         auto err = get_error_message();
         if (!err)
-            return "error while loading symbol \"" + name + "\"";
-        return err;
+            return msg;
+        return msg + '\n' + err;
+    }
+    static std::string get_missing_handle_error(const std::string &name)
+    {
+        return "dylib: could not get symbol \"" + name + "\", no dynamic library loaded";
     }
 
 public:
@@ -211,13 +217,9 @@ public:
 
     void open(std::string path, const char *ext)
     {
-        close();
         if (!ext)
-            throw handle_error("bad extension : (nullptr)");
-        path += ext;
-        m_handle = open_lib(path.c_str());
-        if (!m_handle)
-            throw handle_error(get_handle_error(path));
+            throw handle_error("dylib: failed to load \"" + path + "\", bad extension: (nullptr)");
+        open(path + ext);
     }
 
     /**
@@ -233,7 +235,7 @@ public:
     std::function<T> get_function(const char *name) const
     {
         if (!m_handle)
-            throw handle_error("error : no dynamic library loaded");
+            throw handle_error(get_missing_handle_error(name));
         if (!name)
             throw symbol_error(get_symbol_error("(nullptr)"));
         auto sym = get_symbol(name);
@@ -260,7 +262,7 @@ public:
     T &get_variable(const char *name) const
     {
         if (!m_handle)
-            throw handle_error("error : no dynamic library loaded");
+            throw handle_error(get_missing_handle_error(name));
         if (!name)
             throw symbol_error(get_symbol_error("(nullptr)"));
         auto sym = get_symbol(name);
