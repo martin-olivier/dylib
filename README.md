@@ -209,7 +209,7 @@ set_target_properties(target PROPERTIES PREFIX "")
 ## Build and run unit tests
 
 ```sh
-cmake . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON
+cmake . -B build -DBUILD_TESTS=ON
 cmake --build build
 ./unit_tests
 ```
