@@ -1,5 +1,5 @@
 # Dylib - Dynamic Library Loader for C++  
-[![Dylib](https://img.shields.io/badge/Dylib-v1.7.0-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v1.7.0)
+[![Dylib](https://img.shields.io/badge/Dylib-v1.7.1-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v1.7.1)
 [![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/martin-olivier/dylib/blob/main/LICENSE)
 [![CPP Version](https://img.shields.io/badge/C++-11_and_above-darkgreen.svg)](https://isocpp.org/)
 
@@ -10,7 +10,7 @@
 [![workflow](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml/badge.svg)](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml)
 [![codecov](https://codecov.io/gh/martin-olivier/dylib/branch/main/graph/badge.svg?token=4V6A9B7PII)](https://codecov.io/gh/martin-olivier/dylib)
 
-[![GitHub download](https://img.shields.io/github/downloads/martin-olivier/dylib/total?style=for-the-badge)](https://github.com/martin-olivier/dylib/releases/download/v1.7.0/dylib.hpp)
+[![GitHub download](https://img.shields.io/github/downloads/martin-olivier/dylib/total?style=for-the-badge)](https://github.com/martin-olivier/dylib/releases/download/v1.7.1/dylib.hpp)
 
 The goal of this C++ Library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
 
@@ -19,7 +19,7 @@ Works on `Linux`, `Windows`, `MacOS`
 
 # Installation
 
-Click [HERE](https://github.com/martin-olivier/dylib/releases/download/v1.7.0/dylib.hpp) to download the dylib header file  
+Click [HERE](https://github.com/martin-olivier/dylib/releases/download/v1.7.1/dylib.hpp) to download the dylib header file  
 `⭐ Don't forget to put a star if you like the project!`
 
 # Documentation
@@ -28,16 +28,16 @@ Click [HERE](https://github.com/martin-olivier/dylib/releases/download/v1.7.0/dy
 
 The dylib class can load a dynamic library at runtime:
 ```c++
-dylib lib("./myDynLib.so");
+dylib lib("./dynamic_lib.so");
 ```
 The dylib class can detect the file extension of the actual os using `dylib::extension`:
 ```c++
-dylib lib("./myDynLib", dylib::extension);
+dylib lib("./dynamic_lib", dylib::extension);
 ```
 or
 ```c++
 dylib lib;
-lib.open("./myDynLib", dylib::extension);
+lib.open("./dynamic_lib", dylib::extension);
 ```
 
 ## Open and Close
@@ -48,15 +48,15 @@ Load a dynamic library into the object. If a dynamic library was already opened,
 `close`  
 Close the dynamic library currently loaded in the object. This function will be automatically called by the class destructor
 ```c++
-// Load ./myDynLib.so
+// Load ./dynamic_lib.so
 
-dylib lib("./myDynLib.so");
+dylib lib("./dynamic_lib.so");
 
-// Unload ./myDynLib.so and load ./otherLib.so
+// Unload ./dynamic_lib.so and load ./other_dynamic_lib.so
 
-lib.open("./otherLib.so");
+lib.open("./other_dynamic_lib.so");
 
-// Close ./otherLib.so
+// Close ./other_dynamic_lib.so
 
 lib.close();
 ```
@@ -69,9 +69,9 @@ Get a function from the dynamic library currently loaded in the object.
 `get_variable`  
 Get a global variable from the dynamic library currently loaded in the object.
 ```c++
-// Load ./myDynLib.so
+// Load ./dynamic_lib.so
 
-dylib lib("./myDynLib.so");
+dylib lib("./dynamic_lib.so");
 
 // Get the global function adder
 
@@ -99,7 +99,7 @@ This usually happens when you forgot to put `DYLIB_API` before a library functio
 Those exceptions inherit from `dylib::exception`
 ```c++
 try {
-    dylib lib("./myDynLib.so");
+    dylib lib("./dynamic_lib.so");
     double pi_value = lib.get_variable<double>("pi_value");
     std::cout << pi_value << std::endl;
 }
@@ -114,7 +114,7 @@ return EXIT_SUCCESS;
 
 Let's write some functions in our forthcoming dynamic library:
 ```c++
-// myDynLib.cpp
+// dynamic_lib.cpp
 
 #include <iostream>
 #include "dylib.hpp"
@@ -129,13 +129,16 @@ DYLIB_API double adder(double a, double b)
 
 DYLIB_API void print_hello()
 {
-    std::cout << "Hello!" << std::endl;
+    std::cout << "Hello" << std::endl;
 }
 ```
 
 Let's build our code into a dynamic library:  
 
-`g++ -std=c++11 -fPIC -shared myDynLib.cpp -o myDynLib.so`
+```cmake
+add_library(dynamic_lib SHARED dynamic_lib.cpp)
+set_target_properties(dynamic_lib PROPERTIES PREFIX "")
+```
 
 Let's try to access the functions and global variables of our dynamic library at runtime with this code:
 ```c++
@@ -147,7 +150,7 @@ Let's try to access the functions and global variables of our dynamic library at
 int main()
 {
     try {
-        dylib lib("./myDynLib.so");
+        dylib lib("./dynamic_lib", dylib::extension);
 
         auto adder = lib.get_function<double(double, double)>("adder");
         std::cout << adder(5, 10) << std::endl;
@@ -170,19 +173,26 @@ int main()
 }
 ```
 
-Let's build and run our code:  
-`g++ -std=c++11 main.cpp -o out -ldl`  
-`./out`
-
-Output:
+Let's build our code:  
+```cmake
+add_executable(bin main.cpp)
+if(UNIX)
+    target_link_libraries(bin PRIVATE dl)
+endif()
 ```
+
+Let's run our binary:
+```sh
+> ./bin
 15
-Hello!
+Hello
 3.14159
 1
 ```
 
 # Tips
+
+## Remove the lib prefix
 
 > If you use CMake to build a dynamic library, running the below CMake rule will allow you to remove the prefix `lib` for macOS and linux, ensuring that the library shares the same name on all the different OS:
 
@@ -190,10 +200,16 @@ Hello!
 set_target_properties(target PROPERTIES PREFIX "")
 ```
 
-## Results
-
 |         | Without CMake rule    | With CMake rule |
 |:-------:|:----------------------|:----------------|
 |  Linux  | ***lib***malloc.so    | malloc.so       |
 |  MacOS  | ***lib***malloc.dylib | malloc.dylib    |
 | Windows | malloc.dll            | malloc.dll      |
+
+## Build and run unit tests
+
+```sh
+cmake . -B build -DBUILD_TESTS=ON
+cmake --build build
+./unit_tests
+```
