@@ -136,6 +136,8 @@ DYLIB_API void print_hello()
 Let's build our code into a dynamic library:  
 
 ```cmake
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
+
 add_library(dynamic_lib SHARED dynamic_lib.cpp)
 set_target_properties(dynamic_lib PROPERTIES PREFIX "")
 ```
@@ -175,6 +177,8 @@ int main()
 
 Let's build our code:  
 ```cmake
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+
 add_executable(bin main.cpp)
 if(UNIX)
     target_link_libraries(bin PRIVATE dl)
