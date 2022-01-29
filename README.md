@@ -46,7 +46,7 @@ lib.open("./dynamic_lib", dylib::extension);
 Load a dynamic library into the object. If a dynamic library was already opened, it will be unloaded and replaced  
 
 `close`  
-Close the dynamic library currently loaded in the object. This function will be automatically called by the class destructor
+Unload the dynamic library currently loaded in the object. This function will be automatically called by the class destructor
 ```c++
 // Load ./dynamic_lib.so
 
@@ -56,7 +56,7 @@ dylib lib("./dynamic_lib.so");
 
 lib.open("./other_dynamic_lib.so");
 
-// Close ./other_dynamic_lib.so
+// Unload ./other_dynamic_lib.so
 
 lib.close();
 ```
