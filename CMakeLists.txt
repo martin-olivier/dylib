@@ -19,7 +19,7 @@ find_package(googletest QUIET)
 include(FetchContent)
 FetchContent_Declare(
     googletest
-    URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip
+    URL https://github.com/google/googletest/archive/refs/tags/release-1.11.0.zip
 )
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
@@ -30,12 +30,12 @@ elseif(WIN32)
     add_compile_options(/W4)
 endif()
 
-add_library(dynamic_lib SHARED test/dynamic_lib.cpp)
+add_library(dynamic_lib SHARED tests/dynamic_lib.cpp)
 set_target_properties(dynamic_lib PROPERTIES PREFIX "")
 
 enable_testing()
 
-add_executable(unit_tests test/tests.cpp)
+add_executable(unit_tests tests/tests.cpp)
 
 if(UNIX AND NOT APPLE)
     add_compile_options(--coverage)
