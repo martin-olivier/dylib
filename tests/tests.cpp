@@ -230,6 +230,31 @@ TEST(std_move, basic_test)
     }
 }
 
+TEST(has_symbol, basic_test)
+{
+    dylib lib;
+    EXPECT_FALSE(lib.has_symbol(nullptr));
+    EXPECT_FALSE(lib.has_symbol("pi_value"));
+    lib.open("./dynamic_lib", dylib::extension);
+    EXPECT_TRUE(lib.has_symbol("pi_value"));
+    EXPECT_FALSE(lib.has_symbol("bad_symbol"));
+    lib.close();
+    EXPECT_FALSE(lib.has_symbol("pi_value"));
+}
+
+TEST(operator_bool, basic_test)
+{
+    dylib lib;
+    EXPECT_FALSE(lib);
+    EXPECT_TRUE(!lib);
+    lib.open("./dynamic_lib", dylib::extension);
+    EXPECT_TRUE(lib);
+    EXPECT_FALSE(!lib);
+    lib.close();
+    EXPECT_TRUE(!lib);
+    EXPECT_FALSE(lib);
+}
+
 int main(int ac, char **av)
 {
     testing::InitGoogleTest(&ac, av);

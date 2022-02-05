@@ -2,7 +2,7 @@
  * \file dylib.hpp
  * \brief Cross-platform Dynamic Library Loader
  * \author Martin Olivier
- * \version 1.7.1
+ * \version 1.8.0
  * 
  * MIT License
  * Copyright (c) 2022 Martin Olivier
@@ -93,9 +93,9 @@ private:
             return msg;
         return msg + '\n' + err;
     }
-    static std::string get_missing_handle_error(const std::string &name)
+    static std::string get_missing_handle_error(const std::string &symbol_name)
     {
-        return "dylib: could not get symbol \"" + name + "\", no dynamic library loaded";
+        return "dylib: could not get symbol \"" + symbol_name + "\", no dynamic library currently loaded";
     }
 
 public:
@@ -229,7 +229,7 @@ public:
      *  it must be the same pattern as the template of std::function
      *  @param name the symbol name of the function to get from the dynamic library
      *
-     *  @returns std::function<T> that contains the function
+     *  @return std::function<T> that contains the function
      */
     template<typename T>
     std::function<T> get_function(const char *name) const
@@ -256,7 +256,7 @@ public:
      *  @param T type of the global variable
      *  @param name the name of the global variable to get from the dynamic library
      *
-     *  @returns global variable of type <T>
+     *  @return global variable of type <T>
      */
     template<typename T>
     T &get_variable(const char *name) const
@@ -275,6 +275,36 @@ public:
     T &get_variable(const std::string &name) const
     {
         return get_variable<T>(name.c_str());
+    }
+
+    /**
+     *  Check if a symbol exists in the currently loaded dynamic library. 
+     *  This method will return false if no dynamic library is currently loaded or if the symbol equals nullptr
+     *
+     *  @param symbol the symbol name to look for
+     *
+     *  @return true if the symbol exists in the dynamic library, false otherwise
+     */
+    bool has_symbol(const char *symbol) const noexcept
+    {
+        if (!m_handle)
+            return false;
+        if (!symbol)
+            return false;
+        return get_symbol(symbol) != nullptr;
+    }
+
+    bool has_symbol(const std::string &symbol) const noexcept
+    {
+        return has_symbol(symbol.c_str());
+    }
+
+    /**
+     *  @return true if a dynamic library is currently loaded in the object, false otherwise
+     */
+    operator bool() const noexcept
+    {
+        return m_handle != nullptr;
     }
 
     /**
