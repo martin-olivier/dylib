@@ -1,6 +1,6 @@
 name: CI
 
-on: [push]
+on: [push, pull_request]
 
 defaults:
     run:
@@ -41,3 +41,25 @@ jobs:
             - name: Send Coverage to codecov.io
               if: ${{ matrix.os == 'ubuntu-latest' }}
               run: bash <(curl -s https://codecov.io/bash)
+
+    memory_check:
+        name: memory check
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: Update Packages
+              run: sudo apt update
+
+            - name: Install Valgrind
+              run: sudo apt install -y valgrind
+
+            - name: Generate Tests Build File
+              run: cmake . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
+
+            - name: Build Unit Tests
+              run: cmake --build build
+
+            - name: Run Unit Tests with Valgrind
+              run: valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./unit_tests
