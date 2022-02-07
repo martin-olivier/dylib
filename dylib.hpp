@@ -2,7 +2,7 @@
  * \file dylib.hpp
  * \brief Cross-platform Dynamic Library Loader
  * \author Martin Olivier
- * \version 1.8.0
+ * \version 1.8.1
  * 
  * MIT License
  * Copyright (c) 2022 Martin Olivier
@@ -47,13 +47,13 @@ private:
     }
     static char *get_error_message() noexcept
     {
-        constexpr size_t bufSize = 512;
-        auto errorCode = GetLastError();
-        if (!errorCode)
+        constexpr size_t buf_size = 512;
+        auto error_code = GetLastError();
+        if (!error_code)
             return nullptr;
-        static char msg[bufSize];
+        static char msg[buf_size];
         auto lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
-        const DWORD len = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, errorCode, lang, msg, bufSize, nullptr);
+        const DWORD len = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, lang, msg, buf_size, nullptr);
         if (len > 0)
             return msg;
         return nullptr;
@@ -149,9 +149,8 @@ public:
     dylib(const dylib&) = delete;
     dylib& operator=(const dylib&) = delete;
 
-    dylib(dylib &&other) noexcept
+    dylib(dylib &&other) noexcept : m_handle(other.m_handle)
     {
-        m_handle = other.m_handle;
         other.m_handle = nullptr;
     }
 
@@ -234,10 +233,10 @@ public:
     template<typename T>
     std::function<T> get_function(const char *name) const
     {
-        if (!m_handle)
-            throw handle_error(get_missing_handle_error(name));
         if (!name)
             throw symbol_error(get_symbol_error("(nullptr)"));
+        if (!m_handle)
+            throw handle_error(get_missing_handle_error(name));
         auto sym = get_symbol(name);
         if (!sym)
             throw symbol_error(get_symbol_error(name));
@@ -261,10 +260,10 @@ public:
     template<typename T>
     T &get_variable(const char *name) const
     {
-        if (!m_handle)
-            throw handle_error(get_missing_handle_error(name));
         if (!name)
             throw symbol_error(get_symbol_error("(nullptr)"));
+        if (!m_handle)
+            throw handle_error(get_missing_handle_error(name));
         auto sym = get_symbol(name);
         if (!sym)
             throw symbol_error(get_symbol_error(name));
@@ -287,9 +286,9 @@ public:
      */
     bool has_symbol(const char *symbol) const noexcept
     {
-        if (!m_handle)
-            return false;
         if (!symbol)
+            return false;
+        if (!m_handle)
             return false;
         return get_symbol(symbol) != nullptr;
     }

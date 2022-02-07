@@ -64,6 +64,12 @@ TEST(ctor, bad_library)
     }
 }
 
+TEST(multiple_handles, basic_test)
+{
+    dylib libA("./dynamic_lib", dylib::extension);
+    dylib libB("./dynamic_lib", dylib::extension);
+}
+
 TEST(dtor, mutiple_open_close)
 {
     try {
@@ -166,7 +172,7 @@ TEST(bad_arguments, null_pointer)
     }
     try {
         dylib lib(std::string("./dynamic_lib") + std::string(dylib::extension));
-        auto nothing = lib.get_function<void()>(nullptr);
+        lib.get_function<void()>(nullptr);
         EXPECT_EQ(true, false);
     }
     catch (const dylib::symbol_error &) {
@@ -174,6 +180,22 @@ TEST(bad_arguments, null_pointer)
     }
     try {
         dylib lib(std::string("./dynamic_lib") + std::string(dylib::extension));
+        lib.get_variable<void *>(nullptr);
+        EXPECT_EQ(true, false);
+    }
+    catch (const dylib::symbol_error &) {
+        EXPECT_EQ(true, true);
+    }
+    try {
+        dylib lib;
+        lib.get_function<void()>(nullptr);
+        EXPECT_EQ(true, false);
+    }
+    catch (const dylib::symbol_error &) {
+        EXPECT_EQ(true, true);
+    }
+    try {
+        dylib lib;
         lib.get_variable<void *>(nullptr);
         EXPECT_EQ(true, false);
     }
