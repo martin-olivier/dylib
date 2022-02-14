@@ -12,7 +12,7 @@
 
 [![GitHub download](https://img.shields.io/github/downloads/martin-olivier/dylib/total?style=for-the-badge)](https://github.com/martin-olivier/dylib/releases/download/v1.8.1/dylib.hpp)
 
-The goal of this C++ Library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
+The goal of this C++ library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
 
 # Compatibility
 Works on `Linux`, `Windows`, `MacOS`

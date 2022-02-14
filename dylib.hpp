@@ -1,6 +1,6 @@
 /**
  * \file dylib.hpp
- * \brief Cross-platform Dynamic Library Loader
+ * \brief C++ cross-platform dynamic library loader
  * \author Martin Olivier
  * \version 1.8.1
  * 
