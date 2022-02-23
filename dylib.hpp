@@ -234,16 +234,19 @@ public:
     }
 
     /**
+     *  @return the dynamic library handle
+     */
+    native_handle_type native_handle() noexcept
+    {
+        return m_handle;
+    }
+
+    /**
      *  @return true if a dynamic library is currently loaded in the object, false otherwise
      */
     operator bool() const noexcept
     {
         return m_handle != nullptr;
-    }
-
-    native_handle_type native_handle() noexcept
-    {
-        return m_handle;
     }
 
     /**

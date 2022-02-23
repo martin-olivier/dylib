@@ -55,7 +55,7 @@ dylib lib;
 lib.open("./dynamic_lib", dylib::extension);
 ```
 
-## Open and Close
+## Open and close
 
 `open`  
 Load a dynamic library into the object. If a dynamic library was already opened, it will be unloaded and replaced  
@@ -76,16 +76,13 @@ lib.open("./other_dynamic_lib.so");
 lib.close();
 ```
 
-## Get a Function or a Variable
-
-`has_symbol`  
-Check if a symbol exists in the currently loaded dynamic library.  
+## Get a function or a variable 
 
 `get_function`  
-Get a function from the dynamic library currently loaded in the object.  
+Get a function from the dynamic library currently loaded in the object  
 
 `get_variable`  
-Get a global variable from the dynamic library currently loaded in the object.
+Get a global variable from the dynamic library currently loaded in the object
 ```c++
 // Load ./dynamic_lib.so
 
@@ -104,7 +101,34 @@ double pi = lib.get_variable<double>("pi_value");
 double result = adder(pi, pi);
 ```
 
-## Dylib Exceptions
+## Miscellaneous tools
+
+`has_symbol`  
+Check if a symbol exists in the currently loaded dynamic library  
+
+`native_handle`  
+Returns the dynamic library handle  
+
+`operator bool`
+Returns true if a dynamic library is currently loaded in the object, false otherwise  
+```c++
+void example(dylib &lib)
+{
+    if (lib)
+        std::cout << "Something is curently loaded in the dylib object" << std::endl;
+    if (!lib)
+        std::cout << "Nothing is curently loaded in the dylib object" << std::endl;
+
+    if (lib.has_symbol("GetModule"))
+        std::cout << "GetModule symbol has been found" << std::endl;
+    else
+        std::cout << "Could not found GetModule symbol" << std::endl;
+
+    dylib::native_handle_type handle = lib.native_handle();
+}
+```
+
+## Dylib exceptions
 
 `handle_error`  
 This exception is raised when the library failed to load or the library encountered symbol resolution issues  
