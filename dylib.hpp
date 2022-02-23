@@ -1,8 +1,9 @@
 /**
  * \file dylib.hpp
  * \brief C++ cross-platform dynamic library loader
+ * \link https://github.com/martin-olivier/dylib
  * \author Martin Olivier
- * \version 1.8.1
+ * \version 1.8.2
  * 
  * MIT License
  * Copyright (c) 2022 Martin Olivier
@@ -30,86 +31,20 @@
  */
 class dylib
 {
-private:
-#if defined(_WIN32) || defined(_WIN64)
-    HINSTANCE m_handle{nullptr};
-    static HINSTANCE open_lib(const char *path) noexcept
-    {
-        return LoadLibraryA(path);
-    }
-    FARPROC get_symbol(const char *name) const noexcept
-    {
-        return GetProcAddress(m_handle, name);
-    }
-    void close_lib() noexcept
-    {
-        FreeLibrary(m_handle);
-    }
-    static char *get_error_message() noexcept
-    {
-        constexpr size_t buf_size = 512;
-        auto error_code = GetLastError();
-        if (!error_code)
-            return nullptr;
-        static char msg[buf_size];
-        auto lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
-        const DWORD len = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, lang, msg, buf_size, nullptr);
-        if (len > 0)
-            return msg;
-        return nullptr;
-    }
-#else
-    void *m_handle{nullptr};
-    static void *open_lib(const char *path) noexcept
-    {
-        return dlopen(path, RTLD_NOW | RTLD_LOCAL);
-    }
-    void *get_symbol(const char *name) const noexcept
-    {
-        return dlsym(m_handle, name);
-    }
-    void close_lib() noexcept
-    {
-        dlclose(m_handle);
-    }
-    static char *get_error_message() noexcept
-    {
-        return dlerror();
-    }
-#endif
-    static std::string get_handle_error(const std::string &name)
-    {
-        std::string msg = "dylib: error while loading dynamic library \"" + name + "\"";
-        auto err = get_error_message();
-        if (!err)
-            return msg;
-        return msg + '\n' + err;
-    }
-    static std::string get_symbol_error(const std::string &name)
-    {
-        std::string msg = "dylib: error while loading symbol \"" + name + "\"";
-        auto err = get_error_message();
-        if (!err)
-            return msg;
-        return msg + '\n' + err;
-    }
-    static std::string get_missing_handle_error(const std::string &symbol_name)
-    {
-        return "dylib: could not get symbol \"" + symbol_name + "\", no dynamic library currently loaded";
-    }
-
 public:
-
 #if defined(_WIN32) || defined(_WIN64)
-    static constexpr auto extension = ".dll";
+    static constexpr const char *extension = ".dll";
+    using native_handle_type = HINSTANCE;
 #elif defined(__APPLE__)
-    static constexpr auto extension = ".dylib";
+    static constexpr const char *extension = ".dylib";
+    using native_handle_type = void *;
 #else
-    static constexpr auto extension = ".so";
+    static constexpr const char *extension = ".so";
+    using native_handle_type = void *;
 #endif
 
     /**
-     *  This exception is thrown when the dylib class encountered an error
+     *  This exception is raised when the dylib class encountered an error
      *
      *  @return the error message by calling what() member function
      */
@@ -123,7 +58,7 @@ public:
     };
 
     /**
-     *  This exception is thrown when the library failed to load 
+     *  This exception is raised when the library failed to load 
      *  or encountered symbol resolution issues
      *
      *  @param message the error message
@@ -135,7 +70,7 @@ public:
     };
 
     /**
-     *  This exception is thrown when the library failed to load a symbol. 
+     *  This exception is raised when the library failed to load a symbol. 
      *  This usually happens when you forgot to put <DYLIB_API> before a library function or variable
      *
      *  @param message the error message
@@ -182,9 +117,9 @@ public:
         open(path.c_str());
     }
 
-    dylib(std::string path, const char *ext)
+    dylib(const std::string &path, const char *ext)
     {
-        open(std::move(path), ext);
+        open(path, ext);
     }
 
     ~dylib()
@@ -214,7 +149,7 @@ public:
         open(path.c_str());
     }
 
-    void open(std::string path, const char *ext)
+    void open(const std::string &path, const char *ext)
     {
         if (!ext)
             throw handle_error("dylib: failed to load \"" + path + "\", bad extension: (nullptr)");
@@ -306,6 +241,11 @@ public:
         return m_handle != nullptr;
     }
 
+    native_handle_type native_handle() noexcept
+    {
+        return m_handle;
+    }
+
     /**
      *  Close the dynamic library currently loaded in the object. 
      *  This function will be automatically called by the class destructor
@@ -316,5 +256,72 @@ public:
             close_lib();
             m_handle = nullptr;
         }
+    }
+
+private:
+    native_handle_type m_handle{nullptr};
+#if defined(_WIN32) || defined(_WIN64)
+    static native_handle_type open_lib(const char *path) noexcept
+    {
+        return LoadLibraryA(path);
+    }
+    FARPROC get_symbol(const char *name) const noexcept
+    {
+        return GetProcAddress(m_handle, name);
+    }
+    void close_lib() noexcept
+    {
+        FreeLibrary(m_handle);
+    }
+    static char *get_error_message() noexcept
+    {
+        constexpr size_t buf_size = 512;
+        auto error_code = GetLastError();
+        if (!error_code)
+            return nullptr;
+        static char msg[buf_size];
+        auto lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
+        const DWORD len = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, lang, msg, buf_size, nullptr);
+        if (len > 0)
+            return msg;
+        return nullptr;
+    }
+#else
+    static native_handle_type open_lib(const char *path) noexcept
+    {
+        return dlopen(path, RTLD_NOW | RTLD_LOCAL);
+    }
+    void *get_symbol(const char *name) const noexcept
+    {
+        return dlsym(m_handle, name);
+    }
+    void close_lib() noexcept
+    {
+        dlclose(m_handle);
+    }
+    static char *get_error_message() noexcept
+    {
+        return dlerror();
+    }
+#endif
+    static std::string get_handle_error(const std::string &name)
+    {
+        std::string msg = "dylib: error while loading dynamic library \"" + name + "\"";
+        auto err = get_error_message();
+        if (!err)
+            return msg;
+        return msg + '\n' + err;
+    }
+    static std::string get_symbol_error(const std::string &name)
+    {
+        std::string msg = "dylib: error while loading symbol \"" + name + "\"";
+        auto err = get_error_message();
+        if (!err)
+            return msg;
+        return msg + '\n' + err;
+    }
+    static std::string get_missing_handle_error(const std::string &symbol_name)
+    {
+        return "dylib: could not get symbol \"" + symbol_name + "\", no dynamic library currently loaded";
     }
 };

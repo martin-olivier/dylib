@@ -277,6 +277,25 @@ TEST(operator_bool, basic_test)
     EXPECT_FALSE(lib);
 }
 
+TEST(handle_management, basic_test)
+{
+    dylib lib;
+    EXPECT_EQ(lib.native_handle(), nullptr);
+    lib.open("./dynamic_lib", dylib::extension);
+    EXPECT_FALSE(lib.native_handle() == nullptr);
+    auto handle = lib.native_handle();
+#if defined(_WIN32) || defined(_WIN64)
+    auto sym = LoadLibraryA(handle, "adder");
+#else
+    auto sym = dlsym(handle, "adder");
+#endif
+    EXPECT_FALSE(sym == nullptr);
+    auto res = ((double (*)(double, double))(sym))(10, 10);
+    EXPECT_EQ(res, 20);
+    lib.close();
+    EXPECT_EQ(lib.native_handle(), nullptr);
+}
+
 int main(int ac, char **av)
 {
     testing::InitGoogleTest(&ac, av);

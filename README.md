@@ -1,5 +1,5 @@
 # Dylib - Dynamic Library Loader for C++  
-[![Dylib](https://img.shields.io/badge/Dylib-v1.8.1-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v1.8.1)
+[![Dylib](https://img.shields.io/badge/Dylib-v1.8.2-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v1.8.2)
 [![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/martin-olivier/dylib/blob/main/LICENSE)
 [![CPP Version](https://img.shields.io/badge/C++-11_and_above-darkgreen.svg)](https://isocpp.org/)
 
@@ -10,17 +10,32 @@
 [![workflow](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml/badge.svg)](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml)
 [![codecov](https://codecov.io/gh/martin-olivier/dylib/branch/main/graph/badge.svg?token=4V6A9B7PII)](https://codecov.io/gh/martin-olivier/dylib)
 
-[![GitHub download](https://img.shields.io/github/downloads/martin-olivier/dylib/total?style=for-the-badge)](https://github.com/martin-olivier/dylib/releases/download/v1.8.1/dylib.hpp)
+[![GitHub download](https://img.shields.io/github/downloads/martin-olivier/dylib/total?style=for-the-badge)](https://github.com/martin-olivier/dylib/releases/download/v1.8.2/dylib.hpp)
 
-The goal of this C++ library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
+The goal of this C++ library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.  
+
+`⭐ Don't forget to put a star if you like the project!`
 
 # Compatibility
 Works on `Linux`, `Windows`, `MacOS`
 
 # Installation
 
-Click [HERE](https://github.com/martin-olivier/dylib/releases/download/v1.8.1/dylib.hpp) to download the dylib header file  
-`⭐ Don't forget to put a star if you like the project!`
+Click [HERE](https://github.com/martin-olivier/dylib/releases/download/v1.8.2/dylib.hpp) to download the dylib header file  
+
+You can also fetch `dylib` to your project using `CMake`:
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(
+    dylib
+    GIT_REPOSITORY "https://github.com/martin-olivier/dylib"
+    GIT_TAG "v1.8.2"
+)
+
+FetchContent_MakeAvailable(dylib)
+include_directories(${dylib_SOURCE_DIR})
+```
 
 # Documentation
 
@@ -97,7 +112,6 @@ This exception is raised when the library failed to load or the library encounte
 `symbol_error`  
 This exception is raised when the library failed to load a symbol.
 This usually happens when you forgot to put `DYLIB_API` before a library function or variable  
-
 
 Those exceptions inherit from `dylib::exception`
 ```c++
