@@ -39,7 +39,7 @@ include_directories(${dylib_SOURCE_DIR})
 
 # Documentation
 
-## Dylib Class
+## Dylib class
 
 The dylib class can load a dynamic library at runtime:
 ```c++
