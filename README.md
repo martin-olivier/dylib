@@ -1,4 +1,4 @@
-# Dylib - Dynamic Library Loader for C++  
+# Dylib - C++ cross-platform dynamic library loader  
 [![Dylib](https://img.shields.io/badge/Dylib-v1.8.2-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v1.8.2)
 [![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/martin-olivier/dylib/blob/main/LICENSE)
 [![CPP Version](https://img.shields.io/badge/C++-11_and_above-darkgreen.svg)](https://isocpp.org/)
@@ -21,7 +21,7 @@ Works on `Linux`, `Windows`, `MacOS`
 
 # Installation
 
-Click [HERE](https://github.com/martin-olivier/dylib/releases/download/v1.8.2/dylib.hpp) to download the dylib header file  
+Click [HERE](https://github.com/martin-olivier/dylib/releases/download/v1.8.2/dylib.hpp) to download the dylib header file.  
 
 You can also fetch `dylib` to your project using `CMake`:
 ```cmake
