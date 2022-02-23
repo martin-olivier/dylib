@@ -34,7 +34,7 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(dylib)
-include_directories(${dylib_SOURCE_DIR})
+include_directories(${dylib_SOURCE_DIR}/include)
 ```
 
 # Documentation

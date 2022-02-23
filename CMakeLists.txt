@@ -10,7 +10,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 option(BUILD_TESTS "when set to ON, build unit tests" OFF)
 
-include_directories(.)
+include_directories(include)
 
 if(BUILD_TESTS)
 
