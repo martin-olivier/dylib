@@ -21,7 +21,7 @@ Works on `Linux`, `Windows`, `MacOS`
 
 # Installation
 
-Click [HERE](https://github.com/martin-olivier/dylib/releases/download/v1.8.2/dylib.hpp) to download the dylib header file.  
+Click [HERE](https://github.com/martin-olivier/dylib/releases/download/v1.8.2/dylib.hpp) to download the `dylib` header file.  
 
 You can also fetch `dylib` to your project using `CMake`:
 ```cmake
@@ -41,11 +41,11 @@ include_directories(${dylib_SOURCE_DIR}/include)
 
 ## Dylib class
 
-The dylib class can load a dynamic library at runtime:
+The `dylib` class can load a dynamic library at runtime:
 ```c++
 dylib lib("./dynamic_lib.so");
 ```
-The dylib class can detect the file extension of the actual os using `dylib::extension`:
+The `dylib` class can detect the file extension of the actual os using `dylib::extension`:
 ```c++
 dylib lib("./dynamic_lib", dylib::extension);
 ```
@@ -109,7 +109,7 @@ Check if a symbol exists in the currently loaded dynamic library
 `native_handle`  
 Returns the dynamic library handle  
 
-`operator bool`
+`operator bool`  
 Returns true if a dynamic library is currently loaded in the object, false otherwise  
 ```c++
 void example(dylib &lib)
