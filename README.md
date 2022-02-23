@@ -1,5 +1,5 @@
-# Dylib - Dynamic Library Loader for C++  
-[![Dylib](https://img.shields.io/badge/Dylib-v1.8.1-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v1.8.1)
+# Dylib - C++ cross-platform dynamic library loader  
+[![Dylib](https://img.shields.io/badge/Dylib-v1.8.2-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v1.8.2)
 [![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/martin-olivier/dylib/blob/main/LICENSE)
 [![CPP Version](https://img.shields.io/badge/C++-11_and_above-darkgreen.svg)](https://isocpp.org/)
 
@@ -10,21 +10,36 @@
 [![workflow](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml/badge.svg)](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml)
 [![codecov](https://codecov.io/gh/martin-olivier/dylib/branch/main/graph/badge.svg?token=4V6A9B7PII)](https://codecov.io/gh/martin-olivier/dylib)
 
-[![GitHub download](https://img.shields.io/github/downloads/martin-olivier/dylib/total?style=for-the-badge)](https://github.com/martin-olivier/dylib/releases/download/v1.8.1/dylib.hpp)
+[![GitHub download](https://img.shields.io/github/downloads/martin-olivier/dylib/total?style=for-the-badge)](https://github.com/martin-olivier/dylib/releases/download/v1.8.2/dylib.hpp)
 
-The goal of this C++ library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.
+The goal of this C++ library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.  
+
+`⭐ Don't forget to put a star if you like the project!`
 
 # Compatibility
 Works on `Linux`, `Windows`, `MacOS`
 
 # Installation
 
-Click [HERE](https://github.com/martin-olivier/dylib/releases/download/v1.8.1/dylib.hpp) to download the dylib header file  
-`⭐ Don't forget to put a star if you like the project!`
+Click [HERE](https://github.com/martin-olivier/dylib/releases/download/v1.8.2/dylib.hpp) to download the dylib header file.  
+
+You can also fetch `dylib` to your project using `CMake`:
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(
+    dylib
+    GIT_REPOSITORY "https://github.com/martin-olivier/dylib"
+    GIT_TAG "v1.8.2"
+)
+
+FetchContent_MakeAvailable(dylib)
+include_directories(${dylib_SOURCE_DIR}/include)
+```
 
 # Documentation
 
-## Dylib Class
+## Dylib class
 
 The dylib class can load a dynamic library at runtime:
 ```c++
@@ -40,7 +55,7 @@ dylib lib;
 lib.open("./dynamic_lib", dylib::extension);
 ```
 
-## Open and Close
+## Open and close
 
 `open`  
 Load a dynamic library into the object. If a dynamic library was already opened, it will be unloaded and replaced  
@@ -61,16 +76,13 @@ lib.open("./other_dynamic_lib.so");
 lib.close();
 ```
 
-## Get a Function or a Variable
-
-`has_symbol`  
-Check if a symbol exists in the currently loaded dynamic library.  
+## Get a function or a variable 
 
 `get_function`  
-Get a function from the dynamic library currently loaded in the object.  
+Get a function from the dynamic library currently loaded in the object  
 
 `get_variable`  
-Get a global variable from the dynamic library currently loaded in the object.
+Get a global variable from the dynamic library currently loaded in the object
 ```c++
 // Load ./dynamic_lib.so
 
@@ -89,7 +101,34 @@ double pi = lib.get_variable<double>("pi_value");
 double result = adder(pi, pi);
 ```
 
-## Dylib Exceptions
+## Miscellaneous tools
+
+`has_symbol`  
+Check if a symbol exists in the currently loaded dynamic library  
+
+`native_handle`  
+Returns the dynamic library handle  
+
+`operator bool`
+Returns true if a dynamic library is currently loaded in the object, false otherwise  
+```c++
+void example(dylib &lib)
+{
+    if (lib)
+        std::cout << "Something is curently loaded in the dylib object" << std::endl;
+    if (!lib)
+        std::cout << "Nothing is curently loaded in the dylib object" << std::endl;
+
+    if (lib.has_symbol("GetModule"))
+        std::cout << "GetModule symbol has been found" << std::endl;
+    else
+        std::cout << "Could not found GetModule symbol" << std::endl;
+
+    dylib::native_handle_type handle = lib.native_handle();
+}
+```
+
+## Dylib exceptions
 
 `handle_error`  
 This exception is raised when the library failed to load or the library encountered symbol resolution issues  
@@ -97,7 +136,6 @@ This exception is raised when the library failed to load or the library encounte
 `symbol_error`  
 This exception is raised when the library failed to load a symbol.
 This usually happens when you forgot to put `DYLIB_API` before a library function or variable  
-
 
 Those exceptions inherit from `dylib::exception`
 ```c++

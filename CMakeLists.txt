@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
-project(dylib)
 
-set(CMAKE_VERBOSE_MAKEFILE OFF)
+project(dylib)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -11,7 +10,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 option(BUILD_TESTS "when set to ON, build unit tests" OFF)
 
-include_directories(.)
+include_directories(include)
 
 if(BUILD_TESTS)
 
