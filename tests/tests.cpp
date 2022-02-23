@@ -285,7 +285,7 @@ TEST(handle_management, basic_test)
     EXPECT_FALSE(lib.native_handle() == nullptr);
     auto handle = lib.native_handle();
 #if defined(_WIN32) || defined(_WIN64)
-    auto sym = LoadLibraryA(handle, "adder");
+    auto sym = GetProcAddress(handle, "adder");
 #else
     auto sym = dlsym(handle, "adder");
 #endif
