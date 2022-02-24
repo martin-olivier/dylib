@@ -21,9 +21,7 @@ Works on `Linux`, `Windows`, `MacOS`
 
 # Installation
 
-Click [HERE](https://github.com/martin-olivier/dylib/releases/download/v1.8.2/dylib.hpp) to download the `dylib` header file.  
-
-You can also fetch `dylib` to your project using `CMake`:
+You can fetch `dylib` to your project using `CMake`:
 ```cmake
 include(FetchContent)
 
@@ -36,6 +34,8 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(dylib)
 include_directories(${dylib_SOURCE_DIR}/include)
 ```
+
+You can also click [HERE](https://github.com/martin-olivier/dylib/releases/download/v1.8.2/dylib.hpp) to download the `dylib` header file.  
 
 # Documentation
 
@@ -103,20 +103,20 @@ double result = adder(pi, pi);
 
 ## Miscellaneous tools
 
+`operator bool`  
+Returns true if a dynamic library is currently loaded in the object, false otherwise  
+
 `has_symbol`  
-Check if a symbol exists in the currently loaded dynamic library  
+Returns true if the symbol passed as parameter exists in the dynamic library, false otherwise  
 
 `native_handle`  
 Returns the dynamic library handle  
-
-`operator bool`  
-Returns true if a dynamic library is currently loaded in the object, false otherwise  
 ```c++
 void example(dylib &lib)
 {
     if (lib)
         std::cout << "Something is curently loaded in the dylib object" << std::endl;
-    if (!lib)
+    else
         std::cout << "Nothing is curently loaded in the dylib object" << std::endl;
 
     if (lib.has_symbol("GetModule"))
