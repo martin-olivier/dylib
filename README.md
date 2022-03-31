@@ -27,8 +27,8 @@ include(FetchContent)
 
 FetchContent_Declare(
     dylib
-    GIT_REPOSITORY "https://github.com/martin-olivier/dylib"
-    GIT_TAG "v1.8.2"
+    GIT_REPOSITORY  "https://github.com/martin-olivier/dylib"
+    GIT_TAG         "v1.8.2"
 )
 
 FetchContent_MakeAvailable(dylib)
@@ -116,13 +116,9 @@ void example(dylib &lib)
 {
     if (lib)
         std::cout << "Something is curently loaded in the dylib object" << std::endl;
-    else
-        std::cout << "Nothing is curently loaded in the dylib object" << std::endl;
 
     if (lib.has_symbol("GetModule"))
         std::cout << "GetModule symbol has been found" << std::endl;
-    else
-        std::cout << "Could not found GetModule symbol" << std::endl;
 
     dylib::native_handle_type handle = lib.native_handle();
 }
@@ -218,7 +214,7 @@ int main()
 
 Let's build our code:  
 ```cmake
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 add_executable(bin main.cpp)
 if(UNIX)
