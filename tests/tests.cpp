@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 #include <utility>
-
 #include "dylib.hpp"
 
 class OSRedirector {

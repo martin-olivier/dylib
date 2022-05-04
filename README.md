@@ -1,5 +1,5 @@
 # Dylib - C++ cross-platform dynamic library loader  
-[![Dylib](https://img.shields.io/badge/Dylib-v1.8.2-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v1.8.2)
+[![Dylib](https://img.shields.io/badge/Dylib-v1.8.3-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v1.8.3)
 [![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/martin-olivier/dylib/blob/main/LICENSE)
 [![CPP Version](https://img.shields.io/badge/C++-11_and_above-darkgreen.svg)](https://isocpp.org/)
 
@@ -10,7 +10,7 @@
 [![workflow](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml/badge.svg)](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml)
 [![codecov](https://codecov.io/gh/martin-olivier/dylib/branch/main/graph/badge.svg?token=4V6A9B7PII)](https://codecov.io/gh/martin-olivier/dylib)
 
-[![GitHub download](https://img.shields.io/github/downloads/martin-olivier/dylib/total?style=for-the-badge)](https://github.com/martin-olivier/dylib/releases/download/v1.8.2/dylib.hpp)
+[![GitHub download](https://img.shields.io/github/downloads/martin-olivier/dylib/total?style=for-the-badge)](https://github.com/martin-olivier/dylib/releases/download/v1.8.3/dylib.hpp)
 
 The goal of this C++ library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.  
 
@@ -28,14 +28,14 @@ include(FetchContent)
 FetchContent_Declare(
     dylib
     GIT_REPOSITORY  "https://github.com/martin-olivier/dylib"
-    GIT_TAG         "v1.8.2"
+    GIT_TAG         "v1.8.3"
 )
 
 FetchContent_MakeAvailable(dylib)
-include_directories(${dylib_SOURCE_DIR}/include)
+target_link_libraries(<project> dylib)
 ```
 
-You can also click [HERE](https://github.com/martin-olivier/dylib/releases/download/v1.8.2/dylib.hpp) to download the `dylib` header file.  
+You can also click [HERE](https://github.com/martin-olivier/dylib/releases/download/v1.8.3/dylib.hpp) to download the `dylib` header file.  
 
 # Documentation
 
