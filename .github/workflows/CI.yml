@@ -7,11 +7,11 @@ defaults:
         shell: bash
 
 jobs:
-    run_unit_tests:
+    unit_tests:
         strategy:
             fail-fast: false
             matrix:
-                os: [windows-latest, ubuntu-latest, macos-latest]
+                os: [windows-latest, macos-latest, ubuntu-latest]
                 include:
                   - os: windows-latest
                     bin: unit_tests.exe
