@@ -33,7 +33,7 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
             add_compile_options(/W4)
         endif()
 
-        add_library(dynamic_lib SHARED tests/dynamic_lib.cpp)
+        add_library(dynamic_lib SHARED tests/lib.cpp)
         set_target_properties(dynamic_lib PROPERTIES PREFIX "")
         target_link_libraries(dynamic_lib PRIVATE dylib)
 
