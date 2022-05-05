@@ -63,3 +63,16 @@ jobs:
 
             - name: Run Unit Tests with Valgrind
               run: valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./unit_tests
+
+    lint:
+        name: lint
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: Install cpplint
+              run: pip install cpplint
+
+            - name: Run cpplint
+              run: cpplint --linelength=120 --filter=-whitespace/indent include/dylib.hpp

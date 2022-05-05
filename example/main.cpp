@@ -1,8 +1,7 @@
 #include <iostream>
 #include "dylib.hpp"
 
-int main()
-{
+int main() {
     try {
         dylib lib("./dynamic_lib", dylib::extension);
 

@@ -12,13 +12,11 @@ The functions and variables of our forthcoming dynamic library are located insid
 DYLIB_API double pi_value = 3.14159;
 DYLIB_API void *ptr = (void *)1;
 
-DYLIB_API double adder(double a, double b)
-{
+DYLIB_API double adder(double a, double b) {
     return a + b;
 }
 
-DYLIB_API void print_hello()
-{
+DYLIB_API void print_hello() {
     std::cout << "Hello" << std::endl;
 }
 ```
@@ -30,8 +28,7 @@ The code that will load functions and global variables of our dynamic library at
 #include <iostream>
 #include "dylib.hpp"
 
-int main()
-{
+int main() {
     try {
         dylib lib("./dynamic_lib", dylib::extension);
 
