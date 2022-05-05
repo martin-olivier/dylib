@@ -98,13 +98,14 @@ add_executable(dylib_example main.cpp)
 target_link_libraries(dylib_example PRIVATE dylib)
 ```
 
-Let's build our code:  
+Let's build our code:
+> Make sure to type the following commands inside the `example` folder
 ```sh
 cmake . -B build
 cmake --build build
 ```
 
-Let's run our code:  
+Let's run our code:
 ```sh
 # on unix
 ./dylib_example
