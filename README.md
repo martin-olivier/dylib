@@ -87,7 +87,7 @@ Get a global variable from the dynamic library currently loaded in the object
 
 dylib lib("./dynamic_lib.so");
 
-// Get the global function adder
+// Get the function adder
 
 auto adder = lib.get_function<double(double, double)>("adder");
 
@@ -114,7 +114,7 @@ Returns the dynamic library handle
 void example(dylib &lib)
 {
     if (lib)
-        std::cout << "Something is curently loaded in the dylib object" << std::endl;
+        std::cout << "Something is currently loaded in the dylib object" << std::endl;
 
     if (lib.has_symbol("GetModule"))
         std::cout << "GetModule symbol has been found" << std::endl;
