@@ -107,8 +107,8 @@ Let's run our code:
 # on unix
 ./dylib_example
 
-# on windows
-./Debug/dylib_example.exe
+# on windows, in "Debug" folder
+./dylib_example.exe
 ```
 
 You will have the following result:

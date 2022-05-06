@@ -179,6 +179,6 @@ To run the unit tests, enter the following command:
 # on unix
 ./unit_tests
 
-# on windows
-./Debug/unit_tests.exe
+# on windows, in "Debug" folder
+./unit_tests.exe
 ```
