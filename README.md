@@ -89,11 +89,11 @@ dylib lib("./dynamic_lib.so");
 
 // Get the function adder
 
-auto adder = lib.get_function<double(double, double)>("adder");
+std::function<double(double, double)> adder = lib.get_function<double(double, double)>("adder");
 
 // Get the global variable pi_value
 
-double pi = lib.get_variable<double>("pi_value");
+const double &pi = lib.get_variable<double>("pi_value");
 
 // Use the function adder with pi_value
 
@@ -136,7 +136,7 @@ Those exceptions inherit from `dylib::exception`
 ```c++
 try {
     dylib lib("./dynamic_lib.so");
-    double pi_value = lib.get_variable<double>("pi_value");
+    const double &pi_value = lib.get_variable<double>("pi_value");
     std::cout << pi_value << std::endl;
 }
 catch (const dylib::exception &e) {
