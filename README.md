@@ -87,7 +87,7 @@ Get a global variable from the dynamic library currently loaded in the object
 
 dylib lib("./dynamic_lib.so");
 
-// Get the function adder (get_function<T> will return std::function<T>)
+// Get the function adder (get_function<T> will return T*)
 
 auto adder = lib.get_function<double(double, double)>("adder");
 

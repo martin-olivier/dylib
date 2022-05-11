@@ -12,7 +12,6 @@
 #pragma once
 
 #include <string>
-#include <functional>
 #include <exception>
 #include <utility>
 #if defined(_WIN32) || defined(_WIN64)
@@ -146,14 +145,13 @@ public:
     /**
      *  Get a function from the dynamic library currently loaded in the object
      *
-     *  @param T the template argument must be the function prototype. 
-     *  it must be the same pattern as the template of std::function
+     *  @param T the template argument must be the function prototype
      *  @param name the symbol name of the function to get from the dynamic library
      *
-     *  @return std::function<T> that contains the function
+     *  @return a pointer to the requested function
      */
     template<typename T>
-    std::function<T> get_function(const char *name) const {
+    T *get_function(const char *name) const {
         if (!name)
             throw symbol_error(get_symbol_error("(nullptr)"));
         if (!m_handle)
@@ -165,7 +163,7 @@ public:
     }
 
     template<typename T>
-    std::function<T> get_function(const std::string &name) const {
+    T *get_function(const std::string &name) const {
         return get_function<T>(name.c_str());
     }
 
