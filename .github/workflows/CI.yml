@@ -12,16 +12,6 @@ jobs:
             fail-fast: false
             matrix:
                 os: [windows-latest, macos-latest, ubuntu-latest]
-                include:
-                  - os: windows-latest
-                    bin: unit_tests.exe
-                    dir: ./Debug/
-                  - os: ubuntu-latest
-                    bin: unit_tests
-                    dir: ./
-                  - os: macos-latest
-                    bin: unit_tests
-                    dir: ./
 
         name: ${{ matrix.os }}
         runs-on: ${{ matrix.os }}
