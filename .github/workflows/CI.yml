@@ -36,7 +36,8 @@ jobs:
               run: cmake --build build
 
             - name: Run Unit Tests
-              run: ${{ matrix.dir }}${{ matrix.bin }}
+              working-directory: build
+              run: ctest
 
             - name: Send Coverage to codecov.io
               if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -62,6 +63,7 @@ jobs:
               run: cmake --build build
 
             - name: Run Unit Tests with Valgrind
+              working-directory: build
               run: valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./unit_tests
 
     linter:
