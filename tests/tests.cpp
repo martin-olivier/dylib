@@ -33,17 +33,17 @@ TEST(exemple, exemple_test) {
     try {
         dylib lib("./dynamic_lib", dylib::extension);
 
-        auto adder = lib.get_function<double(double, double)>("adder");
+        auto adder = lib.get_symbol<double(double, double)>("adder");
         EXPECT_EQ(adder(5, 10), 15);
 
-        auto printer = lib.get_function<void()>("print_hello");
+        auto printer = lib.get_symbol<void()>("print_hello");
         printer();
         EXPECT_EQ(oss.getContent(), "Hello\n");
 
-        double pi_value = lib.get_variable<double>("pi_value");
+        double pi_value = lib.get_symbol<double>("pi_value");
         EXPECT_EQ(pi_value, 3.14159);
 
-        void *ptr = lib.get_variable<void *>("ptr");
+        void *ptr = lib.get_symbol<void *>("ptr");
         EXPECT_EQ(ptr, (void *)1);
     }
     catch (const dylib::exception &) {
@@ -73,11 +73,11 @@ TEST(dtor, mutiple_open_close) {
         lib.close();
         lib.open(std::string("./dynamic_lib") + std::string(dylib::extension));
         lib.open("./dynamic_lib", dylib::extension);
-        EXPECT_EQ(lib.get_function<double(double, double)>("adder")(1, 1), 2);
+        EXPECT_EQ(lib.get_symbol<double(double, double)>("adder")(1, 1), 2);
         lib.close();
         lib.close();
         lib.close();
-        auto fn = lib.get_function<double(double, double)>("adder");
+        auto fn = lib.get_symbol<double(double, double)>("adder");
         EXPECT_EQ(true, false);
     }
     catch (const dylib::exception &) {
@@ -89,7 +89,7 @@ TEST(get_function, bad_handler) {
     try {
         dylib lib("./dynamic_lib", dylib::extension);
         lib.close();
-        auto adder = lib.get_function<double(double, double)>("adder");
+        auto adder = lib.get_symbol<double(double, double)>("adder");
         EXPECT_EQ(true, false);
     }
     catch (const dylib::handle_error &) {
@@ -100,7 +100,7 @@ TEST(get_function, bad_handler) {
 TEST(get_function, bad_symbol) {
     try {
         dylib lib("./dynamic_lib", dylib::extension);
-        auto adder = lib.get_function<double(double, double)>("unknown");
+        auto adder = lib.get_symbol<double(double, double)>("unknown");
         EXPECT_EQ(true, false);
     }
     catch (const dylib::symbol_error &) {
@@ -112,7 +112,7 @@ TEST(get_variable, bad_handler) {
     try {
         dylib lib("./dynamic_lib", dylib::extension);
         lib.close();
-        lib.get_variable<double>("pi_value");
+        lib.get_symbol<double>("pi_value");
         EXPECT_EQ(true, false);
     }
     catch (const dylib::handle_error &) {
@@ -123,7 +123,7 @@ TEST(get_variable, bad_handler) {
 TEST(get_variable, bad_symbol) {
     try {
         dylib lib("./dynamic_lib", dylib::extension);
-        lib.get_variable<double>("unknown");
+        lib.get_symbol<double>("unknown");
         EXPECT_EQ(true, false);
     }
     catch (const dylib::symbol_error &) {
@@ -135,16 +135,16 @@ TEST(get_variable, alter_variables) {
     try {
         dylib lib("./dynamic_lib", dylib::extension);
         dylib other(std::move(lib));
-        auto &pi = other.get_variable<double>("pi_value");
+        auto &pi = other.get_symbol<double>("pi_value");
         EXPECT_EQ(pi, 3.14159);
         pi = 123;
-        auto &pi1 = other.get_variable<double>("pi_value");
+        auto &pi1 = other.get_symbol<double>("pi_value");
         EXPECT_EQ(pi1, 123);
 
-        auto &ptr = other.get_variable<void *>("ptr");
+        auto &ptr = other.get_symbol<void *>("ptr");
         EXPECT_EQ(ptr, (void *)1);
         ptr = &lib;
-        auto &ptr1 = other.get_variable<void *>("ptr");
+        auto &ptr1 = other.get_symbol<void *>("ptr");
         EXPECT_EQ(ptr1, &lib);
     }
     catch (const dylib::handle_error &) {
@@ -162,7 +162,7 @@ TEST(bad_arguments, null_pointer) {
     }
     try {
         dylib lib("./dynamic_lib", dylib::extension);
-        lib.get_function<void()>(nullptr);
+        lib.get_symbol<void()>(nullptr);
         EXPECT_EQ(true, false);
     }
     catch (const dylib::symbol_error &) {
@@ -170,7 +170,7 @@ TEST(bad_arguments, null_pointer) {
     }
     try {
         dylib lib("./dynamic_lib", dylib::extension);
-        lib.get_variable<void *>(nullptr);
+        lib.get_symbol<void *>(nullptr);
         EXPECT_EQ(true, false);
     }
     catch (const dylib::symbol_error &) {
@@ -178,7 +178,7 @@ TEST(bad_arguments, null_pointer) {
     }
     try {
         dylib lib;
-        lib.get_function<void()>(nullptr);
+        lib.get_symbol<void()>(nullptr);
         EXPECT_EQ(true, false);
     }
     catch (const dylib::symbol_error &) {
@@ -186,7 +186,7 @@ TEST(bad_arguments, null_pointer) {
     }
     try {
         dylib lib;
-        lib.get_variable<void *>(nullptr);
+        lib.get_symbol<void *>(nullptr);
         EXPECT_EQ(true, false);
     }
     catch (const dylib::symbol_error &) {
@@ -214,7 +214,7 @@ TEST(bad_arguments, handle_and_ext) {
 TEST(os_detector, basic_test) {
     try {
         dylib lib("./dynamic_lib", dylib::extension);
-        auto pi = lib.get_variable<double>("pi_value");
+        auto pi = lib.get_symbol<double>("pi_value");
         EXPECT_EQ(pi, 3.14159);
     }
     catch (const dylib::exception &) {
@@ -226,12 +226,12 @@ TEST(std_move, basic_test) {
     try {
         dylib lib("./dynamic_lib", dylib::extension);
         dylib other(std::move(lib));
-        auto pi = other.get_variable<double>("pi_value");
+        auto pi = other.get_symbol<double>("pi_value");
         EXPECT_EQ(pi, 3.14159);
         lib = std::move(other);
-        auto ptr = lib.get_variable<void *>("ptr");
+        auto ptr = lib.get_symbol<void *>("ptr");
         EXPECT_EQ(ptr, (void *)1);
-        other.get_variable<double>("pi_value");
+        other.get_symbol<double>("pi_value");
         EXPECT_EQ(true, false);
     }
     catch (const dylib::handle_error &) {
