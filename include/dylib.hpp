@@ -156,7 +156,7 @@ public:
             throw symbol_error(get_symbol_error("(nullptr)"));
         if (!m_handle)
             throw handle_error(get_missing_handle_error(name));
-        auto sym = _get_symbol(name);
+        auto sym = _get_symbol(m_handle, name);
         if (!sym)
             throw symbol_error(get_symbol_error(name));
         return *reinterpret_cast<T *>(sym);
@@ -181,7 +181,7 @@ public:
             return false;
         if (!m_handle)
             return false;
-        return _get_symbol(symbol) != nullptr;
+        return _get_symbol(m_handle, symbol) != nullptr;
     }
 
     bool has_symbol(const std::string &symbol) const noexcept {
