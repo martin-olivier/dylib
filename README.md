@@ -75,25 +75,23 @@ lib.open("./other_dynamic_lib.so");
 lib.close();
 ```
 
-## Get a function or a variable 
+## Get a symbol
 
-`get_function`  
-Get a function from the dynamic library currently loaded in the object  
+`get_symbol`  
+Get a function or a global variable from the dynamic library currently loaded in the object  
 
-`get_variable`  
-Get a global variable from the dynamic library currently loaded in the object
 ```c++
 // Load ./dynamic_lib.so
 
 dylib lib("./dynamic_lib.so");
 
-// Get the function adder (get_function<T> will return T*)
+// Get the function adder (get_symbol<T> will return T&)
 
-auto adder = lib.get_function<double(double, double)>("adder");
+auto &adder = lib.get_symbol<double(double, double)>("adder");
 
 // Get the global variable pi_value
 
-const double &pi = lib.get_variable<double>("pi_value");
+double &pi = lib.get_symbol<double>("pi_value");
 
 // Use the function adder with pi_value
 
@@ -136,7 +134,7 @@ Those exceptions inherit from `dylib::exception`
 ```c++
 try {
     dylib lib("./dynamic_lib.so");
-    const double &pi_value = lib.get_variable<double>("pi_value");
+    const double &pi_value = lib.get_symbol<double>("pi_value");
     std::cout << pi_value << std::endl;
 }
 catch (const dylib::exception &e) {
