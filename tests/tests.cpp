@@ -77,7 +77,7 @@ TEST(dtor, mutiple_open_close) {
         lib.close();
         lib.close();
         lib.close();
-        auto fn = lib.get_symbol<double(double, double)>("adder");
+        lib.get_symbol<double(double, double)>("adder");
         EXPECT_EQ(true, false);
     }
     catch (const dylib::exception &) {
@@ -89,7 +89,7 @@ TEST(get_function, bad_handler) {
     try {
         dylib lib("./dynamic_lib", dylib::extension);
         lib.close();
-        auto adder = lib.get_symbol<double(double, double)>("adder");
+        lib.get_symbol<double(double, double)>("adder");
         EXPECT_EQ(true, false);
     }
     catch (const dylib::handle_error &) {
@@ -100,7 +100,7 @@ TEST(get_function, bad_handler) {
 TEST(get_function, bad_symbol) {
     try {
         dylib lib("./dynamic_lib", dylib::extension);
-        auto adder = lib.get_symbol<double(double, double)>("unknown");
+        lib.get_symbol<double(double, double)>("unknown");
         EXPECT_EQ(true, false);
     }
     catch (const dylib::symbol_error &) {
