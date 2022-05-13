@@ -12,16 +12,6 @@ jobs:
             fail-fast: false
             matrix:
                 os: [windows-latest, macos-latest, ubuntu-latest]
-                include:
-                  - os: windows-latest
-                    bin: unit_tests.exe
-                    dir: ./Debug/
-                  - os: ubuntu-latest
-                    bin: unit_tests
-                    dir: ./
-                  - os: macos-latest
-                    bin: unit_tests
-                    dir: ./
 
         name: ${{ matrix.os }}
         runs-on: ${{ matrix.os }}
@@ -36,7 +26,8 @@ jobs:
               run: cmake --build build
 
             - name: Run Unit Tests
-              run: ${{ matrix.dir }}${{ matrix.bin }}
+              working-directory: build
+              run: ctest
 
             - name: Send Coverage to codecov.io
               if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -62,6 +53,7 @@ jobs:
               run: cmake --build build
 
             - name: Run Unit Tests with Valgrind
+              working-directory: build
               run: valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./unit_tests
 
     linter:
