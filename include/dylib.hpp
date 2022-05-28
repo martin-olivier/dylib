@@ -12,7 +12,6 @@
 #pragma once
 
 #include <string>
-#include <functional>
 #include <exception>
 #include <utility>
 #if defined(_WIN32) || defined(_WIN64)
@@ -128,7 +127,7 @@ public:
         close();
         if (!path)
             throw handle_error(get_handle_error("(nullptr)"));
-        m_handle = open_lib(path);
+        m_handle = _open(path);
         if (!m_handle)
             throw handle_error(get_handle_error(path));
     }
@@ -146,36 +145,35 @@ public:
     /**
      *  Get a function from the dynamic library currently loaded in the object
      *
-     *  @param T the template argument must be the function prototype. 
-     *  it must be the same pattern as the template of std::function
-     *  @param name the symbol name of the function to get from the dynamic library
+     *  @param T the template argument must be the function prototype to get
+     *  @param name the symbol name of a function to get from the dynamic library
      *
-     *  @return std::function<T> that contains the function
+     *  @return a reference to the requested function
      */
     template<typename T>
-    std::function<T> get_function(const char *name) const {
+    T &get_function(const char *name) const {
         if (!name)
             throw symbol_error(get_symbol_error("(nullptr)"));
         if (!m_handle)
             throw handle_error(get_missing_handle_error(name));
-        auto sym = get_symbol(name);
+        auto sym = _get_symbol(m_handle, name);
         if (!sym)
             throw symbol_error(get_symbol_error(name));
-        return reinterpret_cast<T *>(sym);
+        return *reinterpret_cast<T *>(sym);
     }
 
     template<typename T>
-    std::function<T> get_function(const std::string &name) const {
+    T &get_function(const std::string &name) const {
         return get_function<T>(name.c_str());
     }
 
     /**
-     *  Get a global variable from the dynamic library currently loaded in the object
+     *  Get a variable from the dynamic library currently loaded in the object
      *
-     *  @param T type of the global variable
-     *  @param name the name of the global variable to get from the dynamic library
+     *  @param T the template argument must be the type of the variable to get
+     *  @param name the symbol name of a variable to get from the dynamic library
      *
-     *  @return global variable of type <T>
+     *  @return a reference to the requested variable
      */
     template<typename T>
     T &get_variable(const char *name) const {
@@ -183,7 +181,7 @@ public:
             throw symbol_error(get_symbol_error("(nullptr)"));
         if (!m_handle)
             throw handle_error(get_missing_handle_error(name));
-        auto sym = get_symbol(name);
+        auto sym = _get_symbol(m_handle, name);
         if (!sym)
             throw symbol_error(get_symbol_error(name));
         return *reinterpret_cast<T *>(sym);
@@ -208,7 +206,7 @@ public:
             return false;
         if (!m_handle)
             return false;
-        return get_symbol(symbol) != nullptr;
+        return _get_symbol(m_handle, symbol) != nullptr;
     }
 
     bool has_symbol(const std::string &symbol) const noexcept {
@@ -235,7 +233,7 @@ public:
      */
     void close() noexcept {
         if (m_handle) {
-            close_lib();
+            _close(m_handle);
             m_handle = nullptr;
         }
     }
@@ -243,16 +241,16 @@ public:
 private:
     native_handle_type m_handle{nullptr};
 #if defined(_WIN32) || defined(_WIN64)
-    static native_handle_type open_lib(const char *path) noexcept {
+    static native_handle_type _open(const char *path) noexcept {
         return LoadLibraryA(path);
     }
-    FARPROC get_symbol(const char *name) const noexcept {
-        return GetProcAddress(m_handle, name);
+    static FARPROC _get_symbol(native_handle_type lib, const char *name) noexcept {
+        return GetProcAddress(lib, name);
     }
-    void close_lib() noexcept {
-        FreeLibrary(m_handle);
+    static void _close(native_handle_type lib) noexcept {
+        FreeLibrary(lib);
     }
-    static char *get_error_message() noexcept {
+    static char *_get_error() noexcept {
         constexpr size_t buf_size = 512;
         auto error_code = GetLastError();
         if (!error_code)
@@ -265,29 +263,29 @@ private:
         return nullptr;
     }
 #else
-    static native_handle_type open_lib(const char *path) noexcept {
+    static native_handle_type _open(const char *path) noexcept {
         return dlopen(path, RTLD_NOW | RTLD_LOCAL);
     }
-    void *get_symbol(const char *name) const noexcept {
-        return dlsym(m_handle, name);
+    static void *_get_symbol(native_handle_type lib, const char *name) noexcept {
+        return dlsym(lib, name);
     }
-    void close_lib() noexcept {
-        dlclose(m_handle);
+    static void _close(native_handle_type lib) noexcept {
+        dlclose(lib);
     }
-    static char *get_error_message() noexcept {
+    static char *_get_error() noexcept {
         return dlerror();
     }
 #endif
     static std::string get_handle_error(const std::string &name) {
         std::string msg = "dylib: error while loading dynamic library \"" + name + "\"";
-        auto err = get_error_message();
+        auto err = _get_error();
         if (!err)
             return msg;
         return msg + '\n' + err;
     }
     static std::string get_symbol_error(const std::string &name) {
         std::string msg = "dylib: error while loading symbol \"" + name + "\"";
-        auto err = get_error_message();
+        auto err = _get_error();
         if (!err)
             return msg;
         return msg + '\n' + err;
