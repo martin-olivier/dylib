@@ -143,15 +143,15 @@ public:
     }
 
     /**
-     *  Get a symbol from the dynamic library currently loaded in the object
+     *  Get a function from the dynamic library currently loaded in the object
      *
-     *  @param T the template argument must be a function prototype or a type
-     *  @param name the symbol name of the function or global variable to get from the dynamic library
+     *  @param T the template argument must be the function prototype to get
+     *  @param name the symbol name of a function to get from the dynamic library
      *
-     *  @return a reference to the requested function or global variable
+     *  @return a reference to the requested function
      */
     template<typename T>
-    T &get_symbol(const char *name) const {
+    T &get_function(const char *name) const {
         if (!name)
             throw symbol_error(get_symbol_error("(nullptr)"));
         if (!m_handle)
@@ -163,8 +163,33 @@ public:
     }
 
     template<typename T>
-    T &get_symbol(const std::string &name) const {
-        return get_symbol<T>(name.c_str());
+    T &get_function(const std::string &name) const {
+        return get_function<T>(name.c_str());
+    }
+
+    /**
+     *  Get a variable from the dynamic library currently loaded in the object
+     *
+     *  @param T the template argument must be the type of the variable to get
+     *  @param name the symbol name of a variable to get from the dynamic library
+     *
+     *  @return a reference to the requested variable
+     */
+    template<typename T>
+    T &get_variable(const char *name) const {
+        if (!name)
+            throw symbol_error(get_symbol_error("(nullptr)"));
+        if (!m_handle)
+            throw handle_error(get_missing_handle_error(name));
+        auto sym = _get_symbol(m_handle, name);
+        if (!sym)
+            throw symbol_error(get_symbol_error(name));
+        return *reinterpret_cast<T *>(sym);
+    }
+
+    template<typename T>
+    T &get_variable(const std::string &name) const {
+        return get_variable<T>(name.c_str());
     }
 
     /**
