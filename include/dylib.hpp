@@ -148,10 +148,10 @@ public:
      *  @param T the template argument must be the function prototype to get
      *  @param name the symbol name of a function to get from the dynamic library
      *
-     *  @return a reference to the requested function
+     *  @return a pointer to the requested function
      */
     template<typename T>
-    T &get_function(const char *name) const {
+    T *get_function(const char *name) const {
         if (!name)
             throw symbol_error(get_symbol_error("(nullptr)"));
         if (!m_handle)
@@ -159,11 +159,11 @@ public:
         auto sym = _get_symbol(m_handle, name);
         if (!sym)
             throw symbol_error(get_symbol_error(name));
-        return *reinterpret_cast<T *>(sym);
+        return reinterpret_cast<T *>(sym);
     }
 
     template<typename T>
-    T &get_function(const std::string &name) const {
+    T *get_function(const std::string &name) const {
         return get_function<T>(name.c_str());
     }
 
