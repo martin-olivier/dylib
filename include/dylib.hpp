@@ -11,7 +11,6 @@
 
 #pragma once
 
-#include <iostream>
 #include <string>
 #include <exception>
 #include <utility>
@@ -94,11 +93,8 @@ public:
     }
 
     dylib& operator=(dylib &&other) noexcept {
-        if (this != &other) {
-            close();
-            m_handle = other.m_handle;
-            other.m_handle = nullptr;
-        }
+        if (this != &other)
+            std::swap(m_handle, other.m_handle);
         return *this;
     }
 
@@ -136,7 +132,8 @@ public:
     }
 
     ~dylib() {
-        close();
+        if (m_handle)
+            _close(m_handle);
     }
 
     /**
@@ -217,7 +214,7 @@ public:
         return m_handle;
     }
 
-private:
+protected:
     native_handle_type m_handle{nullptr};
 #if defined(_WIN32) || defined(_WIN64)
     static native_handle_type _open(const char *path) noexcept {
@@ -269,13 +266,6 @@ private:
 
         if (!m_handle)
             throw handle_error(get_handle_error(final_path + final_name));
-    }
-
-    void close() noexcept {
-        if (m_handle) {
-            _close(m_handle);
-            m_handle = nullptr;
-        }
     }
 
     static std::string get_handle_error(const std::string &name) {
