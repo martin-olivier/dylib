@@ -31,7 +31,7 @@ TEST(exemple, exemple_test) {
     OSRedirector oss(std::cout);
 
     try {
-        dylib lib(dylib::working_directory, "dynamic_lib");
+        dylib lib("./", "dynamic_lib");
 
         auto adder = lib.get_function<double(double, double)>("adder");
         EXPECT_EQ(adder(5, 10), 15);
@@ -53,7 +53,7 @@ TEST(exemple, exemple_test) {
 
 TEST(ctor, bad_library) {
     try {
-        dylib lib(dylib::working_directory, "null");
+        dylib lib("./", "no_such_library");
         EXPECT_EQ(true, false);
     }
     catch (const dylib::exception &e) {
@@ -62,13 +62,13 @@ TEST(ctor, bad_library) {
 }
 
 TEST(multiple_handles, basic_test) {
-    dylib libA(dylib::working_directory, "dynamic_lib");
-    dylib libB(dylib::working_directory, "dynamic_lib");
+    dylib libA("./", "dynamic_lib");
+    dylib libB("./", "dynamic_lib");
 }
 
 TEST(get_function, bad_symbol) {
     try {
-        dylib lib(dylib::working_directory, "dynamic_lib");
+        dylib lib("./", "dynamic_lib");
         lib.get_function<double(double, double)>("unknown");
         EXPECT_EQ(true, false);
     }
@@ -79,7 +79,7 @@ TEST(get_function, bad_symbol) {
 
 TEST(get_variable, bad_symbol) {
     try {
-        dylib lib(dylib::working_directory, "dynamic_lib");
+        dylib lib("./", "dynamic_lib");
         lib.get_variable<double>("unknown");
         EXPECT_EQ(true, false);
     }
@@ -90,7 +90,7 @@ TEST(get_variable, bad_symbol) {
 
 TEST(get_variable, alter_variables) {
     try {
-        dylib lib(dylib::working_directory, "dynamic_lib");
+        dylib lib("./", "dynamic_lib");
         dylib other(std::move(lib));
         auto &pi = other.get_variable<double>("pi_value");
         EXPECT_EQ(pi, 3.14159);
@@ -111,7 +111,7 @@ TEST(get_variable, alter_variables) {
 
 TEST(bad_arguments, null_pointer) {
     try {
-        dylib lib(dylib::working_directory, "dynamic_lib");
+        dylib lib("./", "dynamic_lib");
         lib.get_function<void()>(nullptr);
         EXPECT_EQ(true, false);
     }
@@ -119,7 +119,7 @@ TEST(bad_arguments, null_pointer) {
         EXPECT_EQ(true, true);
     }
     try {
-        dylib lib(dylib::working_directory, "dynamic_lib");
+        dylib lib("./", "dynamic_lib");
         lib.get_variable<void *>(nullptr);
         EXPECT_EQ(true, false);
     }
@@ -130,7 +130,7 @@ TEST(bad_arguments, null_pointer) {
 
 TEST(bad_arguments, handle_and_ext) {
     try {
-        dylib lib(dylib::working_directory, "badlib");
+        dylib lib("./", "badlib");
         EXPECT_EQ(true, false);
     }
     catch (const dylib::handle_error &) {
@@ -140,7 +140,7 @@ TEST(bad_arguments, handle_and_ext) {
 
 TEST(os_detector, basic_test) {
     try {
-        dylib lib(dylib::working_directory, "dynamic_lib");
+        dylib lib("./", "dynamic_lib");
         auto pi = lib.get_variable<double>("pi_value");
         EXPECT_EQ(pi, 3.14159);
     }
@@ -151,7 +151,7 @@ TEST(os_detector, basic_test) {
 
 TEST(std_move, basic_test) {
     try {
-        dylib lib(dylib::working_directory, "dynamic_lib");
+        dylib lib("./", "dynamic_lib");
         dylib other(std::move(lib));
         auto pi = other.get_variable<double>("pi_value");
         EXPECT_EQ(pi, 3.14159);
@@ -167,13 +167,13 @@ TEST(std_move, basic_test) {
 }
 
 TEST(has_symbol, basic_test) {
-    dylib lib(dylib::working_directory, "dynamic_lib");
+    dylib lib("./", "dynamic_lib");
     EXPECT_TRUE(lib.has_symbol("pi_value"));
     EXPECT_FALSE(lib.has_symbol("bad_symbol"));
 }
 
 TEST(handle_management, basic_test) {
-    dylib lib(dylib::working_directory, "dynamic_lib");
+    dylib lib("./", "dynamic_lib");
     EXPECT_FALSE(lib.native_handle() == nullptr);
     auto handle = lib.native_handle();
 #if defined(_WIN32) || defined(_WIN64)

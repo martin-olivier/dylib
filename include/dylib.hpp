@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <iostream>
 #include <string>
 #include <exception>
 #include <utility>
@@ -31,24 +32,24 @@
 class dylib {
 public:
 #if defined(_WIN32) || defined(_WIN64)
-    static constexpr const char *prefix = "";
-    static constexpr const char *extension = ".dll";
+    struct filename_components {
+        static constexpr const char *prefix = "";
+        static constexpr const char *suffix = ".dll";
+    };
     using native_handle_type = HINSTANCE;
 #elif defined(__APPLE__)
-    static constexpr const char *prefix = "lib";
-    static constexpr const char *extension = ".dylib";
+    struct filename_components {
+        static constexpr const char *prefix = "lib";
+        static constexpr const char *suffix = ".dylib";
+    };
     using native_handle_type = void *;
 #else
-    static constexpr const char *prefix = "lib";
-    static constexpr const char *extension = ".so";
+    struct filename_components {
+        static constexpr const char *prefix = "lib";
+        static constexpr const char *suffix = ".so";
+    };
     using native_handle_type = void *;
 #endif
-
-    static constexpr auto os_library_paths = "";
-    static constexpr auto working_directory = "./";
-
-    static constexpr bool add_decorations = true;
-    static constexpr bool no_decorations = false;
 
     /**
      *  This exception is raised when the dylib class encountered an error
@@ -104,12 +105,34 @@ public:
     /**
      *  Creates a dynamic library instance
      *
-     *  @param path the path where is located the dynamic library you want to load
+     *  @param dir_path the directory path where is located the dynamic library you want to load
      *  @param name the name of the dynamic library to load
      *  @param decorations add os decorations to the library name
      */
-    dylib(const std::string &path, const std::string &name, bool decorations = true) {
-        open(path, name, decorations);
+    dylib(const std::string &dir_path, const std::string &name, bool decorations = true) {
+        open(dir_path.c_str(), name.c_str(), decorations);
+    }
+    dylib(const char *dir_path, const char *name, bool decorations = true) {
+        open(dir_path, name, decorations);
+    }
+    dylib(const std::string &dir_path, const char *name, bool decorations = true) {
+        open(dir_path.c_str(), name, decorations);
+    }
+    dylib(const char *dir_path, const std::string &name, bool decorations = true) {
+        open(dir_path, name.c_str(), decorations);
+    }
+
+    /**
+     *  Creates a dynamic library instance
+     *
+     *  @param name the name of the dynamic library to load from the system library search path
+     *  @param decorations add os decorations to the library name
+     */
+    explicit dylib(const std::string &name, bool decorations = true) {
+        open("", name.c_str(), decorations);
+    }
+    explicit dylib(const char *name, bool decorations = true) {
+        open("", name, decorations);
     }
 
     ~dylib() {
@@ -232,14 +255,14 @@ private:
         return dlerror();
     }
 #endif
-    void open(const std::string &path, const std::string &name, bool decorations) {
+    void open(const char *path, const char *name, bool decorations) {
         std::string final_name = name;
         std::string final_path = path;
 
         if (decorations)
-            final_name = prefix + name + extension;
+            final_name = filename_components::prefix + final_name + filename_components::suffix;
 
-        if (path != dylib::os_library_paths && path.find_last_of('/') != path.size() - 1)
+        if (final_path != "" && final_path.find_last_of('/') != final_path.size() - 1)
             final_path += '/';
 
         m_handle = _open((final_path + final_name).c_str());
