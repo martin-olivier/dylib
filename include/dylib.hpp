@@ -31,13 +31,22 @@
 class dylib {
 public:
 #if defined(_WIN32) || defined(_WIN64)
-    static constexpr const char *extension = ".dll";
+    struct filename_components {
+        static constexpr const char *prefix = "";
+        static constexpr const char *suffix = ".dll";
+    };
     using native_handle_type = HINSTANCE;
 #elif defined(__APPLE__)
-    static constexpr const char *extension = ".dylib";
+    struct filename_components {
+        static constexpr const char *prefix = "lib";
+        static constexpr const char *suffix = ".dylib";
+    };
     using native_handle_type = void *;
 #else
-    static constexpr const char *extension = ".so";
+    struct filename_components {
+        static constexpr const char *prefix = "lib";
+        static constexpr const char *suffix = ".so";
+    };
     using native_handle_type = void *;
 #endif
 
@@ -84,62 +93,47 @@ public:
     }
 
     dylib& operator=(dylib &&other) noexcept {
-        if (this != &other) {
-            close();
-            m_handle = other.m_handle;
-            other.m_handle = nullptr;
-        }
+        if (this != &other)
+            std::swap(m_handle, other.m_handle);
         return *this;
     }
-
-    dylib() noexcept = default;
 
     /**
      *  Creates a dynamic library instance
      *
-     *  @param path path to the dynamic library to load
-     *  @param ext use dylib::extension to specify the os extension (optional parameter)
+     *  @param dir_path the directory path where is located the dynamic library you want to load
+     *  @param name the name of the dynamic library to load
+     *  @param decorations add os decorations to the library name
      */
-    explicit dylib(const char *path) {
-        open(path);
+    dylib(const std::string &dir_path, const std::string &name, bool decorations = true) {
+        open(dir_path.c_str(), name.c_str(), decorations);
     }
-
-    explicit dylib(const std::string &path) {
-        open(path.c_str());
+    dylib(const char *dir_path, const char *name, bool decorations = true) {
+        open(dir_path, name, decorations);
     }
-
-    dylib(const std::string &path, const char *ext) {
-        open(path, ext);
+    dylib(const std::string &dir_path, const char *name, bool decorations = true) {
+        open(dir_path.c_str(), name, decorations);
     }
-
-    ~dylib() {
-        close();
+    dylib(const char *dir_path, const std::string &name, bool decorations = true) {
+        open(dir_path, name.c_str(), decorations);
     }
 
     /**
-     *  Load a dynamic library into the object. 
-     *  If a dynamic library was already opened, it will be unload and replaced
+     *  Creates a dynamic library instance
      *
-     *  @param path the path of the dynamic library to load
-     *  @param ext use dylib::extension to detect the current os extension (optional parameter)
+     *  @param name the name of the dynamic library to load from the system library search path
+     *  @param decorations add os decorations to the library name
      */
-    void open(const char *path) {
-        close();
-        if (!path)
-            throw handle_error(get_handle_error("(nullptr)"));
-        m_handle = _open(path);
-        if (!m_handle)
-            throw handle_error(get_handle_error(path));
+    explicit dylib(const std::string &name, bool decorations = true) {
+        open("", name.c_str(), decorations);
+    }
+    explicit dylib(const char *name, bool decorations = true) {
+        open("", name, decorations);
     }
 
-    void open(const std::string &path) {
-        open(path.c_str());
-    }
-
-    void open(const std::string &path, const char *ext) {
-        if (!ext)
-            throw handle_error("dylib: failed to load \"" + path + "\", bad extension: (nullptr)");
-        open(path + ext);
+    ~dylib() {
+        if (m_handle)
+            _close(m_handle);
     }
 
     /**
@@ -220,25 +214,7 @@ public:
         return m_handle;
     }
 
-    /**
-     *  @return true if a dynamic library is currently loaded in the object, false otherwise
-     */
-    operator bool() const noexcept {
-        return m_handle != nullptr;
-    }
-
-    /**
-     *  Close the dynamic library currently loaded in the object. 
-     *  This function will be automatically called by the class destructor
-     */
-    void close() noexcept {
-        if (m_handle) {
-            _close(m_handle);
-            m_handle = nullptr;
-        }
-    }
-
-private:
+protected:
     native_handle_type m_handle{nullptr};
 #if defined(_WIN32) || defined(_WIN64)
     static native_handle_type _open(const char *path) noexcept {
@@ -276,20 +252,40 @@ private:
         return dlerror();
     }
 #endif
+    void open(const char *path, const char *name, bool decorations) {
+        std::string final_name = name;
+        std::string final_path = path;
+
+        if (decorations)
+            final_name = filename_components::prefix + final_name + filename_components::suffix;
+
+        if (final_path != "" && final_path.find_last_of('/') != final_path.size() - 1)
+            final_path += '/';
+
+        m_handle = _open((final_path + final_name).c_str());
+
+        if (!m_handle)
+            throw handle_error(get_handle_error(final_path + final_name));
+    }
+
     static std::string get_handle_error(const std::string &name) {
         std::string msg = "dylib: error while loading dynamic library \"" + name + "\"";
+
         auto err = _get_error();
         if (!err)
             return msg;
         return msg + '\n' + err;
     }
+
     static std::string get_symbol_error(const std::string &name) {
         std::string msg = "dylib: error while loading symbol \"" + name + "\"";
+
         auto err = _get_error();
         if (!err)
             return msg;
         return msg + '\n' + err;
     }
+
     static std::string get_missing_handle_error(const std::string &symbol_name) {
         return "dylib: could not get symbol \"" + symbol_name + "\", no dynamic library currently loaded";
     }
