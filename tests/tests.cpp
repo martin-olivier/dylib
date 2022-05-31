@@ -56,7 +56,7 @@ TEST(ctor, bad_library) {
         dylib lib("./", "no_such_library");
         EXPECT_EQ(true, false);
     }
-    catch (const dylib::exception &e) {
+    catch (const dylib::exception &) {
         EXPECT_EQ(true, true);
     }
 }
