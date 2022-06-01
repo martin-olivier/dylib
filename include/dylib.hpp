@@ -55,8 +55,7 @@ public:
     }
 
     dylib& operator=(dylib &&other) noexcept {
-        if (this != &other)
-            std::swap(m_handle, other.m_handle);
+        std::swap(m_handle, other.m_handle);
         return *this;
     }
 
