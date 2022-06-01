@@ -46,7 +46,8 @@ TEST(exemple, exemple_test) {
         void *ptr = lib.get_variable<void *>("ptr");
         EXPECT_EQ(ptr, (void *)1);
     }
-    catch (const dylib::exception &) {
+    catch (const dylib::exception &ex) {
+        std::cerr << "Got dylib exception " << ex.what() << std::endl;
         EXPECT_EQ(true, false);
     }
 }
