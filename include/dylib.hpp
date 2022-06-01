@@ -24,31 +24,28 @@
 #include <dlfcn.h>
 #endif
 
+#if defined(_WIN32) || defined(_WIN64)
+#define DYLIB_WIN_MAC_OTHER(win_def, mac_def, other_def) win_def
+#define DYLIB_WIN_OTHER(win_def, other_def) win_def
+#elif defined(__APPLE__)
+#define DYLIB_WIN_MAC_OTHER(win_def, mac_def, other_def) mac_def
+#define DYLIB_WIN_OTHER(win_def, other_def) other_def
+#else
+#define DYLIB_WIN_MAC_OTHER(win_def, mac_def, other_def) other_def
+#define DYLIB_WIN_OTHER(win_def, other_def) other_def
+#endif
+
 /**
  *  The dylib class can hold a dynamic library instance and interact with it 
  *  by getting its symbols like functions or global variables
  */
 class dylib {
 public:
-#if defined(_WIN32) || defined(_WIN64)
     struct filename_components {
-        static constexpr const char *prefix = "";
-        static constexpr const char *suffix = ".dll";
+        static constexpr const char *prefix = DYLIB_WIN_OTHER("", "lib");
+        static constexpr const char *suffix = DYLIB_WIN_MAC_OTHER(".dll", ".dylib", ".so");
     };
-    using native_handle_type = HINSTANCE;
-#elif defined(__APPLE__)
-    struct filename_components {
-        static constexpr const char *prefix = "lib";
-        static constexpr const char *suffix = ".dylib";
-    };
-    using native_handle_type = void *;
-#else
-    struct filename_components {
-        static constexpr const char *prefix = "lib";
-        static constexpr const char *suffix = ".so";
-    };
-    using native_handle_type = void *;
-#endif
+    using native_handle_type = DYLIB_WIN_OTHER(HINSTANCE, void*);
 
 
     dylib(const dylib&) = delete;
@@ -187,18 +184,27 @@ public:
 
 protected:
     native_handle_type m_handle{nullptr};
-#if defined(_WIN32) || defined(_WIN64)
+
     static native_handle_type _open(const char *path) noexcept {
+#if defined(_WIN32) || defined(_WIN64)
         return LoadLibraryA(path);
+#else
+        return dlopen(path, RTLD_NOW | RTLD_LOCAL);
+#endif
     }
-    static FARPROC _get_symbol(native_handle_type lib, const char *name) noexcept {
-        return GetProcAddress(lib, name);
+
+    static DYLIB_WIN_MAC_OTHER(FARPROC, void*, void*)
+    _get_symbol(native_handle_type lib, const char *name) noexcept {
+        return DYLIB_WIN_OTHER(GetProcAddress, dlsym)(lib, name);
     }
+
     static void _close(native_handle_type lib) noexcept {
-        FreeLibrary(lib);
+        DYLIB_WIN_OTHER(FreeLibrary, dlclose)(lib);
     }
+
     static char *_get_error() noexcept {
-        constexpr size_t buf_size = 512;
+#if defined(_WIN32) || defined(_WIN64)
+        constexpr const size_t buf_size = 512;
         auto error_code = GetLastError();
         if (!error_code)
             return nullptr;
@@ -208,21 +214,11 @@ protected:
         if (len > 0)
             return msg;
         return nullptr;
-    }
 #else
-    static native_handle_type _open(const char *path) noexcept {
-        return dlopen(path, RTLD_NOW | RTLD_LOCAL);
-    }
-    static void *_get_symbol(native_handle_type lib, const char *name) noexcept {
-        return dlsym(lib, name);
-    }
-    static void _close(native_handle_type lib) noexcept {
-        dlclose(lib);
-    }
-    static char *_get_error() noexcept {
         return dlerror();
     }
 #endif
+
     void open(const char *path, const char *name, bool decorations) {
         std::string final_name = name;
         std::string final_path = path;
@@ -242,3 +238,6 @@ protected:
         }
     }
 };
+
+#undef DYLIB_WIN_MAC_OTHER
+#undef DYLIB_WIN_OTHER
