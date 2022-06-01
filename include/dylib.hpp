@@ -47,7 +47,6 @@ public:
     };
     using native_handle_type = DYLIB_WIN_OTHER(HINSTANCE, void*);
 
-
     dylib(const dylib&) = delete;
     dylib& operator=(const dylib&) = delete;
 
@@ -62,37 +61,51 @@ public:
     }
 
     /**
-     *  Creates a dynamic library instance
+     *  @brief Loads a dynamic library
+     *
+     *  @throws std::runtime_error if the library could not be opened (including
+     *  the case of the library file not being found).
      *
      *  @param dir_path the directory path where is located the dynamic library you want to load
      *  @param name the name of the dynamic library to load
      *  @param decorations add os decorations to the library name
      */
-    dylib(const std::string &dir_path, const std::string &name, bool decorations = true) {
-        open(dir_path.c_str(), name.c_str(), decorations);
-    }
+    ///@{
     dylib(const char *dir_path, const char *name, bool decorations = true) {
-        open(dir_path, name, decorations);
-    }
-    dylib(const std::string &dir_path, const char *name, bool decorations = true) {
-        open(dir_path.c_str(), name, decorations);
-    }
-    dylib(const char *dir_path, const std::string &name, bool decorations = true) {
-        open(dir_path, name.c_str(), decorations);
+        std::string final_name = name;
+        std::string final_path = dir_path;
+
+        if (decorations)
+            final_name = filename_components::prefix + final_name + filename_components::suffix;
+
+        if (final_path != "" && final_path.find_last_of('/') != final_path.size() - 1)
+            final_path += '/';
+
+        m_handle = _open((final_path + final_name).c_str());
+
+        if (!m_handle) {
+            throw std::runtime_error(
+                std::string("Failed loading dynamic (shared) library ") + final_path + final_name + ": " + _get_error()
+            );
+        }
     }
 
-    /**
-     *  Creates a dynamic library instance
-     *
-     *  @param name the name of the dynamic library to load from the system library search path
-     *  @param decorations add os decorations to the library name
-     */
-    explicit dylib(const std::string &name, bool decorations = true) {
-        open("", name.c_str(), decorations);
-    }
-    explicit dylib(const char *name, bool decorations = true) {
-        open("", name, decorations);
-    }
+    dylib(const std::string &dir_path, const std::string &name, bool decorations = true)
+        : dylib(dir_path.c_str(), name.c_str(), decorations) { }
+
+    dylib(const std::string &dir_path, const char *name, bool decorations = true)
+        : dylib(dir_path.c_str(), name, decorations) { }
+
+    dylib(const char *dir_path, const std::string &name, bool decorations = true)
+        : dylib(dir_path, name.c_str(), decorations) { }
+
+    explicit dylib(const std::string &name, bool decorations = true)
+        : dylib("", name.c_str(), decorations) { }
+
+    explicit dylib(const char *name, bool decorations = true)
+        : dylib("", name, decorations) { }
+    ///@}
+
 
     ~dylib() {
         if (m_handle)
@@ -218,25 +231,6 @@ protected:
         return dlerror();
     }
 #endif
-
-    void open(const char *path, const char *name, bool decorations) {
-        std::string final_name = name;
-        std::string final_path = path;
-
-        if (decorations)
-            final_name = filename_components::prefix + final_name + filename_components::suffix;
-
-        if (final_path != "" && final_path.find_last_of('/') != final_path.size() - 1)
-            final_path += '/';
-
-        m_handle = _open((final_path + final_name).c_str());
-
-        if (!m_handle) {
-            throw std::runtime_error(
-                std::string("Failed loading dynamic (shared) library ") + final_path + final_name + ": " + _get_error()
-            );
-        }
-    }
 };
 
 #undef DYLIB_WIN_MAC_OTHER
