@@ -50,40 +50,6 @@ public:
     using native_handle_type = void *;
 #endif
 
-    /**
-     *  This exception is raised when the dylib class encountered an error
-     *
-     *  @return the error message by calling what() member function
-     */
-    class exception : public std::exception {
-    protected:
-        const std::string m_error;
-    public:
-        explicit exception(std::string &&message) : m_error(std::move(message)) {}
-        const char *what() const noexcept override {return m_error.c_str();}
-    };
-
-    /**
-     *  This exception is raised when the library failed to load 
-     *  or encountered symbol resolution issues
-     *
-     *  @param message the error message
-     */
-    class handle_error : public exception {
-    public:
-        explicit handle_error(std::string &&message) : exception(std::move(message)) {}
-    };
-
-    /**
-     *  This exception is raised when the library failed to load a symbol. 
-     *  This usually happens when you forgot to put <DYLIB_API> before a library function or variable
-     *
-     *  @param message the error message
-     */
-    class symbol_error : public exception {
-    public:
-        explicit symbol_error(std::string &&message) : exception(std::move(message)) {}
-    };
 
     dylib(const dylib&) = delete;
     dylib& operator=(const dylib&) = delete;
@@ -136,6 +102,23 @@ public:
             _close(m_handle);
     }
 
+    void* locate_symbol(const char* name) const noexcept(false) {
+        if (!name) {
+            throw std::invalid_argument("null symbol name");
+        }
+        if (!m_handle) {
+            throw std::logic_error("The dynamic (shared) library handle is null. This should not be possible");
+        }
+
+        auto symbol = _get_symbol(m_handle, name);
+        if (symbol == nullptr) {
+            auto msg = std::string("Failed locating symbol ") + name + " in a dynamic (shared) library: " + _get_error();
+            throw std::runtime_error(msg);
+        }
+
+        return symbol;
+    }
+
     /**
      *  Get a function from the dynamic library currently loaded in the object
      *
@@ -146,14 +129,8 @@ public:
      */
     template<typename T>
     T *get_function(const char *name) const {
-        if (!name)
-            throw symbol_error(get_symbol_error("(nullptr)"));
-        if (!m_handle)
-            throw handle_error(get_missing_handle_error(name));
-        auto sym = _get_symbol(m_handle, name);
-        if (!sym)
-            throw symbol_error(get_symbol_error(name));
-        return reinterpret_cast<T *>(sym);
+        auto symbol_addr = locate_symbol(name);
+        return reinterpret_cast<T *>(symbol_addr);
     }
 
     template<typename T>
@@ -171,14 +148,8 @@ public:
      */
     template<typename T>
     T &get_variable(const char *name) const {
-        if (!name)
-            throw symbol_error(get_symbol_error("(nullptr)"));
-        if (!m_handle)
-            throw handle_error(get_missing_handle_error(name));
-        auto sym = _get_symbol(m_handle, name);
-        if (!sym)
-            throw symbol_error(get_symbol_error(name));
-        return *reinterpret_cast<T *>(sym);
+        auto symbol_addr = locate_symbol(name);
+        return *reinterpret_cast<T *>(symbol_addr);
     }
 
     template<typename T>
@@ -264,29 +235,10 @@ protected:
 
         m_handle = _open((final_path + final_name).c_str());
 
-        if (!m_handle)
-            throw handle_error(get_handle_error(final_path + final_name));
-    }
-
-    static std::string get_handle_error(const std::string &name) {
-        std::string msg = "dylib: error while loading dynamic library \"" + name + "\"";
-
-        auto err = _get_error();
-        if (!err)
-            return msg;
-        return msg + '\n' + err;
-    }
-
-    static std::string get_symbol_error(const std::string &name) {
-        std::string msg = "dylib: error while loading symbol \"" + name + "\"";
-
-        auto err = _get_error();
-        if (!err)
-            return msg;
-        return msg + '\n' + err;
-    }
-
-    static std::string get_missing_handle_error(const std::string &symbol_name) {
-        return "dylib: could not get symbol \"" + symbol_name + "\", no dynamic library currently loaded";
+        if (!m_handle) {
+            throw std::runtime_error(
+                std::string("Failed loading dynamic (shared) library ") + final_path + final_name + ": " + _get_error()
+            );
+        }
     }
 };
