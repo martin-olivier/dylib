@@ -227,13 +227,12 @@ protected:
         FreeLibrary(lib);
     }
     static char *_get_error() noexcept {
-        constexpr size_t buf_size = 512;
         auto error_code = GetLastError();
         if (!error_code)
             return nullptr;
-        char msg[buf_size];
+        char msg[512];
         auto lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
-        const DWORD len = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, lang, msg, buf_size, nullptr);
+        const DWORD len = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, lang, msg, 512, nullptr);
         if (len > 0)
             return msg;
         return nullptr;
