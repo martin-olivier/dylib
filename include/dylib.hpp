@@ -231,7 +231,7 @@ protected:
         auto error_code = GetLastError();
         if (!error_code)
             return nullptr;
-        static char msg[buf_size];
+        char msg[buf_size];
         auto lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
         const DWORD len = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, lang, msg, buf_size, nullptr);
         if (len > 0)
