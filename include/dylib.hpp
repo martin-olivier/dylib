@@ -1,12 +1,14 @@
 /**
- * \file dylib.hpp
- * \brief C++ cross-platform dynamic library loader
- * \link https://github.com/martin-olivier/dylib
- * \author Martin Olivier
- * \version 1.8.3
- * 
- * MIT License
- * Copyright (c) 2022 Martin Olivier
+ * @file dylib.hpp
+ * @brief C++ cross-platform dynamic library loader
+ * @link https://github.com/martin-olivier/dylib
+ * @author Martin Olivier
+ * @author Eyal Rozenberg
+ *
+ * @license This library is released under the MIT license (see separate fil)
+ *
+ * @copyright (c) 2022 Martin Olivier
+ * @copyright (c) 2022 Eyal Rozenberg
  */
 
 #pragma once
