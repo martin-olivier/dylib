@@ -89,7 +89,7 @@ public:
     dylib& operator=(const dylib&) = delete;
 
     dylib(dylib &&other) noexcept : m_handle(other.m_handle) {
-        other.m_handle = nullptr;
+        other.m_handle = 0;
     }
 
     dylib& operator=(dylib &&other) noexcept {
@@ -215,7 +215,7 @@ public:
     }
 
 protected:
-    native_handle_type m_handle{nullptr};
+    native_handle_type m_handle{};
 #if defined(_WIN32) || defined(_WIN64)
     static native_handle_type _open(const char *path) noexcept {
         return LoadLibraryA(path);
