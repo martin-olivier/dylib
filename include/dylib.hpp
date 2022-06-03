@@ -85,7 +85,8 @@ public:
 
         if (!m_handle) {
             throw std::runtime_error(
-                std::string("Failed loading dynamic (shared) library ") + final_path + final_name + ": " + _get_error()
+                std::string("Failed loading dynamic (shared) library ") + final_path + final_name + ": " +
+                    _get_error_description()
             );
         }
     }
@@ -122,7 +123,7 @@ public:
 
         auto symbol = _get_symbol(m_handle, name);
         if (symbol == nullptr) {
-            auto msg = std::string("Failed locating symbol ") + name + " in a dynamic (shared) library: " + _get_error();
+            auto msg = std::string("Failed locating symbol ") + name + " in a dynamic (shared) library: " + _get_error_description();
             throw std::runtime_error(msg);
         }
 
@@ -215,22 +216,26 @@ protected:
         DYLIB_WIN_OTHER(FreeLibrary, dlclose)(lib);
     }
 
-    static char *_get_error() noexcept {
+    static std::string _get_error_description() noexcept {
 #if defined(_WIN32) || defined(_WIN64)
         constexpr const size_t buf_size = 512;
         auto error_code = GetLastError();
         if (!error_code)
-            return nullptr;
-        static char msg[buf_size];
+            return "unknown error (GetLastError() failed)";
+        std::string description;
         auto lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
-        const DWORD len = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, lang, msg, buf_size, nullptr);
-        if (len > 0)
-            return msg;
-        return nullptr;
+        const DWORD length =
+            FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, lang, description.c_str(), buf_size, nullptr);
+<<<<<<< HEAD
+        return (length > 0) ? description : nullptr;
+=======
+        return (length == 0) ? "" : description;
+>>>>>>> 54faa3e (fixup)
 #else
-        return dlerror();
-    }
+        auto description = dlerror();
+        return (description == nullptr) ? "" : description;
 #endif
+    }
 };
 
 #undef DYLIB_WIN_MAC_OTHER
