@@ -67,4 +67,4 @@ jobs:
               run: pip install cpplint
 
             - name: Run cpplint
-              run: cpplint --linelength=120 --filter=-whitespace/indent include/dylib.hpp
+              run: cpplint --linelength=140 --filter=-whitespace/indent,-whitespace/parens include/dylib.hpp
