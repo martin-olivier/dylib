@@ -220,10 +220,10 @@ protected:
         auto error_code = GetLastError();
         if (!error_code)
             return "Unknown error (GetLastError() failed)";
-        std::string description;
+        char description[512];
         auto lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
         const DWORD length =
-            FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, lang, description.c_str(), buf_size, nullptr);
+            FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, lang, description, buf_size, nullptr);
         return (length == 0) ? "Unknown error (FormatMessage() failed)" : description;
 #else
         auto description = dlerror();
