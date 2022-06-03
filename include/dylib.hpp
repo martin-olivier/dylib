@@ -46,6 +46,7 @@ public:
         static constexpr const char *suffix = DYLIB_WIN_MAC_OTHER(".dll", ".dylib", ".so");
     };
     using native_handle_type = DYLIB_WIN_OTHER(HINSTANCE, void*);
+    static_assert(std::is_pointer<native_handle_type>::value, "Expecting HISTANCE to be some kind of pointer");
 
     dylib(const dylib&) = delete;
     dylib& operator=(const dylib&) = delete;
