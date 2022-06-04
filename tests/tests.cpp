@@ -30,25 +30,20 @@ class OSRedirector {
 TEST(exemple, exemple_test) {
     OSRedirector oss(std::cout);
 
-    try {
-        dylib lib("./", "dynamic_lib");
+    dylib lib("./", "dynamic_lib");
 
-        auto adder = lib.get_function<double(double, double)>("adder");
-        EXPECT_EQ(adder(5, 10), 15);
+    auto adder = lib.get_function<double(double, double)>("adder");
+    EXPECT_EQ(adder(5, 10), 15);
 
-        auto printer = lib.get_function<void()>("print_hello");
-        printer();
-        EXPECT_EQ(oss.getContent(), "Hello\n");
+    auto printer = lib.get_function<void()>("print_hello");
+    printer();
+    EXPECT_EQ(oss.getContent(), "Hello\n");
 
-        double pi_value = lib.get_variable<double>("pi_value");
-        EXPECT_EQ(pi_value, 3.14159);
+    double pi_value = lib.get_variable<double>("pi_value");
+    EXPECT_EQ(pi_value, 3.14159);
 
-        void *ptr = lib.get_variable<void *>("ptr");
-        EXPECT_EQ(ptr, (void *)1);
-    }
-    catch (const dylib::exception &) {
-        EXPECT_EQ(true, false);
-    }
+    void *ptr = lib.get_variable<void *>("ptr");
+    EXPECT_EQ(ptr, (void *)1);
 }
 
 TEST(ctor, bad_library) {
@@ -56,7 +51,7 @@ TEST(ctor, bad_library) {
         dylib lib("./", "no_such_library");
         EXPECT_EQ(true, false);
     }
-    catch (const dylib::exception &) {
+    catch (const std::exception &) {
         EXPECT_EQ(true, true);
     }
 }
@@ -72,7 +67,7 @@ TEST(get_function, bad_symbol) {
         lib.get_function<double(double, double)>("unknown");
         EXPECT_EQ(true, false);
     }
-    catch (const dylib::symbol_error &) {
+    catch (const std::runtime_error &) {
         EXPECT_EQ(true, true);
     }
 }
@@ -83,7 +78,7 @@ TEST(get_variable, bad_symbol) {
         lib.get_variable<double>("unknown");
         EXPECT_EQ(true, false);
     }
-    catch (const dylib::symbol_error &) {
+    catch (const std::runtime_error &) {
         EXPECT_EQ(true, true);
     }
 }
@@ -104,7 +99,7 @@ TEST(get_variable, alter_variables) {
         auto &ptr1 = other.get_variable<void *>("ptr");
         EXPECT_EQ(ptr1, &lib);
     }
-    catch (const dylib::handle_error &) {
+    catch (const std::exception &) {
         EXPECT_EQ(true, false);
     }
 }
@@ -115,7 +110,7 @@ TEST(bad_arguments, null_pointer) {
         lib.get_function<void()>(nullptr);
         EXPECT_EQ(true, false);
     }
-    catch (const dylib::symbol_error &) {
+    catch (const std::invalid_argument &) {
         EXPECT_EQ(true, true);
     }
     try {
@@ -123,7 +118,7 @@ TEST(bad_arguments, null_pointer) {
         lib.get_variable<void *>(nullptr);
         EXPECT_EQ(true, false);
     }
-    catch (const dylib::symbol_error &) {
+    catch (const std::invalid_argument &) {
         EXPECT_EQ(true, true);
     }
 }
@@ -133,7 +128,7 @@ TEST(bad_arguments, handle_and_ext) {
         dylib lib("./", "badlib");
         EXPECT_EQ(true, false);
     }
-    catch (const dylib::handle_error &) {
+    catch (const std::runtime_error &) {
         EXPECT_EQ(true, true);
     }
 }
@@ -144,7 +139,7 @@ TEST(os_detector, basic_test) {
         auto pi = lib.get_variable<double>("pi_value");
         EXPECT_EQ(pi, 3.14159);
     }
-    catch (const dylib::exception &) {
+    catch (const std::runtime_error &) {
         EXPECT_EQ(true, false);
     }
 }
@@ -161,7 +156,7 @@ TEST(std_move, basic_test) {
         other.get_variable<double>("pi_value");
         EXPECT_EQ(true, false);
     }
-    catch (const dylib::handle_error &) {
+    catch (const std::exception &) {
         EXPECT_EQ(true, true);
     }
 }
