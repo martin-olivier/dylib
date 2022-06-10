@@ -9,16 +9,26 @@ The functions and variables of our forthcoming dynamic library are located insid
 #include <iostream>
 #include "dylib.hpp"
 
-DYLIB_API double pi_value = 3.14159;
-DYLIB_API void *ptr = (void *)1;
+#if defined(_WIN32) || defined(_WIN64)
+#define LIB_EXPORT __declspec(dllexport)
+#else
+#define LIB_EXPORT
+#endif
 
-DYLIB_API double adder(double a, double b) {
+extern "C" {
+
+LIB_EXPORT double pi_value = 3.14159;
+LIB_EXPORT void *ptr = (void *)1;
+
+LIB_EXPORT double adder(double a, double b) {
     return a + b;
 }
 
-DYLIB_API void print_hello() {
+LIB_EXPORT void print_hello() {
     std::cout << "Hello" << std::endl;
 }
+
+} // extern "C"
 ```
 
 The code that will load functions and global variables of our dynamic library at runtime is located inside [main.cpp](main.cpp)
@@ -29,25 +39,20 @@ The code that will load functions and global variables of our dynamic library at
 #include "dylib.hpp"
 
 int main() {
-    try {
-        dylib lib("./dynamic_lib", dylib::extension);
+    dylib lib("./", "dynamic_lib");
 
-        auto adder = lib.get_function<double(double, double)>("adder");
-        std::cout << adder(5, 10) << std::endl;
+    auto adder = lib.get_function<double(double, double)>("adder");
+    std::cout << adder(5, 10) << std::endl;
 
-        auto printer = lib.get_function<void()>("print_hello");
-        printer();
+    auto printer = lib.get_function<void()>("print_hello");
+    printer();
 
-        double pi_value = lib.get_variable<double>("pi_value");
-        std::cout << pi_value << std::endl;
+    double pi_value = lib.get_variable<double>("pi_value");
+    std::cout << pi_value << std::endl;
 
-        void *ptr = lib.get_variable<void *>("ptr");
-        if (ptr == (void *)1) std::cout << 1 << std::endl;
-    }
-    catch (const dylib::exception &e) {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
+    void *ptr = lib.get_variable<void *>("ptr");
+    if (ptr == (void *)1) std::cout << 1 << std::endl;
+
     return EXIT_SUCCESS;
 }
 ```
@@ -78,7 +83,7 @@ include(FetchContent)
 FetchContent_Declare(
     dylib
     GIT_REPOSITORY  "https://github.com/martin-olivier/dylib"
-    GIT_TAG         "v1.8.3"
+    GIT_TAG         "v2.0.0"
 )
 
 FetchContent_MakeAvailable(dylib)
@@ -86,8 +91,6 @@ FetchContent_MakeAvailable(dylib)
 # build lib.cpp into a shared library
 
 add_library(dynamic_lib SHARED lib.cpp)
-set_target_properties(dynamic_lib PROPERTIES PREFIX "")
-target_link_libraries(dynamic_lib PRIVATE dylib)
 
 # build main.cpp into an executable
 

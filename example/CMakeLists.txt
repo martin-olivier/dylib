@@ -15,7 +15,7 @@ include(FetchContent)
 FetchContent_Declare(
     dylib
     GIT_REPOSITORY  "https://github.com/martin-olivier/dylib"
-    GIT_TAG         "v1.8.3"
+    GIT_TAG         "v2.0.0"
 )
 
 FetchContent_MakeAvailable(dylib)
@@ -23,8 +23,6 @@ FetchContent_MakeAvailable(dylib)
 # build lib.cpp into a shared library
 
 add_library(dynamic_lib SHARED lib.cpp)
-set_target_properties(dynamic_lib PROPERTIES PREFIX "")
-target_link_libraries(dynamic_lib PRIVATE dylib)
 
 # build main.cpp into an executable
 
