@@ -40,13 +40,13 @@ You can also click [HERE](https://github.com/martin-olivier/dylib/releases/downl
 
 ## Constructor
 
-> dylib(const std::string &name, bool decorations = true);
+The `dylib` class can load a dynamic library from the system library path
 ```c++
 // Load "foo" library from the system library path
 
 dylib lib("foo");
 ```
-> dylib(const std::string &dir_path, const std::string &name, bool decorations = true);
+The `dylib` class can also load a dynamic library from a specific path
 ```c++
 // Lood "foo" lib from relative path "./libs"
 
@@ -57,17 +57,17 @@ dylib lib("./libs", "foo");
 dylib lib("/libs", "foo");
 ```
 
-The `dylib` class will automaticly add os decorations to the library name, but you can disable that by setting "decorations" parameter to false
+The `dylib` class will automaticly add os decorations to the library name, but you can disable that by setting `decorations` parameter to false
 ```c++
-// Windows: look for foo.dll
-// MacOS: look for libfoo.dylib
-// Linux: look for libfoo.so
+// Windows -> "foo.dll"
+// MacOS:  -> "libfoo.dylib"
+// Linux:  -> "libfoo.so"
 
 dylib lib("foo");
 
-// Windows: look for foo.lib
-// MacOS: look for foo.lib
-// Linux: look for foo.lib
+// Windows -> "foo.lib"
+// MacOS:  -> "foo.lib"
+// Linux:  -> "foo.lib"
 
 dylib lib("foo.lib", false);
 ```
