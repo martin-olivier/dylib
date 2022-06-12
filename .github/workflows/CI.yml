@@ -43,8 +43,8 @@ jobs:
             - name: Update Packages
               run: sudo apt update
 
-            - name: Install Valgrind
-              run: sudo apt install -y valgrind
+            - name: Install Valgrind and SSH2
+              run: sudo apt install -y valgrind libssh2-1
 
             - name: Generate Tests Build File
               run: cmake . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug

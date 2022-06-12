@@ -2,19 +2,17 @@
  * @file dylib.hpp
  * @brief C++ cross-platform dynamic library loader
  * @link https://github.com/martin-olivier/dylib
+ * @version 2.0.0
  * @author Martin Olivier
- * @author Eyal Rozenberg
  * @copyright (c) 2022 Martin Olivier
- * @copyright (c) 2022 Eyal Rozenberg
  *
- * @license This library is released under MIT license
- *
+ * This library is released under MIT license
  */
 
 #pragma once
 
 #include <string>
-#include <exception>
+#include <stdexcept>
 #include <utility>
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -46,9 +44,29 @@ public:
         static constexpr const char *prefix = DYLIB_WIN_OTHER("", "lib");
         static constexpr const char *suffix = DYLIB_WIN_MAC_OTHER(".dll", ".dylib", ".so");
     };
-    using native_handle_type = DYLIB_WIN_OTHER(HINSTANCE, void*);
+    using native_handle_type = DYLIB_WIN_OTHER(HINSTANCE, void *);
 
-    static_assert(std::is_pointer<native_handle_type>::value, "Expecting HISTANCE to be some kind of pointer");
+    static_assert(std::is_pointer<native_handle_type>::value, "Expecting HINSTANCE to be a pointer");
+
+    /**
+     *  This exception is raised when the library failed to load or encountered symbol resolution issues
+     *
+     *  @param message the error message
+     */
+    class load_error : public std::runtime_error {
+    public:
+        explicit load_error(const std::string &message) : std::runtime_error(message) {}
+    };
+
+    /**
+     *  This exception is raised when the library failed to load a symbol
+     *
+     *  @param message the error message
+     */
+    class symbol_error : public std::runtime_error {
+    public:
+        explicit symbol_error(const std::string &message) : std::runtime_error(message) {}
+    };
 
     dylib(const dylib&) = delete;
     dylib& operator=(const dylib&) = delete;
@@ -58,7 +76,8 @@ public:
     }
 
     dylib& operator=(dylib &&other) noexcept {
-        std::swap(m_handle, other.m_handle);
+        if (this != &other)
+            std::swap(m_handle, other.m_handle);
         return *this;
     }
 
@@ -74,6 +93,9 @@ public:
      */
     ///@{
     dylib(const char *dir_path, const char *name, bool decorations = true) {
+        if (!dir_path || !name)
+            throw std::invalid_argument("Null parameter");
+
         std::string final_name = name;
         std::string final_path = dir_path;
 
@@ -85,27 +107,24 @@ public:
 
         m_handle = _open((final_path + final_name).c_str());
 
-        if (!m_handle) {
-            throw std::runtime_error(
-                std::string("Failed loading dynamic library ") + final_path + final_name + ": " + _get_error_description()
-            );
-        }
+        if (!m_handle)
+            throw load_error("Could not load library \"" + final_path + final_name + "\":\n" + _get_error_description());
     }
 
     dylib(const std::string &dir_path, const std::string &name, bool decorations = true)
-        : dylib(dir_path.c_str(), name.c_str(), decorations) { }
+        : dylib(dir_path.c_str(), name.c_str(), decorations) {}
 
     dylib(const std::string &dir_path, const char *name, bool decorations = true)
-        : dylib(dir_path.c_str(), name, decorations) { }
+        : dylib(dir_path.c_str(), name, decorations) {}
 
     dylib(const char *dir_path, const std::string &name, bool decorations = true)
-        : dylib(dir_path, name.c_str(), decorations) { }
+        : dylib(dir_path, name.c_str(), decorations) {}
 
     explicit dylib(const std::string &name, bool decorations = true)
-        : dylib("", name.c_str(), decorations) { }
+        : dylib("", name.c_str(), decorations) {}
 
     explicit dylib(const char *name, bool decorations = true)
-        : dylib("", name, decorations) { }
+        : dylib("", name, decorations) {}
     ///@}
 
 
@@ -116,16 +135,14 @@ public:
 
     void *locate_symbol(const char *name) const {
         if (!name)
-            throw std::invalid_argument("Null symbol name");
+            throw std::invalid_argument("Null parameter");
         if (!m_handle)
             throw std::logic_error("The dynamic library handle is null");
 
         auto symbol = _get_symbol(m_handle, name);
 
-        if (symbol == nullptr) {
-            auto msg = std::string("Failed locating symbol ") + name + " in a dynamic library: " + _get_error_description();
-            throw std::runtime_error(msg);
-        }
+        if (symbol == nullptr)
+            throw symbol_error("Could not locate symbol \"" + std::string(name) + "\":\n" + _get_error_description());
         return symbol;
     }
 
@@ -204,7 +221,7 @@ protected:
 #endif
     }
 
-    static DYLIB_WIN_MAC_OTHER(FARPROC, void*, void*)
+    static DYLIB_WIN_OTHER(FARPROC, void*)
     _get_symbol(native_handle_type lib, const char *name) noexcept {
         return DYLIB_WIN_OTHER(GetProcAddress, dlsym)(lib, name);
     }
@@ -218,15 +235,15 @@ protected:
         constexpr const size_t buf_size = 512;
         auto error_code = GetLastError();
         if (!error_code)
-            return "Unknown error (GetLastError() failed)";
+            return "Unknown error (GetLastError failed)";
         char description[512];
         auto lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
         const DWORD length =
             FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, lang, description, buf_size, nullptr);
-        return (length == 0) ? "Unknown error (FormatMessage() failed)" : description;
+        return (length == 0) ? "Unknown error (FormatMessage failed)" : description;
 #else
         auto description = dlerror();
-        return (description == nullptr) ? "Unknown error (dlerror() failed)" : description;
+        return (description == nullptr) ? "Unknown error (dlerror failed)" : description;
 #endif
     }
 };
