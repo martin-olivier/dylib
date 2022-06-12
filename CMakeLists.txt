@@ -34,7 +34,6 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
         endif()
 
         add_library(dynamic_lib SHARED tests/lib.cpp)
-        target_link_libraries(dynamic_lib PRIVATE dylib)
 
         enable_testing()
 

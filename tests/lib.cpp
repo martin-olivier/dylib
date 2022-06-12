@@ -16,7 +16,7 @@ LIB_EXPORT double adder(double a, double b) {
     return a + b;
 }
 
-LIB_EXPORT extern void print_hello() {
+LIB_EXPORT void print_hello() {
     std::cout << "Hello" << std::endl;
 }
 

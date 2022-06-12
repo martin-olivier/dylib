@@ -52,9 +52,9 @@ The `dylib` class can also load a dynamic library from a specific path
 
 dylib lib("./libs", "foo");
 
-// Lood "foo" lib from full path "/libs"
+// Lood "foo" lib from full path "/usr/lib"
 
-dylib lib("/libs", "foo");
+dylib lib("/usr/lib", "foo");
 ```
 
 The `dylib` class will automaticly add os decorations to the library name, but you can disable that by setting `decorations` parameter to false
