@@ -7,7 +7,6 @@ The functions and variables of our forthcoming dynamic library are located insid
 // lib.cpp
 
 #include <iostream>
-#include "dylib.hpp"
 
 #if defined(_WIN32) || defined(_WIN64)
 #define LIB_EXPORT __declspec(dllexport)
