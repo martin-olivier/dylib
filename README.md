@@ -48,16 +48,16 @@ dylib lib("foo");
 ```
 The `dylib` class can also load a dynamic library from a specific path
 ```c++
-// Lood "foo" lib from relative path "./libs"
+// Load "foo" lib from relative path "./libs"
 
 dylib lib("./libs", "foo");
 
-// Lood "foo" lib from full path "/usr/lib"
+// Load "foo" lib from full path "/usr/lib"
 
 dylib lib("/usr/lib", "foo");
 ```
 
-The `dylib` class will automaticly add os decorations to the library name, but you can disable that by setting `decorations` parameter to false
+The `dylib` class will automatically add os decorations to the library name, but you can disable that by setting `decorations` parameter to false
 ```c++
 // Windows -> "foo.dll"
 // MacOS:  -> "libfoo.dylib"
@@ -112,6 +112,29 @@ void example(dylib &lib)
 
     dylib::native_handle_type handle = lib.native_handle();
     void *sym = dlsym(handle, "GetModule");
+}
+```
+
+## Exceptions
+
+`load_error`  
+This exception is raised when the library failed to load or the library encountered symbol resolution issues  
+
+`symbol_error`  
+This exception is raised when the library failed to load a symbol  
+
+Those exceptions inherit from `std::runtime_error`
+```c++
+try {
+    dylib lib("foo");
+    double pi_value = lib.get_variable<double>("pi_value");
+    std::cout << pi_value << std::endl;
+}
+catch (const dylib::load_error &e) {
+    // failed loading "foo" lib
+}
+catch (const dylib::symbol_error &e) {
+    // failed loading "pi_value" symbol
 }
 ```
 

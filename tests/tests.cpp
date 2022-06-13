@@ -133,17 +133,6 @@ TEST(bad_arguments, handle_and_ext) {
     }
 }
 
-TEST(os_detector, basic_test) {
-    try {
-        dylib lib("./", "dynamic_lib");
-        auto pi = lib.get_variable<double>("pi_value");
-        EXPECT_EQ(pi, 3.14159);
-    }
-    catch (const std::runtime_error &) {
-        EXPECT_EQ(true, false);
-    }
-}
-
 TEST(std_move, basic_test) {
     try {
         dylib lib("./", "dynamic_lib");
@@ -179,6 +168,19 @@ TEST(handle_management, basic_test) {
     EXPECT_FALSE(sym == nullptr);
     auto res = ((double (*)(double, double))(sym))(10, 10);
     EXPECT_EQ(res, 20);
+}
+
+TEST(system_lib, basic_test) {
+#if defined(_WIN32) || defined(_WIN64)
+    dylib lib("kernel32");
+    lib.get_function<DWORD()>("GetCurrentThreadId");
+#elif defined(__APPLE__)
+    dylib lib("ssh2");
+    lib.get_function<const char *(int)>("libssh2_version");
+#else
+    dylib lib("pthread");
+    lib.get_function<int()>("pthread_yield");
+#endif
 }
 
 int main(int ac, char **av) {
