@@ -174,6 +174,9 @@ TEST(system_lib, basic_test) {
 #if defined(_WIN32) || defined(_WIN64)
     dylib lib("kernel32");
     lib.get_function<DWORD()>("GetCurrentThreadId");
+#elif defined(__APPLE__)
+    dylib lib("ssh2");
+    lib.get_function<const char *(int)>("libssh2_version");
 #else
     dylib lib("pthread");
     lib.get_function<int()>("pthread_yield");
