@@ -115,7 +115,7 @@ void example(dylib &lib)
 }
 ```
 
-## Dylib exceptions
+## Exceptions
 
 `load_error`  
 This exception is raised when the library failed to load or the library encountered symbol resolution issues  
