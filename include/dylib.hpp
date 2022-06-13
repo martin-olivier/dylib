@@ -223,7 +223,7 @@ protected:
 #endif
     }
 
-    static DYLIB_WIN_OTHER(FARPROC, void*)
+    static DYLIB_WIN_OTHER(FARPROC, void *)
     _get_symbol(native_handle_type lib, const char *name) noexcept {
         return DYLIB_WIN_OTHER(GetProcAddress, dlsym)(lib, name);
     }
