@@ -3,8 +3,10 @@
  * @brief C++ cross-platform dynamic library loader
  * @link https://github.com/martin-olivier/dylib
  * @version 2.0.0
- * @author Martin Olivier
  * @copyright (c) 2022 Martin Olivier
+ *
+ * @author Martin Olivier
+ * @author Eyal Rozenberg
  *
  * This library is released under MIT license
  */
