@@ -1,10 +1,6 @@
 # Dylib
 
 <p align="center">
-  <img height="200" src="https://repository-images.githubusercontent.com/354428648/5ef81a00-95b1-11eb-88a1-e1760bd99ab2" alt="argparse"/>
-</p>
-
-<p align="center">
   <a href="https://github.com/martin-olivier/dylib/releases/tag/v2.0.0">
     <img src="https://img.shields.io/badge/Version-2.0.0-blue.svg" alt="version"/>
   </a>
