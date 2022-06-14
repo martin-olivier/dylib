@@ -1,12 +1,11 @@
 /**
  * @file dylib.hpp
- * @brief C++ cross-platform dynamic library loader
- * @link https://github.com/martin-olivier/dylib
  * @version 2.0.0
+ * @brief C++ cross-platform wrapper around dynamic loading of shared libraries
+ * @link https://github.com/martin-olivier/dylib
+ * 
+ * @author Martin Olivier <martin.olivier@live.fr>
  * @copyright (c) 2022 Martin Olivier
- *
- * @author Martin Olivier
- * @author Eyal Rozenberg
  *
  * This library is released under MIT license
  */
@@ -86,8 +85,8 @@ public:
     /**
      *  @brief Loads a dynamic library
      *
-     *  @throws std::runtime_error if the library could not be opened (including
-     *  the case of the library file not being found).
+     *  @throws dylib::load_error if the library could not be opened (including
+     *  the case of the library file not being found)
      *
      *  @param dir_path the directory path where is located the dynamic library you want to load
      *  @param name the name of the dynamic library to load
@@ -135,21 +134,10 @@ public:
             _close(m_handle);
     }
 
-    void *locate_symbol(const char *name) const {
-        if (!name)
-            throw std::invalid_argument("Null parameter");
-        if (!m_handle)
-            throw std::logic_error("The dynamic library handle is null");
-
-        auto symbol = _get_symbol(m_handle, name);
-
-        if (symbol == nullptr)
-            throw symbol_error("Could not locate symbol \"" + std::string(name) + "\":\n" + _get_error_description());
-        return symbol;
-    }
-
     /**
      *  Get a function from the dynamic library currently loaded in the object
+     * 
+     *  @throws dylib::symbol_error if the symbol could not be found
      *
      *  @param T the template argument must be the function prototype to get
      *  @param name the symbol name of a function to get from the dynamic library
@@ -168,6 +156,8 @@ public:
 
     /**
      *  Get a variable from the dynamic library currently loaded in the object
+     * 
+     *  @throws dylib::symbol_error if the symbol could not be found
      *
      *  @param T the template argument must be the type of the variable to get
      *  @param name the symbol name of a variable to get from the dynamic library
@@ -221,6 +211,19 @@ protected:
 #else
         return dlopen(path, RTLD_NOW | RTLD_LOCAL);
 #endif
+    }
+
+    void *locate_symbol(const char *name) const {
+        if (!name)
+            throw std::invalid_argument("Null parameter");
+        if (!m_handle)
+            throw std::logic_error("The dynamic library handle is null");
+
+        auto symbol = _get_symbol(m_handle, name);
+
+        if (symbol == nullptr)
+            throw symbol_error("Could not locate symbol \"" + std::string(name) + "\":\n" + _get_error_description());
+        return symbol;
     }
 
     static DYLIB_WIN_OTHER(FARPROC, void *)

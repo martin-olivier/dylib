@@ -33,19 +33,16 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
             add_compile_options(/W4)
         endif()
 
-        if(UNIX AND NOT APPLE)
-            SET(CMAKE_CXX_FLAGS "-g -O0 -Wall -fprofile-arcs -ftest-coverage")
-            SET(CMAKE_C_FLAGS "-g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
-            SET(CMAKE_EXE_LINKER_FLAGS "-fprofile-arcs -ftest-coverage")
-        endif()
-
         add_library(dynamic_lib SHARED tests/lib.cpp)
 
         enable_testing()
 
+        if(UNIX AND NOT APPLE)
+            add_compile_options(-fprofile-arcs -ftest-coverage)
+        endif()
+
         add_executable(unit_tests tests/tests.cpp)
-        target_link_libraries(unit_tests PRIVATE gtest_main)
-        target_link_libraries(unit_tests PRIVATE dylib)
+        target_link_libraries(unit_tests PRIVATE gtest_main dylib)
 
         if(UNIX AND NOT APPLE)
             target_link_libraries(unit_tests PRIVATE gcov)

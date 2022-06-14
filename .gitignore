@@ -6,16 +6,13 @@
 *~
 \#*#
 
-# Binary files
-
-*.o
-*.so
-*.dll
-*.dylib
-unit_tests
-
 # Build Folders
 
 cmake-build-*
 build
-Debug
+
+# Coverage files
+
+*.gcda
+*.gcno
+*.gcov
