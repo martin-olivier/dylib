@@ -101,6 +101,13 @@ TEST(get_variable, alter_variables) {
 
 TEST(invalid_argument, null_pointer) {
     try {
+        dylib(nullptr);
+        EXPECT_EQ(true, false);
+    }
+    catch (const std::invalid_argument &) {
+        EXPECT_EQ(true, true);
+    }
+    try {
         dylib lib("./", "dynamic_lib");
         lib.get_function<void()>(nullptr);
         EXPECT_EQ(true, false);
