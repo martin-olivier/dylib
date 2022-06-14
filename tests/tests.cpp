@@ -120,7 +120,7 @@ TEST(invalid_argument, null_pointer) {
 
 TEST(manual_decorations, basic_test) {
     dylib lib(".", dylib::filename_components::prefix + std::string("dynamic_lib") + dylib::filename_components::suffix, false);
-    auto &pi = other.get_variable<double>("pi_value");
+    auto pi = lib.get_variable<double>("pi_value");
     EXPECT_EQ(pi, 3.14159);
 }
 
