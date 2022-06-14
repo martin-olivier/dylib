@@ -50,13 +50,23 @@ public:
     static_assert(std::is_pointer<native_handle_type>::value, "Expecting HINSTANCE to be a pointer");
 
     /**
+     *  This exception is raised when the library failed to load a dynamic library or a symbol
+     *
+     *  @param message the error message
+     */
+    class exception : public std::runtime_error {
+    public:
+        explicit exception(const std::string &message) : std::runtime_error(message) {}
+    };
+
+    /**
      *  This exception is raised when the library failed to load or encountered symbol resolution issues
      *
      *  @param message the error message
      */
-    class load_error : public std::runtime_error {
+    class load_error : public exception {
     public:
-        explicit load_error(const std::string &message) : std::runtime_error(message) {}
+        explicit load_error(const std::string &message) : exception(message) {}
     };
 
     /**
@@ -64,9 +74,9 @@ public:
      *
      *  @param message the error message
      */
-    class symbol_error : public std::runtime_error {
+    class symbol_error : public exception {
     public:
-        explicit symbol_error(const std::string &message) : std::runtime_error(message) {}
+        explicit symbol_error(const std::string &message) : exception(message) {}
     };
 
     dylib(const dylib&) = delete;

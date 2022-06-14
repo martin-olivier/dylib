@@ -1,16 +1,29 @@
-# Dylib - C++ wrapper around dynamic loading of shared libraries
-[![Dylib](https://img.shields.io/badge/Dylib-v2.0.0-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v2.0.0)
-[![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/martin-olivier/dylib/blob/main/LICENSE)
-[![CPP Version](https://img.shields.io/badge/C++-11_and_above-darkgreen.svg)](https://isocpp.org/)
+<p align="center">
+  <img src="https://repository-images.githubusercontent.com/354428648/5ef81a00-95b1-11eb-88a1-e1760bd99ab2" alt="argparse"/>
+</p>
 
-[![GitHub watchers](https://img.shields.io/github/watchers/martin-olivier/dylib?style=social)](https://github.com/martin-olivier/dylib/watchers/)
-[![GitHub forks](https://img.shields.io/github/forks/martin-olivier/dylib?style=social)](https://github.com/martin-olivier/dylib/network/members/)
-[![GitHub stars](https://img.shields.io/github/stars/martin-olivier/dylib?style=social)](https://github.com/martin-olivier/dylib/stargazers/)
+<p align="center">
+  <a href="https://github.com/martin-olivier/dylib/releases/tag/v2.0.0">
+    <img src="https://img.shields.io/badge/version-2.0.0-blue.svg" alt="version"/>
+  </a>
+  <a href="https://github.com/martin-olivier/dylib/blob/main/LICENSE">
+    <img src="https://img.shields.io/badge/License-MIT-orange.svg" alt="license"/>
+  </a>
+  <a href="https://isocpp.org/">
+    <img src="https://img.shields.io/badge/C++-11_and_above-darkgreen.svg" alt="cppversion"/>
+  </a>
+</p>
 
-[![workflow](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml/badge.svg)](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml)
-[![codecov](https://codecov.io/gh/martin-olivier/dylib/branch/main/graph/badge.svg?token=4V6A9B7PII)](https://codecov.io/gh/martin-olivier/dylib)
+<p align="center">
+  <a href="https://github.com/martin-olivier/dylib/actions/workflows/CI.yml">
+    <img src="https://github.com/martin-olivier/dylib/actions/workflows/CI.yml/badge.svg" alt="ci"/>
+  </a>
+  <a href="https://codecov.io/gh/martin-olivier/dylib">
+    <img src="https://codecov.io/gh/martin-olivier/dylib/branch/main/graph/badge.svg?token=4V6A9B7PII" alt="codecov"/>
+  </a>
+</p>
 
-[![GitHub download](https://img.shields.io/github/downloads/martin-olivier/dylib/total?style=for-the-badge)](https://github.com/martin-olivier/dylib/releases/download/v2.0.0/dylib.hpp)
+# Dylib
 
 The goal of this C++ library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.  
 
@@ -123,7 +136,7 @@ This exception is raised when the library failed to load or the library encounte
 `symbol_error`  
 This exception is raised when the library failed to load a symbol  
 
-Those exceptions inherit from `std::runtime_error`
+Those exceptions inherit from `dylib::exception`
 ```c++
 try {
     dylib lib("foo");
