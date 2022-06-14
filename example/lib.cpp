@@ -1,13 +1,22 @@
 #include <iostream>
-#include "dylib.hpp"
 
-DYLIB_API double pi_value = 3.14159;
-DYLIB_API void *ptr = (void *)1;
+#if defined(_WIN32) || defined(_WIN64)
+#define LIB_EXPORT __declspec(dllexport)
+#else
+#define LIB_EXPORT
+#endif
 
-DYLIB_API double adder(double a, double b) {
+extern "C" {
+
+LIB_EXPORT double pi_value = 3.14159;
+LIB_EXPORT void *ptr = (void *)1;
+
+LIB_EXPORT double adder(double a, double b) {
     return a + b;
 }
 
-DYLIB_API void print_hello() {
+LIB_EXPORT void print_hello() {
     std::cout << "Hello" << std::endl;
 }
+
+} // extern "C"

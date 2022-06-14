@@ -34,17 +34,17 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
         endif()
 
         add_library(dynamic_lib SHARED tests/lib.cpp)
-        set_target_properties(dynamic_lib PROPERTIES PREFIX "")
-        target_link_libraries(dynamic_lib PRIVATE dylib)
 
         enable_testing()
 
+        if(UNIX AND NOT APPLE)
+            add_compile_options(-fprofile-arcs -ftest-coverage)
+        endif()
+
         add_executable(unit_tests tests/tests.cpp)
-        target_link_libraries(unit_tests PRIVATE gtest_main)
-        target_link_libraries(unit_tests PRIVATE dylib)
+        target_link_libraries(unit_tests PRIVATE gtest_main dylib)
 
         if(UNIX AND NOT APPLE)
-            add_compile_options(--coverage)
             target_link_libraries(unit_tests PRIVATE gcov)
         endif()
 

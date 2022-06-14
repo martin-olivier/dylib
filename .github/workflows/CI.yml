@@ -19,19 +19,25 @@ jobs:
         steps:
             - uses: actions/checkout@v2
 
-            - name: Generate Project Files
+            - name: Generate project files
               run: cmake . -B build -DBUILD_TESTS=ON
 
-            - name: Build Dynamic Library and Unit Tests
+            - name: Build dynamic library and unit tests
               run: cmake --build build
 
-            - name: Run Unit Tests
+            - name: Run unit tests
               working-directory: build
               run: ctest
 
-            - name: Send Coverage to codecov.io
+            - name: Generate code coverage
               if: ${{ matrix.os == 'ubuntu-latest' }}
-              run: bash <(curl -s https://codecov.io/bash)
+              run: gcov -abcfu build/CMakeFiles/unit_tests.dir/tests/tests.cpp.gcda
+
+            - name: Send coverage to codecov.io
+              if: ${{ matrix.os == 'ubuntu-latest' }}
+              uses: codecov/codecov-action@v2
+              with:
+                files: dylib.hpp.gcov
 
     memory_check:
         name: memory check
@@ -40,19 +46,19 @@ jobs:
         steps:
             - uses: actions/checkout@v2
 
-            - name: Update Packages
+            - name: Update packages
               run: sudo apt update
 
-            - name: Install Valgrind
+            - name: Install valgrind
               run: sudo apt install -y valgrind
 
-            - name: Generate Tests Build File
+            - name: Generate tests build file
               run: cmake . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
 
-            - name: Build Unit Tests
+            - name: Build unit tests
               run: cmake --build build
 
-            - name: Run Unit Tests with Valgrind
+            - name: Run unit tests with valgrind
               working-directory: build
               run: valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./unit_tests
 
@@ -67,4 +73,4 @@ jobs:
               run: pip install cpplint
 
             - name: Run cpplint
-              run: cpplint --linelength=120 --filter=-whitespace/indent include/dylib.hpp
+              run: cpplint --linelength=140 --filter=-whitespace/indent,-whitespace/parens include/dylib.hpp
