@@ -1,5 +1,3 @@
-# Dylib
-
 <p align="center">
   <a href="https://github.com/martin-olivier/dylib/releases/tag/v2.0.0">
     <img src="https://img.shields.io/badge/Version-2.0.0-blue.svg" alt="version"/>
@@ -20,6 +18,8 @@
     <img src="https://codecov.io/gh/martin-olivier/dylib/branch/main/graph/badge.svg?token=4V6A9B7PII" alt="codecov"/>
   </a>
 </p>
+
+# Dylib
 
 The goal of this C++ library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.  
 
