@@ -1,16 +1,16 @@
 <p align="center">
-  <img src="https://repository-images.githubusercontent.com/354428648/5ef81a00-95b1-11eb-88a1-e1760bd99ab2" alt="argparse"/>
+  <img height="200" src="https://repository-images.githubusercontent.com/354428648/5ef81a00-95b1-11eb-88a1-e1760bd99ab2" alt="argparse"/>
 </p>
 
 <p align="center">
   <a href="https://github.com/martin-olivier/dylib/releases/tag/v2.0.0">
-    <img src="https://img.shields.io/badge/version-2.0.0-blue.svg" alt="version"/>
+    <img src="https://img.shields.io/badge/Version-2.0.0-blue.svg" alt="version"/>
   </a>
   <a href="https://github.com/martin-olivier/dylib/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-orange.svg" alt="license"/>
   </a>
   <a href="https://isocpp.org/">
-    <img src="https://img.shields.io/badge/C++-11_and_above-darkgreen.svg" alt="cppversion"/>
+    <img src="https://img.shields.io/badge/Compatibility-C++11-darkgreen.svg" alt="cppversion"/>
   </a>
 </p>
 
