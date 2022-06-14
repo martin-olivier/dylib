@@ -37,12 +37,14 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 
         enable_testing()
 
+        if(UNIX AND NOT APPLE)
+            add_compile_options(-fprofile-arcs -ftest-coverage)
+        endif()
+
         add_executable(unit_tests tests/tests.cpp)
-        target_link_libraries(unit_tests PRIVATE gtest_main)
-        target_link_libraries(unit_tests PRIVATE dylib)
+        target_link_libraries(unit_tests PRIVATE gtest_main dylib)
 
         if(UNIX AND NOT APPLE)
-            add_compile_options(--coverage)
             target_link_libraries(unit_tests PRIVATE gcov)
         endif()
 

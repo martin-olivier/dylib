@@ -51,7 +51,7 @@ TEST(ctor, bad_library) {
         dylib lib("./", "no_such_library");
         EXPECT_EQ(true, false);
     }
-    catch (const std::exception &) {
+    catch (const dylib::load_error &) {
         EXPECT_EQ(true, true);
     }
 }
@@ -67,7 +67,7 @@ TEST(get_function, bad_symbol) {
         lib.get_function<double(double, double)>("unknown");
         EXPECT_EQ(true, false);
     }
-    catch (const std::runtime_error &) {
+    catch (const dylib::symbol_error &) {
         EXPECT_EQ(true, true);
     }
 }
@@ -78,33 +78,35 @@ TEST(get_variable, bad_symbol) {
         lib.get_variable<double>("unknown");
         EXPECT_EQ(true, false);
     }
-    catch (const std::runtime_error &) {
+    catch (const dylib::symbol_error &) {
         EXPECT_EQ(true, true);
     }
 }
 
 TEST(get_variable, alter_variables) {
-    try {
-        dylib lib("./", "dynamic_lib");
-        dylib other(std::move(lib));
-        auto &pi = other.get_variable<double>("pi_value");
-        EXPECT_EQ(pi, 3.14159);
-        pi = 123;
-        auto &pi1 = other.get_variable<double>("pi_value");
-        EXPECT_EQ(pi1, 123);
+    dylib lib("./", "dynamic_lib");
 
-        auto &ptr = other.get_variable<void *>("ptr");
-        EXPECT_EQ(ptr, (void *)1);
-        ptr = &lib;
-        auto &ptr1 = other.get_variable<void *>("ptr");
-        EXPECT_EQ(ptr1, &lib);
-    }
-    catch (const std::exception &) {
-        EXPECT_EQ(true, false);
-    }
+    auto &pi = lib.get_variable<double>("pi_value");
+    EXPECT_EQ(pi, 3.14159);
+    pi = 123;
+    auto &pi1 = lib.get_variable<double>("pi_value");
+    EXPECT_EQ(pi1, 123);
+
+    auto &ptr = lib.get_variable<void *>("ptr");
+    EXPECT_EQ(ptr, (void *)1);
+    ptr = &lib;
+    auto &ptr1 = lib.get_variable<void *>("ptr");
+    EXPECT_EQ(ptr1, &lib);
 }
 
-TEST(bad_arguments, null_pointer) {
+TEST(invalid_argument, null_pointer) {
+    try {
+        dylib(nullptr);
+        EXPECT_EQ(true, false);
+    }
+    catch (const std::invalid_argument &) {
+        EXPECT_EQ(true, true);
+    }
     try {
         dylib lib("./", "dynamic_lib");
         lib.get_function<void()>(nullptr);
@@ -123,14 +125,10 @@ TEST(bad_arguments, null_pointer) {
     }
 }
 
-TEST(bad_arguments, handle_and_ext) {
-    try {
-        dylib lib("./", "badlib");
-        EXPECT_EQ(true, false);
-    }
-    catch (const std::runtime_error &) {
-        EXPECT_EQ(true, true);
-    }
+TEST(manual_decorations, basic_test) {
+    dylib lib(".", dylib::filename_components::prefix + std::string("dynamic_lib") + dylib::filename_components::suffix, false);
+    auto pi = lib.get_variable<double>("pi_value");
+    EXPECT_EQ(pi, 3.14159);
 }
 
 TEST(std_move, basic_test) {
@@ -145,15 +143,19 @@ TEST(std_move, basic_test) {
         other.get_variable<double>("pi_value");
         EXPECT_EQ(true, false);
     }
-    catch (const std::exception &) {
+    catch (const std::logic_error &) {
         EXPECT_EQ(true, true);
     }
 }
 
 TEST(has_symbol, basic_test) {
-    dylib lib("./", "dynamic_lib");
+    dylib dummy("./", "dynamic_lib");
+    dylib lib(std::move(dummy));
+
     EXPECT_TRUE(lib.has_symbol("pi_value"));
     EXPECT_FALSE(lib.has_symbol("bad_symbol"));
+    EXPECT_FALSE(lib.has_symbol(nullptr));
+    EXPECT_FALSE(dummy.has_symbol("pi_value"));
 }
 
 TEST(handle_management, basic_test) {

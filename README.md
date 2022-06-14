@@ -1,4 +1,4 @@
-# Dylib - C++ cross-platform dynamic library loader  
+# Dylib - C++ wrapper around dynamic loading of shared libraries
 [![Dylib](https://img.shields.io/badge/Dylib-v2.0.0-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v2.0.0)
 [![MIT license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/martin-olivier/dylib/blob/main/LICENSE)
 [![CPP Version](https://img.shields.io/badge/C++-11_and_above-darkgreen.svg)](https://isocpp.org/)
