@@ -7,53 +7,59 @@ defaults:
     shell: bash
 
 jobs:
-  unit_tests:
+  unit_tests_cpp11:
     strategy:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
 
-      name: ${{ matrix.os }} (C++11)
-      runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }} (C++11)
+    runs-on: ${{ matrix.os }}
 
-      steps:
-        - uses: actions/checkout@v2
+    steps:
+      - uses: actions/checkout@v2
 
-        - name: Generate project files
-          run: cmake . -B build -DCMAKE_CXX_STANDARD=11 -DBUILD_TESTS=ON
+      - name: Generate project files
+        run: cmake . -B build -DCMAKE_CXX_STANDARD=11 -DBUILD_TESTS=ON
 
-        - name: Build dynamic library and unit tests
-          run: cmake --build build
+      - name: Build dynamic library and unit tests
+        run: cmake --build build
 
-        - name: Run unit tests
-          working-directory: build
-          run: ctest
+      - name: Run unit tests
+        working-directory: build
+        run: ctest
 
-      name: ${{ matrix.os }} (C++17)
-      runs-on: ${{ matrix.os }}
+  unit_tests_cpp17:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
 
-      steps:
-        - uses: actions/checkout@v2
+    name: ${{ matrix.os }} (C++17)
+    runs-on: ${{ matrix.os }}
 
-        - name: Generate project files
-          run: cmake . -B build -DCMAKE_CXX_STANDARD=11 -DBUILD_TESTS=ON
+    steps:
+      - uses: actions/checkout@v2
 
-        - name: Build dynamic library and unit tests
-          run: cmake --build build
+      - name: Generate project files
+        run: cmake . -B build -DCMAKE_CXX_STANDARD=17 -DBUILD_TESTS=ON
 
-        - name: Run unit tests
-          working-directory: build
-          run: ctest
+      - name: Build dynamic library and unit tests
+        run: cmake --build build
 
-        - name: Generate code coverage
-          if: ${{ matrix.os == 'ubuntu-latest' }}
-          run: gcov -abcfu build/CMakeFiles/unit_tests.dir/tests/tests.cpp.gcda
+      - name: Run unit tests
+        working-directory: build
+        run: ctest
 
-        - name: Send coverage to codecov.io
-          if: ${{ matrix.os == 'ubuntu-latest' }}
-          uses: codecov/codecov-action@v2
-          with:
-            files: dylib.hpp.gcov
+      - name: Generate code coverage
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: gcov -abcfu build/CMakeFiles/unit_tests.dir/tests/tests.cpp.gcda
+
+      - name: Send coverage to codecov.io
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: codecov/codecov-action@v2
+        with:
+          files: dylib.hpp.gcov
 
   memory_check:
     name: memory check
@@ -69,7 +75,7 @@ jobs:
         run: sudo apt install -y valgrind
 
       - name: Generate tests build file
-        run: cmake . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
+        run: cmake . -B build -DCMAKE_CXX_STANDARD=17 -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
 
       - name: Build unit tests
         run: cmake --build build
