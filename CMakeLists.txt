@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 3.14)
 
 project(dylib CXX)
 
-set(CMAKE_CXX_STANDARD 11)
+if(NOT "${CMAKE_CXX_STANDARD}")
+  set(CMAKE_CXX_STANDARD 11)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(dylib INTERFACE)

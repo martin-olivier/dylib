@@ -147,7 +147,7 @@ public:
 #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
     explicit dylib(const std::filesystem::path &path)
         : dylib("", path.c_str(), no_filename_decorations) {}
-    
+
     dylib(const std::filesystem::path &dir_path, const std::string &name, bool decorations = add_filename_decorations)
         : dylib(dir_path.c_str(), name.c_str(), decorations) {}
 
