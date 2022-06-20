@@ -51,6 +51,6 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
         endif()
 
         include(GoogleTest)
-        gtest_discover_tests(unit_tests WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+        gtest_discover_tests(unit_tests PROPERTIES TIMEOUT 600 WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
     endif()
 endif()
