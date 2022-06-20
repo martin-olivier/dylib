@@ -49,8 +49,8 @@ public:
 
     static_assert(std::is_pointer<native_handle_type>::value, "Expecting HINSTANCE to be a pointer");
 
-    static constexpr bool add_decorations = true;
-    static constexpr bool no_decorations = false;
+    static constexpr bool add_filename_decorations = true;
+    static constexpr bool no_filename_decorations = false;
 
     /**
      *  This exception is raised when the library failed to load a dynamic library or a symbol
@@ -106,7 +106,7 @@ public:
      *  @param decorations add os decorations to the library name
      */
     ///@{
-    dylib(const char *dir_path, const char *name, bool decorations = add_decorations) {
+    dylib(const char *dir_path, const char *name, bool decorations = add_filename_decorations) {
         if (!dir_path || !name)
             throw std::invalid_argument("Null parameter");
 
@@ -125,19 +125,19 @@ public:
             throw load_error("Could not load library \"" + final_path + final_name + "\"\n" + get_error_description());
     }
 
-    dylib(const std::string &dir_path, const std::string &name, bool decorations = add_decorations)
+    dylib(const std::string &dir_path, const std::string &name, bool decorations = add_filename_decorations)
         : dylib(dir_path.c_str(), name.c_str(), decorations) {}
 
-    dylib(const std::string &dir_path, const char *name, bool decorations = add_decorations)
+    dylib(const std::string &dir_path, const char *name, bool decorations = add_filename_decorations)
         : dylib(dir_path.c_str(), name, decorations) {}
 
-    dylib(const char *dir_path, const std::string &name, bool decorations = add_decorations)
+    dylib(const char *dir_path, const std::string &name, bool decorations = add_filename_decorations)
         : dylib(dir_path, name.c_str(), decorations) {}
 
-    explicit dylib(const std::string &name, bool decorations = add_decorations)
+    explicit dylib(const std::string &name, bool decorations = add_filename_decorations)
         : dylib("", name.c_str(), decorations) {}
 
-    explicit dylib(const char *name, bool decorations = add_decorations)
+    explicit dylib(const char *name, bool decorations = add_filename_decorations)
         : dylib("", name, decorations) {}
     ///@}
 

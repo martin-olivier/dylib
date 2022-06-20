@@ -70,7 +70,7 @@ dylib lib("./libs", "foo");
 dylib lib("/usr/lib", "foo");
 ```
 
-The `dylib` class will automatically add os decorations to the library name, but you can disable that by setting `decorations` parameter to `dylib::no_decorations`
+The `dylib` class will automatically add the filename decorations of the current os to the library name, but you can disable that by setting `decorations` parameter to `dylib::no_filename_decorations`
 ```c++
 // Windows -> "foo.dll"
 // MacOS   -> "libfoo.dylib"
@@ -82,7 +82,7 @@ dylib lib("foo");
 // MacOS   -> "foo.lib"
 // Linux   -> "foo.lib"
 
-dylib lib("foo.lib", dylib::no_decorations);
+dylib lib("foo.lib", dylib::no_filename_decorations);
 ```
 
 ## Get a function or a variable 
