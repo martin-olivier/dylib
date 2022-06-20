@@ -49,6 +49,9 @@ public:
 
     static_assert(std::is_pointer<native_handle_type>::value, "Expecting HINSTANCE to be a pointer");
 
+    static constexpr bool add_filename_decorations = true;
+    static constexpr bool no_filename_decorations = false;
+
     /**
      *  This exception is raised when the library failed to load a dynamic library or a symbol
      *
@@ -103,7 +106,7 @@ public:
      *  @param decorations add os decorations to the library name
      */
     ///@{
-    dylib(const char *dir_path, const char *name, bool decorations = true) {
+    dylib(const char *dir_path, const char *name, bool decorations = add_filename_decorations) {
         if (!dir_path || !name)
             throw std::invalid_argument("Null parameter");
 
@@ -116,32 +119,31 @@ public:
         if (final_path != "" && final_path.find_last_of('/') != final_path.size() - 1)
             final_path += '/';
 
-        m_handle = _open((final_path + final_name).c_str());
+        m_handle = open((final_path + final_name).c_str());
 
         if (!m_handle)
-            throw load_error("Could not load library \"" + final_path + final_name + "\":\n" + _get_error_description());
+            throw load_error("Could not load library \"" + final_path + final_name + "\"\n" + get_error_description());
     }
 
-    dylib(const std::string &dir_path, const std::string &name, bool decorations = true)
+    dylib(const std::string &dir_path, const std::string &name, bool decorations = add_filename_decorations)
         : dylib(dir_path.c_str(), name.c_str(), decorations) {}
 
-    dylib(const std::string &dir_path, const char *name, bool decorations = true)
+    dylib(const std::string &dir_path, const char *name, bool decorations = add_filename_decorations)
         : dylib(dir_path.c_str(), name, decorations) {}
 
-    dylib(const char *dir_path, const std::string &name, bool decorations = true)
+    dylib(const char *dir_path, const std::string &name, bool decorations = add_filename_decorations)
         : dylib(dir_path, name.c_str(), decorations) {}
 
-    explicit dylib(const std::string &name, bool decorations = true)
+    explicit dylib(const std::string &name, bool decorations = add_filename_decorations)
         : dylib("", name.c_str(), decorations) {}
 
-    explicit dylib(const char *name, bool decorations = true)
+    explicit dylib(const char *name, bool decorations = add_filename_decorations)
         : dylib("", name, decorations) {}
     ///@}
 
-
     ~dylib() {
         if (m_handle)
-            _close(m_handle);
+            close(m_handle);
     }
 
     /**
@@ -194,11 +196,9 @@ public:
      *  @return true if the symbol exists in the dynamic library, false otherwise
      */
     bool has_symbol(const char *symbol) const noexcept {
-        if (!symbol)
+        if (!m_handle || !symbol)
             return false;
-        if (!m_handle)
-            return false;
-        return _get_symbol(m_handle, symbol) != nullptr;
+        return get_symbol(m_handle, symbol) != nullptr;
     }
 
     bool has_symbol(const std::string &symbol) const noexcept {
@@ -215,7 +215,7 @@ public:
 protected:
     native_handle_type m_handle{nullptr};
 
-    static native_handle_type _open(const char *path) noexcept {
+    static native_handle_type open(const char *path) noexcept {
 #if defined(_WIN32) || defined(_WIN64)
         return LoadLibraryA(path);
 #else
@@ -229,23 +229,23 @@ protected:
         if (!m_handle)
             throw std::logic_error("The dynamic library handle is null");
 
-        auto symbol = _get_symbol(m_handle, name);
+        auto symbol = get_symbol(m_handle, name);
 
         if (symbol == nullptr)
-            throw symbol_error("Could not locate symbol \"" + std::string(name) + "\":\n" + _get_error_description());
+            throw symbol_error("Could not locate symbol \"" + std::string(name) + "\"\n" + get_error_description());
         return symbol;
     }
 
     static DYLIB_WIN_OTHER(FARPROC, void *)
-    _get_symbol(native_handle_type lib, const char *name) noexcept {
+    get_symbol(native_handle_type lib, const char *name) noexcept {
         return DYLIB_WIN_OTHER(GetProcAddress, dlsym)(lib, name);
     }
 
-    static void _close(native_handle_type lib) noexcept {
+    static void close(native_handle_type lib) noexcept {
         DYLIB_WIN_OTHER(FreeLibrary, dlclose)(lib);
     }
 
-    static std::string _get_error_description() noexcept {
+    static std::string get_error_description() noexcept {
 #if defined(_WIN32) || defined(_WIN64)
         constexpr const size_t buf_size = 512;
         auto error_code = GetLastError();
