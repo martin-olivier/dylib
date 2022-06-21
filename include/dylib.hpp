@@ -16,6 +16,11 @@
 #include <stdexcept>
 #include <utility>
 
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#define DYLIB_CPP17
+#include <filesystem>
+#endif
+
 #if defined(_WIN32) || defined(_WIN64)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -106,11 +111,11 @@ public:
      *  @param decorations add os decorations to the library name
      */
     ///@{
-    dylib(const char *dir_path, const char *name, bool decorations = add_filename_decorations) {
-        if (!dir_path || !name)
+    dylib(const char *dir_path, const char *lib_name, bool decorations = add_filename_decorations) {
+        if (!dir_path || !lib_name)
             throw std::invalid_argument("Null parameter");
 
-        std::string final_name = name;
+        std::string final_name = lib_name;
         std::string final_path = dir_path;
 
         if (decorations)
@@ -125,20 +130,31 @@ public:
             throw load_error("Could not load library \"" + final_path + final_name + "\"\n" + get_error_description());
     }
 
-    dylib(const std::string &dir_path, const std::string &name, bool decorations = add_filename_decorations)
-        : dylib(dir_path.c_str(), name.c_str(), decorations) {}
+    dylib(const std::string &dir_path, const std::string &lib_name, bool decorations = add_filename_decorations)
+        : dylib(dir_path.c_str(), lib_name.c_str(), decorations) {}
 
-    dylib(const std::string &dir_path, const char *name, bool decorations = add_filename_decorations)
-        : dylib(dir_path.c_str(), name, decorations) {}
+    dylib(const std::string &dir_path, const char *lib_name, bool decorations = add_filename_decorations)
+        : dylib(dir_path.c_str(), lib_name, decorations) {}
 
-    dylib(const char *dir_path, const std::string &name, bool decorations = add_filename_decorations)
-        : dylib(dir_path, name.c_str(), decorations) {}
+    dylib(const char *dir_path, const std::string &lib_name, bool decorations = add_filename_decorations)
+        : dylib(dir_path, lib_name.c_str(), decorations) {}
 
-    explicit dylib(const std::string &name, bool decorations = add_filename_decorations)
-        : dylib("", name.c_str(), decorations) {}
+    explicit dylib(const std::string &lib_name, bool decorations = add_filename_decorations)
+        : dylib("", lib_name.c_str(), decorations) {}
 
-    explicit dylib(const char *name, bool decorations = add_filename_decorations)
-        : dylib("", name, decorations) {}
+    explicit dylib(const char *lib_name, bool decorations = add_filename_decorations)
+        : dylib("", lib_name, decorations) {}
+
+#ifdef DYLIB_CPP17
+    explicit dylib(const std::filesystem::path &path)
+        : dylib("", path.string().c_str(), no_filename_decorations) {}
+
+    dylib(const std::filesystem::path &dir_path, const std::string &lib_name, bool decorations = add_filename_decorations)
+        : dylib(dir_path.string().c_str(), lib_name.c_str(), decorations) {}
+
+    dylib(const std::filesystem::path &dir_path, const char *lib_name, bool decorations = add_filename_decorations)
+        : dylib(dir_path.string().c_str(), lib_name, decorations) {}
+#endif
     ///@}
 
     ~dylib() {
@@ -265,3 +281,4 @@ protected:
 
 #undef DYLIB_WIN_MAC_OTHER
 #undef DYLIB_WIN_OTHER
+#undef DYLIB_CPP17

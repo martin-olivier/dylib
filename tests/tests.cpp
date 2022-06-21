@@ -185,6 +185,25 @@ TEST(system_lib, basic_test) {
 #endif
 }
 
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+TEST(filesystem, basic_test) {
+    bool has_sym = dylib(std::filesystem::path("."), "dynamic_lib").has_symbol("pi_value");
+    EXPECT_TRUE(has_sym);
+
+    bool found = false;
+    for (const auto &file : std::filesystem::recursive_directory_iterator(".")) {
+        if (file.path().extension() == dylib::filename_components::suffix) {
+            try {
+                dylib lib(file.path());
+                if (lib.has_symbol("pi_value"))
+                    found = true;
+            } catch (const std::exception &) {}
+        }
+    }
+    EXPECT_TRUE(found);
+}
+#endif
+
 int main(int ac, char **av) {
     testing::InitGoogleTest(&ac, av);
     return RUN_ALL_TESTS();
