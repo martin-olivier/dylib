@@ -17,6 +17,7 @@
 #include <utility>
 
 #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#define DYLIB_CPP17
 #include <filesystem>
 #endif
 
@@ -144,7 +145,7 @@ public:
     explicit dylib(const char *lib_name, bool decorations = add_filename_decorations)
         : dylib("", lib_name, decorations) {}
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#ifdef DYLIB_CPP17
     explicit dylib(const std::filesystem::path &path)
         : dylib("", path.string().c_str(), no_filename_decorations) {}
 
@@ -280,3 +281,4 @@ protected:
 
 #undef DYLIB_WIN_MAC_OTHER
 #undef DYLIB_WIN_OTHER
+#undef DYLIB_CPP17
