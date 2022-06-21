@@ -111,11 +111,11 @@ public:
      *  @param decorations add os decorations to the library name
      */
     ///@{
-    dylib(const char *dir_path, const char *name, bool decorations = add_filename_decorations) {
-        if (!dir_path || !name)
+    dylib(const char *dir_path, const char *lib_name, bool decorations = add_filename_decorations) {
+        if (!dir_path || !lib_name)
             throw std::invalid_argument("Null parameter");
 
-        std::string final_name = name;
+        std::string final_name = lib_name;
         std::string final_path = dir_path;
 
         if (decorations)
