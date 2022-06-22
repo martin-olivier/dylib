@@ -1,10 +1,10 @@
 <p align="center">
-  <img height="200" src="https://repository-images.githubusercontent.com/354428648/5ef81a00-95b1-11eb-88a1-e1760bd99ab2" alt="dylib"/>
+  <img height=60% width=350 src="https://repository-images.githubusercontent.com/354428648/5ef81a00-95b1-11eb-88a1-e1760bd99ab2" alt="dylib"/>
 </p>
 
 <p align="center">
-  <a href="https://github.com/martin-olivier/dylib/releases/tag/v2.0.0">
-    <img src="https://img.shields.io/badge/Version-2.0.0-blue.svg" alt="version"/>
+  <a href="https://github.com/martin-olivier/dylib/releases/tag/v2.1.0">
+    <img src="https://img.shields.io/badge/Version-2.1.0-blue.svg" alt="version"/>
   </a>
   <a href="https://github.com/martin-olivier/dylib/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-orange.svg" alt="license"/>
@@ -41,13 +41,13 @@ include(FetchContent)
 FetchContent_Declare(
     dylib
     GIT_REPOSITORY "https://github.com/martin-olivier/dylib"
-    GIT_TAG        "v2.0.0"
+    GIT_TAG        "v2.1.0"
 )
 
 FetchContent_MakeAvailable(dylib)
 ```
 
-You can also click [HERE](https://github.com/martin-olivier/dylib/releases/download/v2.0.0/dylib.hpp) to download the `dylib` header file.  
+You can also click [HERE](https://github.com/martin-olivier/dylib/releases/download/v2.1.0/dylib.hpp) to download the `dylib` header file.  
 
 # Documentation
 
@@ -61,28 +61,28 @@ dylib lib("foo");
 ```
 The `dylib` class can also load a dynamic library from a specific path
 ```c++
-// Load "foo" lib from relative path "./libs"
+// Load "foo" library from relative path "./libs"
 
 dylib lib("./libs", "foo");
 
-// Load "foo" lib from full path "/usr/lib"
+// Load "foo" library from full path "/usr/lib"
 
 dylib lib("/usr/lib", "foo");
 ```
 
-The `dylib` class will automatically add os decorations to the library name, but you can disable that by setting `decorations` parameter to false
+The `dylib` class will automatically add the filename decorations of the current os to the library name, but you can disable that by setting `decorations` parameter to `dylib::no_filename_decorations`
 ```c++
 // Windows -> "foo.dll"
-// MacOS:  -> "libfoo.dylib"
-// Linux:  -> "libfoo.so"
+// MacOS   -> "libfoo.dylib"
+// Linux   -> "libfoo.so"
 
 dylib lib("foo");
 
 // Windows -> "foo.lib"
-// MacOS:  -> "foo.lib"
-// Linux:  -> "foo.lib"
+// MacOS   -> "foo.lib"
+// Linux   -> "foo.lib"
 
-dylib lib("foo.lib", false);
+dylib lib("foo.lib", dylib::no_filename_decorations);
 ```
 
 ## Get a function or a variable 
@@ -113,15 +113,20 @@ double result = adder(pi, pi);
 ## Miscellaneous tools
 
 `has_symbol`  
-Returns true if the symbol passed as parameter exists in the dynamic library, false otherwise  
+Returns true if the symbol passed as parameter exists in the dynamic library, false otherwise
+
+`get_symbol`  
+Get a symbol from the dynamic library currently loaded in the object  
 
 `native_handle`  
-Returns the dynamic library handle  
+Returns the dynamic library handle
 ```c++
 void example(dylib &lib)
 {
     if (lib.has_symbol("GetModule"))
-        std::cout << "GetModule symbol has been found" << std::endl;
+        dylib::native_symbol_type sym = lib.get_symbol("GetModule");
+    else
+        std::cout << "GetModule symbol could not be found" << std::endl;
 
     dylib::native_handle_type handle = lib.native_handle();
     void *sym = dlsym(handle, "GetModule");
@@ -144,7 +149,7 @@ try {
     std::cout << pi_value << std::endl;
 }
 catch (const dylib::load_error &e) {
-    // failed loading "foo" lib
+    // failed loading "foo" library
 }
 catch (const dylib::symbol_error &e) {
     // failed loading "pi_value" symbol
@@ -166,4 +171,15 @@ cmake --build build
 To run unit tests, enter the following command inside "build" directory:
 ```sh
 ctest
+```
+
+# Community
+
+If you have any question about the usage of the library, do not hesitate to open a [discussion](https://github.com/martin-olivier/dylib/discussions)
+
+If you want to report a bug or provide a feature, do not hesitate to open an [issue](https://github.com/martin-olivier/dylib/issues) or submit a [pull request](https://github.com/martin-olivier/dylib/pulls)
+
+> Do not forget to sign your commits and use [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) when providing a pull request
+```sh
+git commit -s -m "feat: ..."
 ```

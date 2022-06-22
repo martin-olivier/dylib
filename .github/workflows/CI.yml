@@ -3,74 +3,96 @@ name: CI
 on: [push, pull_request]
 
 defaults:
-    run:
-        shell: bash
+  run:
+    shell: bash
 
 jobs:
-    unit_tests:
-        strategy:
-            fail-fast: false
-            matrix:
-                os: [windows-latest, macos-latest, ubuntu-latest]
+  unit_tests_cpp11:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
 
-        name: ${{ matrix.os }}
-        runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }} (C++11)
+    runs-on: ${{ matrix.os }}
 
-        steps:
-            - uses: actions/checkout@v2
+    steps:
+      - uses: actions/checkout@v2
 
-            - name: Generate project files
-              run: cmake . -B build -DBUILD_TESTS=ON
+      - name: Generate project files
+        run: cmake . -B build -DCMAKE_CXX_STANDARD=11 -DBUILD_TESTS=ON
 
-            - name: Build dynamic library and unit tests
-              run: cmake --build build
+      - name: Build dynamic library and unit tests
+        run: cmake --build build
 
-            - name: Run unit tests
-              working-directory: build
-              run: ctest
+      - name: Run unit tests
+        working-directory: build
+        run: ctest
 
-            - name: Generate code coverage
-              if: ${{ matrix.os == 'ubuntu-latest' }}
-              run: gcov -abcfu build/CMakeFiles/unit_tests.dir/tests/tests.cpp.gcda
+  unit_tests_cpp17:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
 
-            - name: Send coverage to codecov.io
-              if: ${{ matrix.os == 'ubuntu-latest' }}
-              uses: codecov/codecov-action@v2
-              with:
-                files: dylib.hpp.gcov
+    name: ${{ matrix.os }} (C++17)
+    runs-on: ${{ matrix.os }}
 
-    memory_check:
-        name: memory check
-        runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
 
-        steps:
-            - uses: actions/checkout@v2
+      - name: Generate project files
+        run: cmake . -B build -DCMAKE_CXX_STANDARD=17 -DBUILD_TESTS=ON
 
-            - name: Update packages
-              run: sudo apt update
+      - name: Build dynamic library and unit tests
+        run: cmake --build build
 
-            - name: Install valgrind
-              run: sudo apt install -y valgrind
+      - name: Run unit tests
+        working-directory: build
+        run: ctest
 
-            - name: Generate tests build file
-              run: cmake . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
+      - name: Generate code coverage
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: gcov -abcfu build/CMakeFiles/unit_tests.dir/tests/tests.cpp.gcda
 
-            - name: Build unit tests
-              run: cmake --build build
+      - name: Send coverage to codecov.io
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: codecov/codecov-action@v2
+        with:
+          files: dylib.hpp.gcov
 
-            - name: Run unit tests with valgrind
-              working-directory: build
-              run: valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./unit_tests
+  memory_check:
+    name: memory check
+    runs-on: ubuntu-latest
 
-    linter:
-        name: linter
-        runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
 
-        steps:
-            - uses: actions/checkout@v2
+      - name: Update packages
+        run: sudo apt update
 
-            - name: Install cpplint
-              run: pip install cpplint
+      - name: Install valgrind
+        run: sudo apt install -y valgrind
 
-            - name: Run cpplint
-              run: cpplint --linelength=140 --filter=-whitespace/indent,-whitespace/parens include/dylib.hpp
+      - name: Generate tests build file
+        run: cmake . -B build -DCMAKE_CXX_STANDARD=17 -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build unit tests
+        run: cmake --build build
+
+      - name: Run unit tests with valgrind
+        working-directory: build
+        run: valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./unit_tests
+
+  linter:
+    name: linter
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install cpplint
+        run: pip install cpplint
+
+      - name: Run cpplint
+        run: cpplint --linelength=140 --filter=-whitespace/indent,-whitespace/parens include/dylib.hpp

@@ -126,7 +126,7 @@ TEST(invalid_argument, null_pointer) {
 }
 
 TEST(manual_decorations, basic_test) {
-    dylib lib(".", dylib::filename_components::prefix + std::string("dynamic_lib") + dylib::filename_components::suffix, false);
+    dylib lib(".", dylib::filename_components::prefix + std::string("dynamic_lib") + dylib::filename_components::suffix, dylib::no_filename_decorations);
     auto pi = lib.get_variable<double>("pi_value");
     EXPECT_EQ(pi, 3.14159);
 }
@@ -184,6 +184,25 @@ TEST(system_lib, basic_test) {
     lib.get_function<int()>("pthread_yield");
 #endif
 }
+
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+TEST(filesystem, basic_test) {
+    bool has_sym = dylib(std::filesystem::path("."), "dynamic_lib").has_symbol("pi_value");
+    EXPECT_TRUE(has_sym);
+
+    bool found = false;
+    for (const auto &file : std::filesystem::recursive_directory_iterator(".")) {
+        if (file.path().extension() == dylib::filename_components::suffix) {
+            try {
+                dylib lib(file.path());
+                if (lib.has_symbol("pi_value"))
+                    found = true;
+            } catch (const std::exception &) {}
+        }
+    }
+    EXPECT_TRUE(found);
+}
+#endif
 
 int main(int ac, char **av) {
     testing::InitGoogleTest(&ac, av);

@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 3.14)
 
 project(dylib CXX)
 
-set(CMAKE_CXX_STANDARD 11)
+if(NOT "${CMAKE_CXX_STANDARD}")
+  set(CMAKE_CXX_STANDARD 11)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(dylib INTERFACE)
@@ -49,6 +51,6 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
         endif()
 
         include(GoogleTest)
-        gtest_discover_tests(unit_tests WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+        gtest_discover_tests(unit_tests PROPERTIES TIMEOUT 600 WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
     endif()
 endif()
