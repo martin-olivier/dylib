@@ -1,6 +1,6 @@
 /**
  * @file dylib.hpp
- * @version 2.0.0
+ * @version 2.1.0
  * @brief C++ cross-platform wrapper around dynamic loading of shared libraries
  * @link https://github.com/martin-olivier/dylib
  * 
@@ -51,8 +51,10 @@ public:
         static constexpr const char *suffix = DYLIB_WIN_MAC_OTHER(".dll", ".dylib", ".so");
     };
     using native_handle_type = DYLIB_WIN_OTHER(HINSTANCE, void *);
+    using native_symbol_type = DYLIB_WIN_OTHER(FARPROC, void *);
 
     static_assert(std::is_pointer<native_handle_type>::value, "Expecting HINSTANCE to be a pointer");
+    static_assert(std::is_pointer<native_symbol_type>::value, "Expecting FARPROC to be a pointer");
 
     static constexpr bool add_filename_decorations = true;
     static constexpr bool no_filename_decorations = false;
@@ -146,8 +148,8 @@ public:
         : dylib("", lib_name, decorations) {}
 
 #ifdef DYLIB_CPP17
-    explicit dylib(const std::filesystem::path &path)
-        : dylib("", path.string().c_str(), no_filename_decorations) {}
+    explicit dylib(const std::filesystem::path &lib_path)
+        : dylib("", lib_path.string().c_str(), no_filename_decorations) {}
 
     dylib(const std::filesystem::path &dir_path, const std::string &lib_name, bool decorations = add_filename_decorations)
         : dylib(dir_path.string().c_str(), lib_name.c_str(), decorations) {}
@@ -163,23 +165,49 @@ public:
     }
 
     /**
+     *  Get a symbol from the dynamic library currently loaded in the object
+     * 
+     *  @throws dylib::symbol_error if the symbol could not be found
+     *
+     *  @param symbol_name the symbol name to get from the dynamic library
+     *
+     *  @return a pointer to the requested symbol
+     */
+    native_symbol_type get_symbol(const char *symbol_name) const {
+        if (!symbol_name)
+            throw std::invalid_argument("Null parameter");
+        if (!m_handle)
+            throw std::logic_error("The dynamic library handle is null");
+
+        auto symbol = locate_symbol(m_handle, symbol_name);
+
+        if (symbol == nullptr)
+            throw symbol_error("Could not get symbol \"" + std::string(symbol_name) + "\"\n" + get_error_description());
+        return symbol;
+    }
+
+    native_symbol_type get_symbol(const std::string &symbol_name) const {
+        return get_symbol(symbol_name.c_str());
+    }
+
+    /**
      *  Get a function from the dynamic library currently loaded in the object
      * 
      *  @throws dylib::symbol_error if the symbol could not be found
      *
      *  @param T the template argument must be the function prototype to get
-     *  @param name the symbol name of a function to get from the dynamic library
+     *  @param symbol_name the symbol name of a function to get from the dynamic library
      *
      *  @return a pointer to the requested function
      */
     template<typename T>
-    T *get_function(const char *name) const {
-        return reinterpret_cast<T *>(locate_symbol(name));
+    T *get_function(const char *symbol_name) const {
+        return reinterpret_cast<T *>(get_symbol(symbol_name));
     }
 
     template<typename T>
-    T *get_function(const std::string &name) const {
-        return get_function<T>(name.c_str());
+    T *get_function(const std::string &symbol_name) const {
+        return get_function<T>(symbol_name.c_str());
     }
 
     /**
@@ -188,33 +216,33 @@ public:
      *  @throws dylib::symbol_error if the symbol could not be found
      *
      *  @param T the template argument must be the type of the variable to get
-     *  @param name the symbol name of a variable to get from the dynamic library
+     *  @param symbol_name the symbol name of a variable to get from the dynamic library
      *
      *  @return a reference to the requested variable
      */
     template<typename T>
-    T &get_variable(const char *name) const {
-        return *reinterpret_cast<T *>(locate_symbol(name));
+    T &get_variable(const char *symbol_name) const {
+        return *reinterpret_cast<T *>(get_symbol(symbol_name));
     }
 
     template<typename T>
-    T &get_variable(const std::string &name) const {
-        return get_variable<T>(name.c_str());
+    T &get_variable(const std::string &symbol_name) const {
+        return get_variable<T>(symbol_name.c_str());
     }
 
     /**
      *  Check if a symbol exists in the currently loaded dynamic library. 
      *  This method will return false if no dynamic library is currently loaded 
-     *  or if the symbol equals nullptr
+     *  or if the symbol name is nullptr
      *
-     *  @param symbol the symbol name to look for
+     *  @param symbol_name the symbol name to look for
      *
      *  @return true if the symbol exists in the dynamic library, false otherwise
      */
-    bool has_symbol(const char *symbol) const noexcept {
-        if (!m_handle || !symbol)
+    bool has_symbol(const char *symbol_name) const noexcept {
+        if (!m_handle || !symbol_name)
             return false;
-        return get_symbol(m_handle, symbol) != nullptr;
+        return locate_symbol(m_handle, symbol_name) != nullptr;
     }
 
     bool has_symbol(const std::string &symbol) const noexcept {
@@ -239,21 +267,7 @@ protected:
 #endif
     }
 
-    void *locate_symbol(const char *name) const {
-        if (!name)
-            throw std::invalid_argument("Null parameter");
-        if (!m_handle)
-            throw std::logic_error("The dynamic library handle is null");
-
-        auto symbol = get_symbol(m_handle, name);
-
-        if (symbol == nullptr)
-            throw symbol_error("Could not locate symbol \"" + std::string(name) + "\"\n" + get_error_description());
-        return symbol;
-    }
-
-    static DYLIB_WIN_OTHER(FARPROC, void *)
-    get_symbol(native_handle_type lib, const char *name) noexcept {
+    static native_symbol_type locate_symbol(native_handle_type lib, const char *name) noexcept {
         return DYLIB_WIN_OTHER(GetProcAddress, dlsym)(lib, name);
     }
 
