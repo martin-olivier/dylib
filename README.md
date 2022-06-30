@@ -1,5 +1,5 @@
 <p align="center">
-  <img height=60% width=350 src="https://repository-images.githubusercontent.com/354428648/5ef81a00-95b1-11eb-88a1-e1760bd99ab2" alt="dylib"/>
+  <img height=60% width=350 src="https://repository-images.githubusercontent.com/354428648/9439b614-4783-421e-8fa3-eaee8c4b5b8e" alt="dylib"/>
 </p>
 
 <p align="center">
