@@ -168,12 +168,6 @@ To run unit tests, enter the following command inside `build` directory:
 ctest
 ```
 
-# Future
-
-Here is the following feature that will be added in the future:
-- The posibility to easily load C++ mangled symbols
-- Add `symbols()` member function to be able to get the list of symbols of a dynamic library
-
 # Community
 
 If you have any question about the usage of the library, do not hesitate to open a [discussion](https://github.com/martin-olivier/dylib/discussions)
