@@ -1,7 +1,6 @@
-<p align="center">
-  <img height=60% width=350 src="https://repository-images.githubusercontent.com/354428648/9439b614-4783-421e-8fa3-eaee8c4b5b8e" alt="dylib"/>
-</p>
-
+<h1 align="center">
+  Dylib
+</h1>
 <p align="center">
   <a href="https://github.com/martin-olivier/dylib/releases/tag/v2.1.0">
     <img src="https://img.shields.io/badge/Version-2.1.0-blue.svg" alt="version"/>
@@ -22,8 +21,6 @@
     <img src="https://codecov.io/gh/martin-olivier/dylib/branch/main/graph/badge.svg?token=4V6A9B7PII" alt="codecov"/>
   </a>
 </p>
-
-# Dylib
 
 The goal of this C++ library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.  
 
@@ -121,16 +118,16 @@ Get a symbol from the dynamic library currently loaded in the object
 `native_handle`  
 Returns the dynamic library handle
 ```c++
-void example(dylib &lib)
-{
-    if (lib.has_symbol("GetModule"))
-        dylib::native_symbol_type sym = lib.get_symbol("GetModule");
-    else
-        std::cout << "GetModule symbol could not be found" << std::endl;
+dylib lib("foo");
 
-    dylib::native_handle_type handle = lib.native_handle();
-    void *sym = dlsym(handle, "GetModule");
-}
+if (lib.has_symbol("GetModule") == false)
+    std::cerr << "symbol 'GetModule' not found in 'foo' lib" << std::endl;
+
+dylib::native_handle_type handle = lib.native_handle();
+dylib::native_symbol_type symbol = lib.get_symbol("GetModule");
+
+assert(handle != nullptr && symbol != nullptr);
+assert(symbol == dlsym(handle, "GetModule"));
 ```
 
 ## Exceptions
@@ -147,12 +144,10 @@ try {
     dylib lib("foo");
     double pi_value = lib.get_variable<double>("pi_value");
     std::cout << pi_value << std::endl;
-}
-catch (const dylib::load_error &e) {
-    // failed loading "foo" library
-}
-catch (const dylib::symbol_error &e) {
-    // failed loading "pi_value" symbol
+} catch (const dylib::load_error &) {
+    std::cerr << "failed to load 'foo' library" << std::endl;
+} catch (const dylib::symbol_error &) {
+    std::cerr << "failed to get 'pi_value' symbol" << std::endl;
 }
 ```
 
@@ -168,10 +163,16 @@ cmake . -B build -DBUILD_TESTS=ON
 cmake --build build
 ```
 
-To run unit tests, enter the following command inside "build" directory:
+To run unit tests, enter the following command inside `build` directory:
 ```sh
 ctest
 ```
+
+# Future
+
+Here is the following feature that will be added in the future:
+- The posibility to easily load C++ mangled symbols
+- Add `symbols()` member function to be able to get the list of symbols of a dynamic library
 
 # Community
 
