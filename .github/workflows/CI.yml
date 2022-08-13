@@ -31,11 +31,11 @@ jobs:
         run: ctest
 
       - name: Generate code coverage
-        if: ${{ matrix.os == 'ubuntu-latest' }} && ${{ matrix.cxx-std }} == 17
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.cxx-std == 17 }}
         run: gcov -abcfu build/CMakeFiles/unit_tests.dir/tests/tests.cpp.gcda
 
       - name: Send coverage to codecov.io
-        if: ${{ matrix.os == 'ubuntu-latest' }} && ${{ matrix.cxx-std }} == 17
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.cxx-std == 17 }}
         uses: codecov/codecov-action@v2
         with:
           files: dylib.hpp.gcov
