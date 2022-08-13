@@ -29,11 +29,13 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
         set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
         FetchContent_MakeAvailable(googletest)
 
-        if(UNIX)
+        if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
             add_compile_options(-Wall -Wextra -Weffc++)
-        elseif(WIN32)
+        elseif (CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
+            add_compile_options(-Wall -Wextra)
+        elseif (MSVC)
             add_compile_options(/W4)
-        endif()
+        endif ()
 
         add_library(dynamic_lib SHARED tests/lib.cpp)
 
