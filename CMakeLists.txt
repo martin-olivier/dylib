@@ -54,6 +54,7 @@ if(DYLIB_BUILD_TESTS)
     endif()
 
     add_executable(unit_tests tests/tests.cpp)
+    add_dependencies(unit_tests dynamic_lib)  # Build dynamic_lib alongside unit tests
     target_link_libraries(unit_tests PRIVATE gtest_main dylib)
 
     if(UNIX AND NOT APPLE)
