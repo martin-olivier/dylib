@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Generate project files
-        run: cmake . -B build -DCMAKE_CXX_STANDARD=11 -DDYLIB_BUILD_TESTS=ON
+        run: cmake . -B build -DCMAKE_CXX_STANDARD=11 -DDYLIB_BUILD_TESTS=ON -DDYLIB_WARNING_AS_ERRORS=ON
 
       - name: Build dynamic library and unit tests
         run: cmake --build build
@@ -42,7 +42,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Generate project files
-        run: cmake . -B build -DCMAKE_CXX_STANDARD=17 -DDYLIB_BUILD_TESTS=ON
+        run: cmake . -B build -DCMAKE_CXX_STANDARD=17 -DDYLIB_BUILD_TESTS=ON -DDYLIB_WARNING_AS_ERRORS=ON
 
       - name: Build dynamic library and unit tests
         run: cmake --build build
