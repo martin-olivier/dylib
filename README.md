@@ -159,7 +159,7 @@ A full example about the usage of the `dylib` library is available [HERE](exampl
 
 To build unit tests, enter the following commands:
 ```sh
-cmake . -B build -DBUILD_TESTS=ON
+cmake . -B build -DDYLIB_BUILD_TESTS=ON
 cmake --build build
 ```
 

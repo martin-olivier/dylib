@@ -17,9 +17,9 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 
-    option(BUILD_TESTS "when set to ON, build unit tests" OFF)
+    option(DYLIB_BUILD_TESTS "when set to ON, build unit tests" OFF)
 
-    if(BUILD_TESTS)
+    if(DYLIB_BUILD_TESTS)
         find_package(googletest QUIET)
         include(FetchContent)
         FetchContent_Declare(
