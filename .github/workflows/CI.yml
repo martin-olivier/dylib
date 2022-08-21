@@ -7,42 +7,21 @@ defaults:
     shell: bash
 
 jobs:
-  unit_tests_cpp11:
+  unit_tests:
     strategy:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
+        cxx-std: [11, 17]
 
-    name: ${{ matrix.os }} (C++11)
+    name: ${{ matrix.os }} (C++${{ matrix.cxx-std }})
     runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v2
 
       - name: Generate project files
-        run: cmake . -B build -DCMAKE_CXX_STANDARD=11 -DBUILD_TESTS=ON
-
-      - name: Build dynamic library and unit tests
-        run: cmake --build build
-
-      - name: Run unit tests
-        working-directory: build
-        run: ctest
-
-  unit_tests_cpp17:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
-
-    name: ${{ matrix.os }} (C++17)
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Generate project files
-        run: cmake . -B build -DCMAKE_CXX_STANDARD=17 -DBUILD_TESTS=ON
+        run: cmake . -B build -DCMAKE_CXX_STANDARD=${{ matrix.cxx-std }} -DDYLIB_BUILD_TESTS=ON -DDYLIB_WARNING_AS_ERRORS=ON
 
       - name: Build dynamic library and unit tests
         run: cmake --build build
@@ -52,11 +31,11 @@ jobs:
         run: ctest
 
       - name: Generate code coverage
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.cxx-std == 17 }}
         run: gcov -abcfu build/CMakeFiles/unit_tests.dir/tests/tests.cpp.gcda
 
       - name: Send coverage to codecov.io
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.cxx-std == 17 }}
         uses: codecov/codecov-action@v2
         with:
           files: dylib.hpp.gcov
@@ -75,7 +54,7 @@ jobs:
         run: sudo apt install -y valgrind
 
       - name: Generate tests build file
-        run: cmake . -B build -DCMAKE_CXX_STANDARD=17 -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
+        run: cmake . -B build -DCMAKE_CXX_STANDARD=17 -DDYLIB_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
 
       - name: Build unit tests
         run: cmake --build build

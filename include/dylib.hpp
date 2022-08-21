@@ -123,7 +123,7 @@ public:
         if (decorations)
             final_name = filename_components::prefix + final_name + filename_components::suffix;
 
-        if (final_path != "" && final_path.find_last_of('/') != final_path.size() - 1)
+        if (!final_path.empty() && final_path.find_last_of('/') != final_path.size() - 1)
             final_path += '/';
 
         m_handle = open((final_path + final_name).c_str());

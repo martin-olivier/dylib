@@ -159,7 +159,7 @@ A full example about the usage of the `dylib` library is available [HERE](exampl
 
 To build unit tests, enter the following commands:
 ```sh
-cmake . -B build -DBUILD_TESTS=ON
+cmake . -B build -DDYLIB_BUILD_TESTS=ON
 cmake --build build
 ```
 
@@ -173,6 +173,11 @@ ctest
 If you have any question about the usage of the library, do not hesitate to open a [discussion](https://github.com/martin-olivier/dylib/discussions)
 
 If you want to report a bug or provide a feature, do not hesitate to open an [issue](https://github.com/martin-olivier/dylib/issues) or submit a [pull request](https://github.com/martin-olivier/dylib/pulls)
+
+## Contributing
+
+Set the cmake flag `DYLIB_BUILD_TESTS` to `ON` to enable tests and make it easier for you to contribute!  
+> `cmake -DDYLIB_BUILD_TESTS=ON <directory>`
 
 > Do not forget to sign your commits and use [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) when providing a pull request
 ```sh
