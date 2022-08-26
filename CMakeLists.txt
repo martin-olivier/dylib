@@ -13,6 +13,11 @@ if(UNIX)
     target_link_libraries(dylib INTERFACE dl)
 endif()
 
+if (WIN32 AND MINGW)
+    # MinGW adds a "lib" prefix to DLLs; this restores the default Windows behavior
+    set_target_properties(dylib PROPERTIES PREFIX "" IMPORT_PREFIX "")
+endif ()
+
 option(DYLIB_BUILD_TESTS "When set to ON, build unit tests" OFF)
 option(DYLIB_WARNING_AS_ERRORS "Treat warnings as errors" OFF)
 
