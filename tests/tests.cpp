@@ -2,34 +2,8 @@
 #include <utility>
 #include "dylib.hpp"
 
-class OSRedirector {
-    private:
-        std::ostringstream _oss{};
-        std::streambuf *_backup{};
-        std::ostream &_c;
-
-    public:
-        OSRedirector(OSRedirector &) = delete;
-        OSRedirector &operator=(OSRedirector &) = delete;
-
-        OSRedirector(std::ostream &c) : _c(c) {
-            _backup = _c.rdbuf();
-            _c.rdbuf(_oss.rdbuf());
-        }
-
-        ~OSRedirector() {
-            _c.rdbuf(_backup);
-        }
-
-        const std::string getContent() {
-            _oss << std::flush;
-            return _oss.str();
-        }
-};
-
 TEST(exemple, exemple_test) {
-    OSRedirector oss(std::cout);
-
+    testing::internal::CaptureStdout();
     dylib lib("./", "dynamic_lib");
 
     auto adder = lib.get_function<double(double, double)>("adder");
@@ -37,7 +11,7 @@ TEST(exemple, exemple_test) {
 
     auto printer = lib.get_function<void()>("print_hello");
     printer();
-    EXPECT_EQ(oss.getContent(), "Hello\n");
+    EXPECT_EQ(testing::internal::GetCapturedStdout(), "Hello\n");
 
     double pi_value = lib.get_variable<double>("pi_value");
     EXPECT_EQ(pi_value, 3.14159);
@@ -162,18 +136,25 @@ TEST(handle_management, basic_test) {
     dylib lib("./", "dynamic_lib");
     EXPECT_FALSE(lib.native_handle() == nullptr);
     auto handle = lib.native_handle();
-#if defined(_WIN32) || defined(_WIN64)
+#if (defined(_WIN32) || defined(_WIN64))
     auto sym = GetProcAddress(handle, "adder");
 #else
     auto sym = dlsym(handle, "adder");
 #endif
     EXPECT_FALSE(sym == nullptr);
+#if (defined(__GNUC__) && __GNUC__ >= 8)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
     auto res = ((double (*)(double, double))(sym))(10, 10);
+#if (defined(__GNUC__) && __GNUC__ >= 8)
+#pragma GCC diagnostic pop
+#endif
     EXPECT_EQ(res, 20);
 }
 
 TEST(system_lib, basic_test) {
-#if defined(_WIN32) || defined(_WIN64)
+#if (defined(_WIN32) || defined(_WIN64))
     dylib lib("kernel32");
     lib.get_function<DWORD()>("GetCurrentThreadId");
 #elif defined(__APPLE__)
