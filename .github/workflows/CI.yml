@@ -26,17 +26,18 @@ jobs:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
         cxx-std: [11, 14, 17, 20]
-        generator: [Unix Makefiles]
+        generator: [Unix Makefiles, MinGW Makefiles, Visual Studio 17]
         exclude:
           - os: windows-latest
             generator: Unix Makefiles
-        include:
-          - os: windows-latest
-            generator: Visual Studio 17
-          - os: windows-latest
+          - os: macos-latest
             generator: MinGW Makefiles
           - os: macos-latest
-            generator: Xcode
+            generator: Visual Studio 17
+          - os: ubuntu-latest
+            generator: MinGW Makefiles
+          - os: ubuntu-latest
+            generator: Visual Studio 17
 
     name: ${{ matrix.os }} (C++${{ matrix.cxx-std }} - ${{ matrix.generator }})
     runs-on: ${{ matrix.os }}
