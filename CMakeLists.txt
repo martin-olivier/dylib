@@ -24,28 +24,31 @@ if(DYLIB_BUILD_TESTS)
     include(FetchContent)
     FetchContent_Declare(
         googletest
-        URL https://github.com/google/googletest/archive/refs/tags/release-1.11.0.zip
+        URL https://github.com/google/googletest/archive/refs/tags/release-1.12.1.zip
     )
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(googletest)
 
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         add_compile_options(-Wall -Wextra -Weffc++)
-    elseif (CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
         add_compile_options(-Wall -Wextra)
-    elseif (MSVC)
+    elseif(MSVC)
         add_compile_options(/W4)
-    endif ()
+    endif()
 
-    if (DYLIB_WARNING_AS_ERRORS)
-        if (MSVC)
+    if(DYLIB_WARNING_AS_ERRORS)
+        if(MSVC)
             add_compile_options(/WX)
-        elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
+        elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
             add_compile_options(-Werror)
-        endif ()
-    endif ()
+        endif()
+    endif()
 
     add_library(dynamic_lib SHARED tests/lib.cpp)
+    if(WIN32 AND MINGW)
+        set_target_properties(dynamic_lib PROPERTIES PREFIX "")
+    endif()
 
     enable_testing()
 
@@ -54,7 +57,7 @@ if(DYLIB_BUILD_TESTS)
     endif()
 
     add_executable(unit_tests tests/tests.cpp)
-    add_dependencies(unit_tests dynamic_lib)  # Build dynamic_lib alongside unit tests
+    add_dependencies(unit_tests dynamic_lib)
     target_link_libraries(unit_tests PRIVATE gtest_main dylib)
 
     if(UNIX AND NOT APPLE)
