@@ -26,11 +26,12 @@ jobs:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
         cxx-std: [11, 14, 17, 20]
+        generator: [Ninja]
         include:
           - os: windows-latest
             generator: [Visual Studio 17, MinGW Makefiles]
           - os: macos-latest
-            generator: [Unix Makefiles]
+            generator: [Unix Makefiles, Xcode]
           - os: ubuntu-latest
             generator: [Unix Makefiles]
 
