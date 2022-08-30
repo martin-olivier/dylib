@@ -65,5 +65,5 @@ if(DYLIB_BUILD_TESTS)
     endif()
 
     include(GoogleTest)
-    gtest_discover_tests(unit_tests PROPERTIES TIMEOUT 600 WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+    gtest_discover_tests(unit_tests PROPERTIES DISCOVERY_TIMEOUT 600 WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
 endif()
