@@ -21,7 +21,7 @@
 #include <filesystem>
 #endif
 
-#if defined(_WIN32) || defined(_WIN64)
+#if (defined(_WIN32) || defined(_WIN64))
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #undef WIN32_LEAN_AND_MEAN
@@ -29,7 +29,7 @@
 #include <dlfcn.h>
 #endif
 
-#if defined(_WIN32) || defined(_WIN64)
+#if (defined(_WIN32) || defined(_WIN64))
 #define DYLIB_WIN_MAC_OTHER(win_def, mac_def, other_def) win_def
 #define DYLIB_WIN_OTHER(win_def, other_def) win_def
 #elif defined(__APPLE__)
@@ -202,7 +202,14 @@ public:
      */
     template<typename T>
     T *get_function(const char *symbol_name) const {
+#if (defined(__GNUC__) && __GNUC__ >= 8)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
         return reinterpret_cast<T *>(get_symbol(symbol_name));
+#if (defined(__GNUC__) && __GNUC__ >= 8)
+#pragma GCC diagnostic pop
+#endif
     }
 
     template<typename T>
@@ -260,7 +267,7 @@ protected:
     native_handle_type m_handle{nullptr};
 
     static native_handle_type open(const char *path) noexcept {
-#if defined(_WIN32) || defined(_WIN64)
+#if (defined(_WIN32) || defined(_WIN64))
         return LoadLibraryA(path);
 #else
         return dlopen(path, RTLD_NOW | RTLD_LOCAL);
@@ -276,7 +283,7 @@ protected:
     }
 
     static std::string get_error_description() noexcept {
-#if defined(_WIN32) || defined(_WIN64)
+#if (defined(_WIN32) || defined(_WIN64))
         constexpr const size_t buf_size = 512;
         auto error_code = GetLastError();
         if (!error_code)

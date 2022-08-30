@@ -1,6 +1,19 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - .github/workflows/CI.yml
+      - CMakeLists.txt
+      - include/*
+      - tests/*
+
+  pull_request:
+    paths:
+      - .github/workflows/CI.yml
+      - CMakeLists.txt
+      - include/*
+      - tests/*
 
 defaults:
   run:
@@ -12,16 +25,28 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
-        cxx-std: [11, 17]
+        cxx-std: [11, 14, 17, 20]
+        generator: [Unix Makefiles, MinGW Makefiles, Visual Studio 17]
+        exclude:
+          - os: windows-latest
+            generator: Unix Makefiles
+          - os: macos-latest
+            generator: MinGW Makefiles
+          - os: macos-latest
+            generator: Visual Studio 17
+          - os: ubuntu-latest
+            generator: MinGW Makefiles
+          - os: ubuntu-latest
+            generator: Visual Studio 17
 
-    name: ${{ matrix.os }} (C++${{ matrix.cxx-std }})
+    name: ${{ matrix.os }} (C++${{ matrix.cxx-std }} - ${{ matrix.generator }})
     runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v2
 
       - name: Generate project files
-        run: cmake . -B build -DCMAKE_CXX_STANDARD=${{ matrix.cxx-std }} -DDYLIB_BUILD_TESTS=ON -DDYLIB_WARNING_AS_ERRORS=ON
+        run: cmake . -B build -G "${{ matrix.generator }}" -DCMAKE_CXX_STANDARD=${{ matrix.cxx-std }} -DDYLIB_BUILD_TESTS=ON -DDYLIB_WARNING_AS_ERRORS=ON
 
       - name: Build dynamic library and unit tests
         run: cmake --build build
@@ -31,11 +56,11 @@ jobs:
         run: ctest
 
       - name: Generate code coverage
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.cxx-std == 17 }}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.cxx-std == 20 }}
         run: gcov -abcfu build/CMakeFiles/unit_tests.dir/tests/tests.cpp.gcda
 
       - name: Send coverage to codecov.io
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.cxx-std == 17 }}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.cxx-std == 20 }}
         uses: codecov/codecov-action@v2
         with:
           files: dylib.hpp.gcov
@@ -54,7 +79,7 @@ jobs:
         run: sudo apt install -y valgrind
 
       - name: Generate tests build file
-        run: cmake . -B build -DCMAKE_CXX_STANDARD=17 -DDYLIB_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
+        run: cmake . -B build -DCMAKE_CXX_STANDARD=20 -DDYLIB_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
 
       - name: Build unit tests
         run: cmake --build build
