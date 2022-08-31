@@ -12,9 +12,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
-        cxx-std: [11, 17]
+        cxx-std: [11]  # , 14, 17, 20
+        generator: [""]
+        include:
+          - os: windows-latest
+            generator: "-G 'MinGW Makefiles'"
 
-    name: ${{ matrix.os }} (C++${{ matrix.cxx-std }})
+    name: ${{ matrix.os }} (C++${{ matrix.cxx-std }}) ${{ matrix.generator }}
     runs-on: ${{ matrix.os }}
 
     steps:
