@@ -16,7 +16,7 @@
 #include <stdexcept>
 #include <utility>
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#if (!defined(DYLIB_NO_FILESYSTEM) && ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L))
 #define DYLIB_CPP17
 #include <filesystem>
 #endif

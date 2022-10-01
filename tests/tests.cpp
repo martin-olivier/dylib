@@ -166,7 +166,7 @@ TEST(system_lib, basic_test) {
 #endif
 }
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#if (defined(DYLIB_CPP17))
 TEST(filesystem, basic_test) {
     bool has_sym = dylib(std::filesystem::path("."), "dynamic_lib").has_symbol("pi_value");
     EXPECT_TRUE(has_sym);
