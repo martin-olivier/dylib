@@ -1,6 +1,5 @@
 <h1 align="center">
-  Dylib
-</h1>
+dylib</h1>
 <p align="center">
   <a href="https://github.com/martin-olivier/dylib/releases/tag/v2.1.0">
     <img src="https://img.shields.io/badge/Version-2.1.0-blue.svg" alt="version"/>
