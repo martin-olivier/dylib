@@ -38,6 +38,10 @@ jobs:
             generator: MinGW Makefiles
           - os: ubuntu-latest
             generator: Visual Studio 17
+          - generator: MinGW Makefiles
+            cxx-std: 17
+          - generator: MinGW Makefiles
+            cxx-std: 20
 
     name: ${{ matrix.os }} (C++${{ matrix.cxx-std }} - ${{ matrix.generator }})
     runs-on: ${{ matrix.os }}
