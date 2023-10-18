@@ -1,61 +1,52 @@
-<h1 align="center">
-dylib</h1>
-<p align="center">
-  <a href="https://github.com/martin-olivier/dylib/releases/tag/v2.1.0">
-    <img src="https://img.shields.io/badge/Version-2.1.0-blue.svg" alt="version"/>
-  </a>
-  <a href="https://github.com/martin-olivier/dylib/blob/main/LICENSE">
-    <img src="https://img.shields.io/badge/License-MIT-orange.svg" alt="license"/>
-  </a>
-  <a href="https://isocpp.org/">
-    <img src="https://img.shields.io/badge/Compatibility-C++11-darkgreen.svg" alt="cppversion"/>
-  </a>
-</p>
+# dylib
 
-<p align="center">
-  <a href="https://github.com/martin-olivier/dylib/actions/workflows/CI.yml">
-    <img src="https://github.com/martin-olivier/dylib/actions/workflows/CI.yml/badge.svg" alt="ci"/>
-  </a>
-  <a href="https://codecov.io/gh/martin-olivier/dylib">
-    <img src="https://codecov.io/gh/martin-olivier/dylib/branch/main/graph/badge.svg?token=4V6A9B7PII" alt="codecov"/>
-  </a>
-</p>
+[![version](https://img.shields.io/badge/Version-2.2.0-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v2.2.0)
+[![license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/martin-olivier/dylib/blob/main/LICENSE)
+[![cpp](https://img.shields.io/badge/Compatibility-C++11-darkgreen.svg)](https://isocpp.org)
+
+[![ci](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml/badge.svg)](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml)
+[![coverage](https://codecov.io/gh/martin-olivier/dylib/branch/main/graph/badge.svg)](https://codecov.io/gh/martin-olivier/dylib)
 
 The goal of this C++ library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.  
 
 `⭐ Don't forget to put a star if you like the project!`
 
-# Compatibility
+## Compatibility
+
 Works on `Linux`, `Windows`, `MacOS`
 
-# Installation
+## Installation
 
 You can fetch `dylib` to your project using `CMake`:
+
 ```cmake
 include(FetchContent)
 
 FetchContent_Declare(
     dylib
     GIT_REPOSITORY "https://github.com/martin-olivier/dylib"
-    GIT_TAG        "v2.1.0"
+    GIT_TAG        "v2.2.0"
 )
 
 FetchContent_MakeAvailable(dylib)
 ```
 
-You can also click [HERE](https://github.com/martin-olivier/dylib/releases/download/v2.1.0/dylib.hpp) to download the `dylib` header file.  
+You can also click [HERE](https://github.com/martin-olivier/dylib/releases/download/v2.2.0/dylib.hpp) to download the `dylib` header file.  
 
-# Documentation
+## Documentation
 
-## Constructor
+### Constructor
 
 The `dylib` class can load a dynamic library from the system library path
+
 ```c++
 // Load "foo" library from the system library path
 
 dylib lib("foo");
 ```
+
 The `dylib` class can also load a dynamic library from a specific path
+
 ```c++
 // Load "foo" library from relative path "./libs"
 
@@ -67,6 +58,7 @@ dylib lib("/usr/lib", "foo");
 ```
 
 The `dylib` class will automatically add the filename decorations of the current os to the library name, but you can disable that by setting `decorations` parameter to `dylib::no_filename_decorations`
+
 ```c++
 // Windows -> "foo.dll"
 // MacOS   -> "libfoo.dylib"
@@ -81,13 +73,14 @@ dylib lib("foo");
 dylib lib("foo.lib", dylib::no_filename_decorations);
 ```
 
-## Get a function or a variable 
+### Get a function or a variable
 
 `get_function`  
 Get a function from the dynamic library currently loaded in the object  
 
 `get_variable`  
 Get a global variable from the dynamic library currently loaded in the object
+
 ```c++
 // Load "foo" dynamic library
 
@@ -106,7 +99,7 @@ double pi = lib.get_variable<double>("pi_value");
 double result = adder(pi, pi);
 ```
 
-## Miscellaneous tools
+### Miscellaneous tools
 
 `has_symbol`  
 Returns true if the symbol passed as parameter exists in the dynamic library, false otherwise
@@ -116,6 +109,7 @@ Get a symbol from the dynamic library currently loaded in the object
 
 `native_handle`  
 Returns the dynamic library handle
+
 ```c++
 dylib lib("foo");
 
@@ -129,7 +123,7 @@ assert(handle != nullptr && symbol != nullptr);
 assert(symbol == dlsym(handle, "GetModule"));
 ```
 
-## Exceptions
+### Exceptions
 
 `load_error`  
 This exception is raised when the library failed to load or the library encountered symbol resolution issues  
@@ -138,6 +132,7 @@ This exception is raised when the library failed to load or the library encounte
 This exception is raised when the library failed to load a symbol  
 
 Those exceptions inherit from `dylib::exception`
+
 ```c++
 try {
     dylib lib("foo");
@@ -150,24 +145,26 @@ try {
 }
 ```
 
-# Example
+## Example
 
 A full example about the usage of the `dylib` library is available [HERE](example)
 
-# Tests
+## Tests
 
 To build unit tests, enter the following commands:
+
 ```sh
 cmake . -B build -DDYLIB_BUILD_TESTS=ON
 cmake --build build
 ```
 
 To run unit tests, enter the following command inside `build` directory:
+
 ```sh
 ctest
 ```
 
-# Community
+## Community
 
 If you have any question about the usage of the library, do not hesitate to open a [discussion](https://github.com/martin-olivier/dylib/discussions)
 
@@ -175,12 +172,14 @@ If you want to report a bug or provide a feature, do not hesitate to open an [is
 
 ## Contributing
 
-Set the cmake flag `DYLIB_BUILD_TESTS` to `ON` to enable tests and make it easier for you to contribute!  
+Set the cmake flag `DYLIB_BUILD_TESTS` to `ON` to enable tests and make it easier for you to contribute
+
 ```sh
 cmake . -B build -DDYLIB_BUILD_TESTS=ON
 ```
 
 > Do not forget to sign your commits and use [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) when providing a pull request
+
 ```sh
 git commit -s -m "feat: ..."
 ```
