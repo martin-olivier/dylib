@@ -65,7 +65,7 @@ jobs:
 
       - name: Send coverage to codecov.io
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.cxx-std == 20 }}
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           files: dylib.hpp.gcov
 
