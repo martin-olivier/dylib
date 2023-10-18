@@ -1,24 +1,19 @@
 <h1 align="center">
-dylib</h1>
+  dylib</h1>
 <p align="center">
-  <a href="https://github.com/martin-olivier/dylib/releases/tag/v2.1.0">
-    <img src="https://img.shields.io/badge/Version-2.1.0-blue.svg" alt="version"/>
-  </a>
+  <a href="https://github.com/martin-olivier/dylib/releases/tag/v2.2.0">
+    <img src="https://img.shields.io/badge/Version-2.2.0-blue.svg" alt="version"/></a>
   <a href="https://github.com/martin-olivier/dylib/blob/main/LICENSE">
-    <img src="https://img.shields.io/badge/License-MIT-orange.svg" alt="license"/>
-  </a>
+    <img src="https://img.shields.io/badge/License-MIT-orange.svg" alt="license"/></a>
   <a href="https://isocpp.org/">
-    <img src="https://img.shields.io/badge/Compatibility-C++11-darkgreen.svg" alt="cppversion"/>
-  </a>
+    <img src="https://img.shields.io/badge/Compatibility-C++11-darkgreen.svg" alt="cppversion"/></a>
 </p>
 
 <p align="center">
   <a href="https://github.com/martin-olivier/dylib/actions/workflows/CI.yml">
-    <img src="https://github.com/martin-olivier/dylib/actions/workflows/CI.yml/badge.svg" alt="ci"/>
-  </a>
+    <img src="https://github.com/martin-olivier/dylib/actions/workflows/CI.yml/badge.svg" alt="ci"/></a>
   <a href="https://codecov.io/gh/martin-olivier/dylib">
-    <img src="https://codecov.io/gh/martin-olivier/dylib/branch/main/graph/badge.svg?token=4V6A9B7PII" alt="codecov"/>
-  </a>
+    <img src="https://codecov.io/gh/martin-olivier/dylib/branch/main/graph/badge.svg?token=4V6A9B7PII" alt="codecov"/></a>
 </p>
 
 The goal of this C++ library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.  
@@ -37,13 +32,13 @@ include(FetchContent)
 FetchContent_Declare(
     dylib
     GIT_REPOSITORY "https://github.com/martin-olivier/dylib"
-    GIT_TAG        "v2.1.0"
+    GIT_TAG        "v2.2.0"
 )
 
 FetchContent_MakeAvailable(dylib)
 ```
 
-You can also click [HERE](https://github.com/martin-olivier/dylib/releases/download/v2.1.0/dylib.hpp) to download the `dylib` header file.  
+You can also click [HERE](https://github.com/martin-olivier/dylib/releases/download/v2.2.0/dylib.hpp) to download the `dylib` header file.  
 
 # Documentation
 

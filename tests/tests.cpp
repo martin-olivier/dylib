@@ -2,7 +2,7 @@
 #include <utility>
 #include "dylib.hpp"
 
-TEST(exemple, exemple_test) {
+TEST(example, example_test) {
     testing::internal::CaptureStdout();
     dylib lib("./", "dynamic_lib");
 
