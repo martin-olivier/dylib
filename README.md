@@ -1,6 +1,6 @@
 # dylib
 
-[![version](https://img.shields.io/badge/Version-2.2.0-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v2.2.0)
+[![version](https://img.shields.io/badge/Version-2.2.1-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v2.2.1)
 [![license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/martin-olivier/dylib/blob/main/LICENSE)
 [![cpp](https://img.shields.io/badge/Compatibility-C++11-darkgreen.svg)](https://isocpp.org)
 
@@ -25,13 +25,13 @@ include(FetchContent)
 FetchContent_Declare(
     dylib
     GIT_REPOSITORY "https://github.com/martin-olivier/dylib"
-    GIT_TAG        "v2.2.0"
+    GIT_TAG        "v2.2.1"
 )
 
 FetchContent_MakeAvailable(dylib)
 ```
 
-You can also click [HERE](https://github.com/martin-olivier/dylib/releases/download/v2.2.0/dylib.hpp) to download the `dylib` header file.  
+You can also click [HERE](https://github.com/martin-olivier/dylib/releases/download/v2.2.1/dylib.hpp) to download the `dylib` header file.
 
 ## Documentation
 

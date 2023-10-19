@@ -1,6 +1,6 @@
 /**
  * @file dylib.hpp
- * @version 2.2.0
+ * @version 2.2.1
  * @brief C++ cross-platform wrapper around dynamic loading of shared libraries
  * @link https://github.com/martin-olivier/dylib
  * 
