@@ -13,11 +13,27 @@ The goal of this C++ library is to load dynamic libraries (.so, .dll, .dylib) an
 
 ## Compatibility
 
-Works on `Linux`, `Windows`, `MacOS`
+Works on `Linux`, `MacOS` and `Windows`
 
 ## Installation
 
-You can fetch `dylib` to your project using `CMake`:
+### vcpkg
+
+You can install `dylib` using [vcpkg](https://vcpkg.io/en):
+
+```sh
+vcpkg install dylib
+```
+
+Then, you can add the following line in your `CMakeLists` to use `dylib` in your project:
+
+```cmake
+find_package(dylib CONFIG REQUIRED)
+```
+
+### CMake Fetch
+
+You can also fetch `dylib` to your project using `CMake`:
 
 ```cmake
 include(FetchContent)
@@ -30,8 +46,6 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(dylib)
 ```
-
-You can also click [HERE](https://github.com/martin-olivier/dylib/releases/download/v2.2.1/dylib.hpp) to download the `dylib` header file.
 
 ## Documentation
 
