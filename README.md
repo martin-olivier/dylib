@@ -17,7 +17,7 @@ Works on `Linux`, `MacOS` and `Windows`
 
 ## Installation
 
-### Conan center and Vcpkg
+### Using a package manager
 
 You can install `dylib` from [vcpkg](https://vcpkg.io/en) or [conan center](https://conan.io/center):
 
@@ -29,7 +29,7 @@ vcpkg install dylib
 conan install --requires=dylib/2.2.1
 ```
 
-### CMake Fetch
+### Using CMake Fetch
 
 You can also fetch `dylib` to your project using `CMake`:
 
