@@ -17,21 +17,19 @@ Works on `Linux`, `MacOS` and `Windows`
 
 ## Installation
 
-### vcpkg
+### Using a package manager
 
-You can install `dylib` using [vcpkg](https://vcpkg.io/en):
+You can install `dylib` from [vcpkg](https://vcpkg.io/en) or [conan center](https://conan.io/center):
 
 ```sh
 vcpkg install dylib
 ```
 
-Then, you can add the following line in your `CMakeLists` to use `dylib` in your project:
-
-```cmake
-find_package(dylib CONFIG REQUIRED)
+```sh
+conan install --requires=dylib/2.2.1
 ```
 
-### CMake Fetch
+### Using CMake Fetch
 
 You can also fetch `dylib` to your project using `CMake`:
 
