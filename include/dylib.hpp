@@ -280,16 +280,16 @@ protected:
     static std::string get_error_description() noexcept {
 #if (defined(_WIN32) || defined(_WIN64))
         constexpr const size_t buf_size = 512;
-        auto error_code = GetLastError();
+        const auto error_code = GetLastError();
         if (!error_code)
             return "No error reported by GetLastError";
-        char description[512];
-        auto lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
+        char description[buf_size];
+        const auto lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
         const DWORD length =
             FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, lang, description, buf_size, nullptr);
         return (length == 0) ? "Unknown error (FormatMessage failed)" : description;
 #else
-        auto description = dlerror();
+        const auto description = dlerror();
         return (description == nullptr) ? "No error reported by dlerror" : description;
 #endif
     }
