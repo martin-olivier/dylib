@@ -282,7 +282,7 @@ protected:
         constexpr const size_t buf_size = 512;
         auto error_code = GetLastError();
         if (!error_code)
-            return "Unknown error (GetLastError failed)";
+            return "No error reported by GetLastError";
         char description[512];
         auto lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
         const DWORD length =
@@ -290,7 +290,7 @@ protected:
         return (length == 0) ? "Unknown error (FormatMessage failed)" : description;
 #else
         auto description = dlerror();
-        return (description == nullptr) ? "Unknown error (dlerror failed)" : description;
+        return (description == nullptr) ? "No error reported by dlerror" : description;
 #endif
     }
 };
