@@ -65,32 +65,23 @@ public:
 
     /**
      *  This exception is raised when the library failed to load a dynamic library or a symbol
-     *
-     *  @param message the error message
      */
     class exception : public std::runtime_error {
-    public:
-        explicit exception(const std::string &message) : std::runtime_error(message) {}
+        using std::runtime_error::runtime_error;
     };
 
     /**
      *  This exception is raised when the library failed to load or encountered symbol resolution issues
-     *
-     *  @param message the error message
      */
     class load_error : public exception {
-    public:
-        explicit load_error(const std::string &message) : exception(message) {}
+        using exception::exception;
     };
 
     /**
      *  This exception is raised when the library failed to load a symbol
-     *
-     *  @param message the error message
      */
     class symbol_error : public exception {
-    public:
-        explicit symbol_error(const std::string &message) : exception(message) {}
+        using exception::exception;
     };
 
     dylib(const dylib&) = delete;
