@@ -109,8 +109,10 @@ public:
      */
     ///@{
     dylib(const char *dir_path, const char *lib_name, bool decorations = add_filename_decorations) {
-        if (!dir_path || !lib_name)
-            throw std::invalid_argument("Null parameter");
+        if (!dir_path)
+            throw std::invalid_argument("The directory path is null");
+        if (!lib_name)
+            throw std::invalid_argument("The library name is null");
 
         std::string final_name = lib_name;
         std::string final_path = dir_path;
@@ -170,9 +172,9 @@ public:
      */
     native_symbol_type get_symbol(const char *symbol_name) const {
         if (!symbol_name)
-            throw std::invalid_argument("Null parameter");
+            throw std::invalid_argument("The symbol name to lookup is null");
         if (!m_handle)
-            throw std::logic_error("The dynamic library handle is null");
+            throw std::logic_error("The dynamic library handle is null. This object may have been moved from.");
 
         auto symbol = locate_symbol(m_handle, symbol_name);
 
