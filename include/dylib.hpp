@@ -45,8 +45,8 @@
 #endif
 
 /**
- *  The dylib class can hold a dynamic library instance and interact with it 
- *  by getting its symbols like functions or global variables
+ *  The `dylib` class represents a single dynamic library instance,
+ *  allowing the access of symbols like functions or global variables
  */
 class dylib {
 public:
@@ -64,33 +64,24 @@ public:
     static constexpr bool no_filename_decorations = false;
 
     /**
-     *  This exception is raised when the library failed to load a dynamic library or a symbol
-     *
-     *  @param message the error message
+     *  This exception is raised when a library fails to load or a symbol fails to resolve
      */
     class exception : public std::runtime_error {
-    public:
-        explicit exception(const std::string &message) : std::runtime_error(message) {}
+        using std::runtime_error::runtime_error;
     };
 
     /**
-     *  This exception is raised when the library failed to load or encountered symbol resolution issues
-     *
-     *  @param message the error message
+     *  This exception is raised when a library fails to load
      */
     class load_error : public exception {
-    public:
-        explicit load_error(const std::string &message) : exception(message) {}
+        using exception::exception;
     };
 
     /**
-     *  This exception is raised when the library failed to load a symbol
-     *
-     *  @param message the error message
+     *  This exception is raised when a symbol fails to resolve
      */
     class symbol_error : public exception {
-    public:
-        explicit symbol_error(const std::string &message) : exception(message) {}
+        using exception::exception;
     };
 
     dylib(const dylib&) = delete;
@@ -107,19 +98,22 @@ public:
     }
 
     /**
-     *  @brief Loads a dynamic library
+     *  Loads a dynamic library
      *
-     *  @throws dylib::load_error if the library could not be opened (including
+     *  @throws `dylib::load_error` if the library could not be opened (including
      *  the case of the library file not being found)
+     *  @throws `std::invalid_argument` if the arguments are null
      *
-     *  @param dir_path the directory path where is located the dynamic library you want to load
+     *  @param dir_path the directory path where the dynamic library is located
      *  @param name the name of the dynamic library to load
-     *  @param decorations add os decorations to the library name
+     *  @param decorations adds OS-specific decorations to the library name
      */
     ///@{
     dylib(const char *dir_path, const char *lib_name, bool decorations = add_filename_decorations) {
-        if (!dir_path || !lib_name)
-            throw std::invalid_argument("Null parameter");
+        if (!dir_path)
+            throw std::invalid_argument("The directory path is null");
+        if (!lib_name)
+            throw std::invalid_argument("The library name is null");
 
         std::string final_name = lib_name;
         std::string final_path = dir_path;
@@ -169,19 +163,20 @@ public:
     }
 
     /**
-     *  Get a symbol from the dynamic library currently loaded in the object
+     *  Get a symbol from the currently loaded dynamic library
      * 
-     *  @throws dylib::symbol_error if the symbol could not be found
+     *  @throws `dylib::symbol_error` if the symbol could not be found
+     *  @throws `std::invalid_argument` if the argument or library handle is null
      *
-     *  @param symbol_name the symbol name to get from the dynamic library
+     *  @param symbol_name the symbol name to lookup
      *
      *  @return a pointer to the requested symbol
      */
     native_symbol_type get_symbol(const char *symbol_name) const {
         if (!symbol_name)
-            throw std::invalid_argument("Null parameter");
+            throw std::invalid_argument("The symbol name to lookup is null");
         if (!m_handle)
-            throw std::logic_error("The dynamic library handle is null");
+            throw std::logic_error("The dynamic library handle is null. This object may have been moved from.");
 
         auto symbol = locate_symbol(m_handle, symbol_name);
 
@@ -195,12 +190,13 @@ public:
     }
 
     /**
-     *  Get a function from the dynamic library currently loaded in the object
+     *  Get a function from the currently loaded dynamic library
      * 
-     *  @throws dylib::symbol_error if the symbol could not be found
+     *  @throws `dylib::symbol_error` if the function could not be found
+     *  @throws `std::invalid_argument` if the argument is null
      *
-     *  @param T the template argument must be the function prototype to get
-     *  @param symbol_name the symbol name of a function to get from the dynamic library
+     *  @tparam T the function type, e.g., `double(int, int)`
+     *  @param symbol_name the function name to lookup
      *
      *  @return a pointer to the requested function
      */
@@ -222,12 +218,13 @@ public:
     }
 
     /**
-     *  Get a variable from the dynamic library currently loaded in the object
+     *  Get a variable from the currently loaded dynamic library
      * 
-     *  @throws dylib::symbol_error if the symbol could not be found
+     *  @throws `dylib::symbol_error` if the variable could not be found
+     *  @throws `std::invalid_argument` if the argument is null
      *
-     *  @param T the template argument must be the type of the variable to get
-     *  @param symbol_name the symbol name of a variable to get from the dynamic library
+     *  @tparam T the variable type
+     *  @param symbol_name the variable name to lookup
      *
      *  @return a reference to the requested variable
      */
@@ -288,18 +285,18 @@ protected:
 
     static std::string get_error_description() noexcept {
 #if (defined(_WIN32) || defined(_WIN64))
-        constexpr const size_t buf_size = 512;
-        auto error_code = GetLastError();
+        constexpr const size_t BUF_SIZE = 512;
+        const auto error_code = GetLastError();
         if (!error_code)
-            return "Unknown error (GetLastError failed)";
-        char description[512];
-        auto lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
+            return "No error reported by GetLastError";
+        char description[BUF_SIZE];
+        const auto lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
         const DWORD length =
-            FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, lang, description, buf_size, nullptr);
+            FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, lang, description, BUF_SIZE, nullptr);
         return (length == 0) ? "Unknown error (FormatMessage failed)" : description;
 #else
-        auto description = dlerror();
-        return (description == nullptr) ? "Unknown error (dlerror failed)" : description;
+        const auto description = dlerror();
+        return (description == nullptr) ? "No error reported by dlerror" : description;
 #endif
     }
 };
