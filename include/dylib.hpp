@@ -26,24 +26,19 @@
 #define WIN32_LEAN_AND_MEAN
 #define DYLIB_UNDEFINE_LEAN_AND_MEAN
 #endif
-
 #ifndef NOMINMAX
 #define NOMINMAX
 #define DYLIB_UNDEFINE_NOMINMAX
 #endif
-
 #include <windows.h>
-
 #ifdef DYLIB_UNDEFINE_LEAN_AND_MEAN
 #undef WIN32_LEAN_AND_MEAN
 #undef DYLIB_UNDEFINE_LEAN_AND_MEAN
 #endif
-
 #ifdef DYLIB_UNDEFINE_NOMINMAX
 #undef NOMINMAX
 #undef DYLIB_UNDEFINE_NOMINMAX
 #endif
-
 #else
 #include <dlfcn.h>
 #endif
