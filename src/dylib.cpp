@@ -121,17 +121,20 @@ std::string get_demangled_name(const char *symbol) {
     size_t size = strlen(symbol);
     int status;
     char *buf;
+    char *res;
 
     buf = reinterpret_cast<char *>(malloc(size));
     if (buf == NULL)
         throw std::bad_alloc();
 
-    buf = abi::__cxa_demangle(symbol, buf, &size, &status);
+    res = abi::__cxa_demangle(symbol, buf, &size, &status);
 
-    if (buf) {
-        result = buf;
-        free(buf);
+    if (res) {
+        result = res;
+        buf = res;
     }
+
+    free(buf);
 
     return result;
 }
