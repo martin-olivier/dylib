@@ -5,7 +5,7 @@
  * @link https://github.com/martin-olivier/dylib
  * 
  * @author Martin Olivier <martin.olivier@live.fr>
- * @copyright (c) 2023 Martin Olivier
+ * @copyright (c) 2024 Martin Olivier
  *
  * This library is released under MIT license
  */
@@ -37,11 +37,9 @@
  *  The dylib class can hold a dynamic library instance and interact with it
  *  by getting its symbols like functions or global variables
  */
-class dylib
-{
+class dylib {
 public:
-    struct filename_components
-    {
+    struct filename_components {
         static constexpr const char *prefix = DYLIB_WIN_OTHER("", "lib");
         static constexpr const char *suffix = DYLIB_WIN_MAC_OTHER(".dll", ".dylib", ".so");
     };
@@ -59,8 +57,7 @@ public:
      *
      *  @param message the error message
      */
-    class exception : public std::runtime_error
-    {
+    class exception : public std::runtime_error {
     public:
         explicit exception(const std::string &message) : std::runtime_error(message) {}
     };
@@ -70,8 +67,7 @@ public:
      *
      *  @param message the error message
      */
-    class load_error : public exception
-    {
+    class load_error : public exception {
     public:
         explicit load_error(const std::string &message) : exception(message) {}
     };
@@ -81,8 +77,7 @@ public:
      *
      *  @param message the error message
      */
-    class symbol_error : public exception
-    {
+    class symbol_error : public exception {
     public:
         explicit symbol_error(const std::string &message) : exception(message) {}
     };
@@ -170,8 +165,7 @@ public:
      *  @return a pointer to the requested function
      */
     template <typename T>
-    T *get_function(const char *symbol_name) const
-    {
+    T *get_function(const char *symbol_name) const {
 #if (defined(__GNUC__) && __GNUC__ >= 8)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-function-type"
@@ -183,8 +177,7 @@ public:
     }
 
     template <typename T>
-    T *get_function(const std::string &symbol_name) const
-    {
+    T *get_function(const std::string &symbol_name) const {
         return get_function<T>(symbol_name.c_str());
     }
 
@@ -199,14 +192,12 @@ public:
      *  @return a reference to the requested variable
      */
     template <typename T>
-    T &get_variable(const char *symbol_name) const
-    {
+    T &get_variable(const char *symbol_name) const {
         return *reinterpret_cast<T *>(get_symbol(symbol_name));
     }
 
     template <typename T>
-    T &get_variable(const std::string &symbol_name) const
-    {
+    T &get_variable(const std::string &symbol_name) const {
         return get_variable<T>(symbol_name.c_str());
     }
 

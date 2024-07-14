@@ -1,3 +1,12 @@
+/**
+ * @file dylib.cpp
+ * 
+ * @author Martin Olivier <martin.olivier@live.fr>
+ * @copyright (c) 2024 Martin Olivier
+ *
+ * This library is released under MIT license
+ */
+
 #if (defined(_WIN32) || defined(_WIN64))
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -32,8 +41,7 @@
 
 std::vector<std::string> get_symbols(int fd, bool demangle);
 
-static dylib::native_handle_type open_lib(const char *path) noexcept
-{
+static dylib::native_handle_type open_lib(const char *path) noexcept {
 #if (defined(_WIN32) || defined(_WIN64))
     return LoadLibraryA(path);
 #else
@@ -41,18 +49,15 @@ static dylib::native_handle_type open_lib(const char *path) noexcept
 #endif
 }
 
-static dylib::native_symbol_type locate_symbol(dylib::native_handle_type lib, const char *name) noexcept
-{
+static dylib::native_symbol_type locate_symbol(dylib::native_handle_type lib, const char *name) noexcept {
     return DYLIB_WIN_OTHER(GetProcAddress, dlsym)(lib, name);
 }
 
-static void close_lib(dylib::native_handle_type lib) noexcept
-{
+static void close_lib(dylib::native_handle_type lib) noexcept {
     DYLIB_WIN_OTHER(FreeLibrary, dlclose)(lib);
 }
 
-static std::string get_error_description() noexcept
-{
+static std::string get_error_description() noexcept {
 #if (defined(_WIN32) || defined(_WIN64))
     constexpr const size_t buf_size = 512;
     auto error_code = GetLastError();
@@ -70,20 +75,17 @@ static std::string get_error_description() noexcept
 }
 
 dylib::dylib(dylib &&other) noexcept
-    : m_handle(other.m_handle)
-{
+    : m_handle(other.m_handle) {
     other.m_handle = nullptr;
 }
 
-dylib &dylib::operator=(dylib &&other) noexcept
-{
+dylib &dylib::operator=(dylib &&other) noexcept {
     if (this != &other)
         std::swap(m_handle, other.m_handle);
     return *this;
 }
 
-dylib::dylib(const char *dir_path, const char *lib_name, bool decorations)
-{
+dylib::dylib(const char *dir_path, const char *lib_name, bool decorations) {
     if (!dir_path || !lib_name)
         throw std::invalid_argument("Null parameter");
 
@@ -104,34 +106,29 @@ dylib::dylib(const char *dir_path, const char *lib_name, bool decorations)
     m_fd = open((final_path + final_name).c_str(), O_RDONLY);
 
     if (m_fd < 0)
-    {
         throw load_error("Could not load library");
-    }
 }
 
-dylib::~dylib()
-{
+dylib::~dylib() {
     if (m_handle)
         close_lib(m_handle);
     if (m_fd > -1)
         close(m_fd);
 }
 
-std::string get_demangled_name(const char *symbol)
-{
+std::string get_demangled_name(const char *symbol) {
     std::string result;
     size_t size = strlen(symbol);
     int status;
     char *buf;
 
-    buf = (char *)malloc(size);
+    buf = reinterpret_cast<char *>(malloc(size));
     if (buf == NULL)
         throw std::bad_alloc();
 
     buf = abi::__cxa_demangle(symbol, buf, &size, &status);
 
-    if (buf)
-    {
+    if (buf) {
         result = buf;
         free(buf);
     }
@@ -139,8 +136,7 @@ std::string get_demangled_name(const char *symbol)
     return result;
 }
 
-dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const
-{
+dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const {
     std::vector<std::string> matching_symbols;
     std::vector<std::string> all_symbols;
 
@@ -151,12 +147,10 @@ dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const
 
     auto symbol = locate_symbol(m_handle, symbol_name);
 
-    if (symbol == nullptr)
-    {
+    if (symbol == nullptr) {
         all_symbols = symbols({.demangle = false});
 
-        for (auto &sym : all_symbols)
-        {
+        for (auto &sym : all_symbols) {
             auto demangled = get_demangled_name(sym.c_str());
 
             if (demangled.empty())
@@ -168,16 +162,13 @@ dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const
                 matching_symbols.push_back(sym);
         }
 
-        if (matching_symbols.size() == 0)
+        if (matching_symbols.size() == 0) {
             throw symbol_error("Could not get symbol '" + std::string(symbol_name) + "'\n" + get_error_description());
-        else if (matching_symbols.size() == 1)
-        {
+        } else if (matching_symbols.size() == 1) {
             symbol = locate_symbol(m_handle, matching_symbols.front().c_str());
             if (symbol == nullptr)
                 throw symbol_error("Could not get symbol '" + std::string(symbol_name) + "'\n" + get_error_description());
-        }
-        else
-        {
+        } else {
             throw symbol_error(
                 "Could not get symbol '" + std::string(symbol_name) + "': multiple matches");
         }
@@ -186,30 +177,25 @@ dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const
     return symbol;
 }
 
-dylib::native_symbol_type dylib::get_symbol(const std::string &symbol_name) const
-{
+dylib::native_symbol_type dylib::get_symbol(const std::string &symbol_name) const {
     return get_symbol(symbol_name.c_str());
 }
 
-bool dylib::has_symbol(const char *symbol_name) const noexcept
-{
+bool dylib::has_symbol(const char *symbol_name) const noexcept {
     if (!m_handle || !symbol_name)
         return false;
     return locate_symbol(m_handle, symbol_name) != nullptr;
 }
 
-bool dylib::has_symbol(const std::string &symbol) const noexcept
-{
+bool dylib::has_symbol(const std::string &symbol) const noexcept {
     return has_symbol(symbol.c_str());
 }
 
-dylib::native_handle_type dylib::native_handle() noexcept
-{
+dylib::native_handle_type dylib::native_handle() noexcept {
     return m_handle;
 }
 
-std::vector<std::string> dylib::symbols(symbols_params params) const
-{
+std::vector<std::string> dylib::symbols(symbols_params params) const {
     try {
         return get_symbols(m_fd, params.demangle);
     } catch (const std::string &e) {
