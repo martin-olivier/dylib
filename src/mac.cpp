@@ -52,7 +52,7 @@ std::vector<std::string> get_symbols_at_off(int fd, bool demangle, off_t offset,
             struct nlist *symbols = NULL;
             if (is_64_bit) {
                 symbols64 = reinterpret_cast<struct nlist_64 *>(malloc(symtab.nsyms * sizeof(struct nlist_64)));
-                if (symbols == nullptr)
+                if (symbols64 == nullptr)
                     throw std::bad_alloc();
 
                 lseek(fd, offset + symtab.symoff, SEEK_SET);
