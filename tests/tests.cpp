@@ -2,6 +2,12 @@
 #include <utility>
 #include "dylib.hpp"
 
+#if (defined(_WIN32) || defined(_WIN64))
+#include <windows.h>
+#else
+#include <dlfcn.h>
+#endif
+
 TEST(example, example_test) {
     testing::internal::CaptureStdout();
     dylib lib("./", "dynamic_lib");

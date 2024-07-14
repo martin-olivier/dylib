@@ -3,17 +3,29 @@ cmake_minimum_required(VERSION 3.14)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 include(dylib)
 
-project(dylib CXX)
+project(dylib VERSION 3.0.0 LANGUAGES CXX)
 
 if(NOT "${CMAKE_CXX_STANDARD}")
   set(CMAKE_CXX_STANDARD 11)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_library(dylib INTERFACE)
-target_include_directories(dylib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(SOURCES src/dylib.cpp)
+
+if(APPLE)
+    list(APPEND SOURCES src/mac.cpp)
+elseif(WIN32)
+    list(APPEND SOURCES src/win.cpp)
+else()
+    list(APPEND SOURCES src/linux.cpp)
+endif()
+
+add_library(dylib STATIC ${SOURCES})
+
+target_include_directories(dylib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 if(UNIX)
-    target_link_libraries(dylib INTERFACE dl)
+    target_link_libraries(dylib PRIVATE dl)
+    target_link_libraries(dylib PRIVATE elf)
 endif()
 
 option(DYLIB_BUILD_TESTS "When set to ON, build unit tests" OFF)

@@ -1,6 +1,6 @@
 # dylib
 
-[![version](https://img.shields.io/badge/Version-2.2.1-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v2.2.1)
+[![version](https://img.shields.io/badge/Version-3.0.0-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v3.0.0)
 [![license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/martin-olivier/dylib/blob/main/LICENSE)
 [![cpp](https://img.shields.io/badge/Compatibility-C++11-darkgreen.svg)](https://isocpp.org)
 

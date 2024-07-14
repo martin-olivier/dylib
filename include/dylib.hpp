@@ -1,6 +1,6 @@
 /**
  * @file dylib.hpp
- * @version 2.2.1
+ * @version 3.0.0 alpha
  * @brief C++ cross-platform wrapper around dynamic loading of shared libraries
  * @link https://github.com/martin-olivier/dylib
  * 
@@ -13,24 +13,13 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <stdexcept>
 #include <utility>
 
 #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 #define DYLIB_CPP17
 #include <filesystem>
-#endif
-
-#if (defined(_WIN32) || defined(_WIN64))
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#undef WIN32_LEAN_AND_MEAN
-#else
-#include <windows.h>
-#endif
-#else
-#include <dlfcn.h>
 #endif
 
 #if (defined(_WIN32) || defined(_WIN64))
@@ -45,12 +34,14 @@
 #endif
 
 /**
- *  The dylib class can hold a dynamic library instance and interact with it 
+ *  The dylib class can hold a dynamic library instance and interact with it
  *  by getting its symbols like functions or global variables
  */
-class dylib {
+class dylib
+{
 public:
-    struct filename_components {
+    struct filename_components
+    {
         static constexpr const char *prefix = DYLIB_WIN_OTHER("", "lib");
         static constexpr const char *suffix = DYLIB_WIN_MAC_OTHER(".dll", ".dylib", ".so");
     };
@@ -68,7 +59,8 @@ public:
      *
      *  @param message the error message
      */
-    class exception : public std::runtime_error {
+    class exception : public std::runtime_error
+    {
     public:
         explicit exception(const std::string &message) : std::runtime_error(message) {}
     };
@@ -78,7 +70,8 @@ public:
      *
      *  @param message the error message
      */
-    class load_error : public exception {
+    class load_error : public exception
+    {
     public:
         explicit load_error(const std::string &message) : exception(message) {}
     };
@@ -88,23 +81,17 @@ public:
      *
      *  @param message the error message
      */
-    class symbol_error : public exception {
+    class symbol_error : public exception
+    {
     public:
         explicit symbol_error(const std::string &message) : exception(message) {}
     };
 
-    dylib(const dylib&) = delete;
-    dylib& operator=(const dylib&) = delete;
+    dylib(const dylib &) = delete;
+    dylib &operator=(const dylib &) = delete;
 
-    dylib(dylib &&other) noexcept : m_handle(other.m_handle) {
-        other.m_handle = nullptr;
-    }
-
-    dylib& operator=(dylib &&other) noexcept {
-        if (this != &other)
-            std::swap(m_handle, other.m_handle);
-        return *this;
-    }
+    dylib(dylib &&other) noexcept;
+    dylib &operator=(dylib &&other) noexcept;
 
     /**
      *  @brief Loads a dynamic library
@@ -117,24 +104,7 @@ public:
      *  @param decorations add os decorations to the library name
      */
     ///@{
-    dylib(const char *dir_path, const char *lib_name, bool decorations = add_filename_decorations) {
-        if (!dir_path || !lib_name)
-            throw std::invalid_argument("Null parameter");
-
-        std::string final_name = lib_name;
-        std::string final_path = dir_path;
-
-        if (decorations)
-            final_name = filename_components::prefix + final_name + filename_components::suffix;
-
-        if (!final_path.empty() && final_path.find_last_of('/') != final_path.size() - 1)
-            final_path += '/';
-
-        m_handle = open((final_path + final_name).c_str());
-
-        if (!m_handle)
-            throw load_error("Could not load library \"" + final_path + final_name + "\"\n" + get_error_description());
-    }
+    dylib(const char *dir_path, const char *lib_name, bool decorations = add_filename_decorations);
 
     dylib(const std::string &dir_path, const std::string &lib_name, bool decorations = add_filename_decorations)
         : dylib(dir_path.c_str(), lib_name.c_str(), decorations) {}
@@ -163,40 +133,35 @@ public:
 #endif
     ///@}
 
-    ~dylib() {
-        if (m_handle)
-            close(m_handle);
-    }
+    ~dylib();
 
     /**
      *  Get a symbol from the dynamic library currently loaded in the object
-     * 
+     *
      *  @throws dylib::symbol_error if the symbol could not be found
      *
      *  @param symbol_name the symbol name to get from the dynamic library
      *
      *  @return a pointer to the requested symbol
      */
-    native_symbol_type get_symbol(const char *symbol_name) const {
-        if (!symbol_name)
-            throw std::invalid_argument("Null parameter");
-        if (!m_handle)
-            throw std::logic_error("The dynamic library handle is null");
+    native_symbol_type get_symbol(const char *symbol_name) const;
+    native_symbol_type get_symbol(const std::string &symbol_name) const;
 
-        auto symbol = locate_symbol(m_handle, symbol_name);
-
-        if (symbol == nullptr)
-            throw symbol_error("Could not get symbol \"" + std::string(symbol_name) + "\"\n" + get_error_description());
-        return symbol;
-    }
-
-    native_symbol_type get_symbol(const std::string &symbol_name) const {
-        return get_symbol(symbol_name.c_str());
-    }
+    /**
+     *  Check if a symbol exists in the currently loaded dynamic library.
+     *  This method will return false if no dynamic library is currently loaded
+     *  or if the symbol name is nullptr
+     *
+     *  @param symbol_name the symbol name to look for
+     *
+     *  @return true if the symbol exists in the dynamic library, false otherwise
+     */
+    bool has_symbol(const char *symbol_name) const noexcept;
+    bool has_symbol(const std::string &symbol) const noexcept;
 
     /**
      *  Get a function from the dynamic library currently loaded in the object
-     * 
+     *
      *  @throws dylib::symbol_error if the symbol could not be found
      *
      *  @param T the template argument must be the function prototype to get
@@ -204,8 +169,9 @@ public:
      *
      *  @return a pointer to the requested function
      */
-    template<typename T>
-    T *get_function(const char *symbol_name) const {
+    template <typename T>
+    T *get_function(const char *symbol_name) const
+    {
 #if (defined(__GNUC__) && __GNUC__ >= 8)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-function-type"
@@ -216,14 +182,15 @@ public:
 #endif
     }
 
-    template<typename T>
-    T *get_function(const std::string &symbol_name) const {
+    template <typename T>
+    T *get_function(const std::string &symbol_name) const
+    {
         return get_function<T>(symbol_name.c_str());
     }
 
     /**
      *  Get a variable from the dynamic library currently loaded in the object
-     * 
+     *
      *  @throws dylib::symbol_error if the symbol could not be found
      *
      *  @param T the template argument must be the type of the variable to get
@@ -231,77 +198,32 @@ public:
      *
      *  @return a reference to the requested variable
      */
-    template<typename T>
-    T &get_variable(const char *symbol_name) const {
+    template <typename T>
+    T &get_variable(const char *symbol_name) const
+    {
         return *reinterpret_cast<T *>(get_symbol(symbol_name));
     }
 
-    template<typename T>
-    T &get_variable(const std::string &symbol_name) const {
+    template <typename T>
+    T &get_variable(const std::string &symbol_name) const
+    {
         return get_variable<T>(symbol_name.c_str());
     }
 
-    /**
-     *  Check if a symbol exists in the currently loaded dynamic library. 
-     *  This method will return false if no dynamic library is currently loaded 
-     *  or if the symbol name is nullptr
-     *
-     *  @param symbol_name the symbol name to look for
-     *
-     *  @return true if the symbol exists in the dynamic library, false otherwise
-     */
-    bool has_symbol(const char *symbol_name) const noexcept {
-        if (!m_handle || !symbol_name)
-            return false;
-        return locate_symbol(m_handle, symbol_name) != nullptr;
-    }
+    struct symbols_params {
+        bool demangle;
+    };
 
-    bool has_symbol(const std::string &symbol) const noexcept {
-        return has_symbol(symbol.c_str());
-    }
+    std::vector<std::string> symbols(symbols_params params = {.demangle = false}) const;
 
     /**
      *  @return the dynamic library handle
      */
-    native_handle_type native_handle() noexcept {
-        return m_handle;
-    }
+    native_handle_type native_handle() noexcept;
 
 protected:
     native_handle_type m_handle{nullptr};
-
-    static native_handle_type open(const char *path) noexcept {
-#if (defined(_WIN32) || defined(_WIN64))
-        return LoadLibraryA(path);
-#else
-        return dlopen(path, RTLD_NOW | RTLD_LOCAL);
-#endif
-    }
-
-    static native_symbol_type locate_symbol(native_handle_type lib, const char *name) noexcept {
-        return DYLIB_WIN_OTHER(GetProcAddress, dlsym)(lib, name);
-    }
-
-    static void close(native_handle_type lib) noexcept {
-        DYLIB_WIN_OTHER(FreeLibrary, dlclose)(lib);
-    }
-
-    static std::string get_error_description() noexcept {
-#if (defined(_WIN32) || defined(_WIN64))
-        constexpr const size_t buf_size = 512;
-        auto error_code = GetLastError();
-        if (!error_code)
-            return "Unknown error (GetLastError failed)";
-        char description[512];
-        auto lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
-        const DWORD length =
-            FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, lang, description, buf_size, nullptr);
-        return (length == 0) ? "Unknown error (FormatMessage failed)" : description;
-#else
-        auto description = dlerror();
-        return (description == nullptr) ? "Unknown error (dlerror failed)" : description;
-#endif
-    }
+    int m_fd{-1};
 };
 
 #undef DYLIB_WIN_MAC_OTHER

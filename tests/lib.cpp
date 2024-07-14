@@ -20,3 +20,23 @@ LIB_EXPORT void print_hello() {
 }
 
 } // extern "C"
+
+double do_you_find_me(double a, double b) {
+    return a + b;
+}
+
+namespace toto {
+    double and_now(double a, double b) {
+        return a + b;
+    }
+
+    double and_now(double a, std::string b) {
+        return a + 1;
+    }
+}
+
+double zaza = 12;
+
+namespace tata {
+    double zozo = 11;
+}
