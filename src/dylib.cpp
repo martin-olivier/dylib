@@ -19,6 +19,7 @@
 #include <dlfcn.h>
 #include <unistd.h>
 #include <cxxabi.h>
+#include <algorithm>
 #endif
 
 #include <fcntl.h>

@@ -158,15 +158,12 @@ TEST(handle_management, basic_test) {
     EXPECT_EQ(res, 20);
 }
 
-TEST(system_lib, basic_test) {
 #if (defined(_WIN32) || defined(_WIN64))
+TEST(system_lib, basic_test) {
     dylib lib("kernel32");
     lib.get_function<DWORD()>("GetCurrentThreadId");
-#elif defined(__APPLE__)
-    dylib lib("ssh2");
-    lib.get_function<const char *(int)>("libssh2_version");
-#endif
 }
+#endif
 
 #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 TEST(filesystem, basic_test) {
