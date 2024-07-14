@@ -31,7 +31,7 @@ namespace toto {
     }
 
     double and_now(double a, std::string b) {
-        return a + 1;
+        return a + b.size();
     }
 }
 
