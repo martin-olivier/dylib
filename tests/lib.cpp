@@ -45,5 +45,9 @@ namespace tools {
         LIB_EXPORT void println(std::string &&str) {
             std::cout << "mov: " << str << std::endl;
         }
+
+        LIB_EXPORT void println(const unsigned int& val) {
+            std::cout << "ref: " << val << std::endl;
+        }
     }
 }

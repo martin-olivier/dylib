@@ -210,7 +210,7 @@ TEST(cpp_symbols, basic_test) {
     auto text = std::string("bla,bla,bla...");
 
     testing::internal::CaptureStdout();
-    auto ref_println = lib.get_function<void(const std::string&)>("tools::string::println(std::basic_string<char, std::char_traits<char>, std::allocator<char>>const&)");
+    auto ref_println = lib.get_function<void(const std::string&)>("tools::string::println(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&)");
     ref_println(text);
     EXPECT_EQ(testing::internal::GetCapturedStdout(), "ref: bla,bla,bla...\n");
 
@@ -218,6 +218,11 @@ TEST(cpp_symbols, basic_test) {
     auto mov_println = lib.get_function<void(std::string&&)>("tools::string::println(std::basic_string<char, std::char_traits<char>, std::allocator<char>>&&)");
     mov_println(std::move(text));
     EXPECT_EQ(testing::internal::GetCapturedStdout(), "mov: bla,bla,bla...\n");
+
+    testing::internal::CaptureStdout();
+    auto int_ref_println = lib.get_function<void(const unsigned int&)>("tools::string::println(unsigned int const&)");
+    int_ref_println(123);
+    EXPECT_EQ(testing::internal::GetCapturedStdout(), "ref: 123\n");
 }
 
 int main(int ac, char **av) {

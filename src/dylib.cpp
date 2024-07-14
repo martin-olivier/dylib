@@ -155,15 +155,8 @@ std::string format_symbol(std::string input) {
     replace_occurrences(input, "std::__1::", "std::");
     replace_occurrences(input, "std::__cxx11::", "std::");
 
-    input.erase(
-        std::remove_if(
-            input.begin(),
-            input.end(),
-            ::isspace
-        ), input.end()
-    );
-
-    add_space_after_comma(input);
+    replace_occurrences(input, "> >", ">>");
+    replace_occurrences(input, "()", "(void)");
 
     return input;
 }
