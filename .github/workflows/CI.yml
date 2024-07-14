@@ -49,6 +49,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install libelf
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: sudo apt install -y libelf-dev
+
       - name: Generate project files
         run: cmake . -B build -G "${{ matrix.generator }}" -DCMAKE_CXX_STANDARD=${{ matrix.cxx-std }} -DDYLIB_BUILD_TESTS=ON -DDYLIB_WARNING_AS_ERRORS=ON
 
@@ -80,7 +84,7 @@ jobs:
         run: sudo apt update
 
       - name: Install valgrind
-        run: sudo apt install -y valgrind
+        run: sudo apt install -y valgrind libelf-dev
 
       - name: Generate tests build file
         run: cmake . -B build -DCMAKE_CXX_STANDARD=20 -DDYLIB_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
