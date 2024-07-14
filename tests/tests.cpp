@@ -1,8 +1,11 @@
 #include <gtest/gtest.h>
 #include <utility>
+
 #include "dylib.hpp"
 
-#include <iostream>
+#if !(defined(_WIN32) || defined(_WIN64))
+#include <dlfcn.h>
+#endif
 
 TEST(example, example_test) {
     testing::internal::CaptureStdout();

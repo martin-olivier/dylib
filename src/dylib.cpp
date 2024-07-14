@@ -56,6 +56,20 @@ void replace_occurrences(std::string &input, const std::string &keyword, const s
     }
 }
 
+void add_space_after_comma(std::string &input) {
+    std::string result;
+
+    for (char c : input) {
+        if (c == ',') {
+            result += ", ";
+        } else {
+            result += c;
+        }
+    }
+
+    input = result;
+}
+
 static dylib::native_handle_type open_lib(const char *path) noexcept {
 #if (defined(_WIN32) || defined(_WIN64))
     return LoadLibraryA(path);
@@ -137,8 +151,8 @@ dylib::~dylib() {
 
 #if !(defined(_WIN32) || defined(_WIN64))
 std::string format_symbol(std::string input) {
-    replace_occurrences(result, "std::__1::", "std::");
-    replace_occurrences(result, "std::__cxx11::", "std::");
+    replace_occurrences(input, "std::__1::", "std::");
+    replace_occurrences(input, "std::__cxx11::", "std::");
 
     input.erase(
         std::remove_if(

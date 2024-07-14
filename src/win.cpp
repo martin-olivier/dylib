@@ -11,20 +11,7 @@
 #include <algorithm>
 
 void replace_occurrences(std::string &input, const std::string &keyword, const std::string &replacement);
-
-void add_space_after_comma(std::string &input) {
-    std::string result;
-
-    for (char c : input) {
-        if (c == ',') {
-            result += ", ";
-        } else {
-            result += c;
-        }
-    }
-
-    input = result;
-}
+void add_space_after_comma(std::string &input);
 
 std::string format_symbol(std::string input) {
     replace_occurrences(input, "(class ", "(");
