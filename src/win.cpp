@@ -45,11 +45,31 @@ std::string format_symbol(std::string input) {
 }
 
 std::string get_demangled_name(const char *symbol) {
-    char undecoratedName[MAX_SYM_NAME];
+    char undecorated[MAX_SYM_NAME];
     DWORD flags = UNDNAME_COMPLETE | UNDNAME_NO_FUNCTION_RETURNS | UNDNAME_NO_MS_KEYWORDS;
 
-    if (UnDecorateSymbolName(symbol, undecoratedName, MAX_SYM_NAME, flags))
-        return format_symbol(undecoratedName);
+    // Get undecorated symbol signature
+    if (UnDecorateSymbolName(symbol, undecorated, MAX_SYM_NAME, flags)) {
+        std::string signature = undecorated;
+
+        // Get undecorated symbol name
+        if (UnDecorateSymbolName(symbol, undecorated, MAX_SYM_NAME, UNDNAME_NAME_ONLY)) {
+            /*
+             * If symbol signature starts with symbol name, it means
+             * that this is a function, otherwise, this is a variable:
+             * 
+             * signature: tools::adder(double, double)
+             * symbol name: tools::adder
+             * 
+             * signature: long ptr
+             * symbol name: ptr
+            */
+            if (signature.find(undecorated) == 0)
+                return format_symbol(signature);
+            else
+                return format_symbol(undecorated);
+        }
+    }
 
     return "";
 }

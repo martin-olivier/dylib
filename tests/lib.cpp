@@ -22,13 +22,28 @@ LIB_EXPORT void print_hello_c() {
 } // extern "C"
 
 LIB_EXPORT double meaning_of_life = 42;
+LIB_EXPORT const char *secret = "12345";
 
 namespace tools {
+    LIB_EXPORT double adder() {
+        return 0;
+    }
+
     LIB_EXPORT double adder(double a, double b) {
         return a + b;
     }
 
     LIB_EXPORT std::string adder(std::string a, std::string b) {
         return a + b;
+    }
+
+    namespace string {
+        LIB_EXPORT void println(const std::string &str) {
+            std::cout << "ref: " << str << std::endl;
+        }
+
+        LIB_EXPORT void println(std::string &&str) {
+            std::cout << "mov: " << str << std::endl;
+        }
     }
 }
