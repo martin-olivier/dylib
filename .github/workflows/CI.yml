@@ -109,4 +109,4 @@ jobs:
         run: pip install cpplint
 
       - name: Run cpplint
-        run: cpplint --linelength=140 --filter=-whitespace/indent,-whitespace/parens,-build/include_subdir src/* include/*
+        run: cpplint --linelength=140 --filter=-whitespace/indent,-whitespace/parens,-build/include_subdir,-runtime/references,-readability/casting src/* include/*

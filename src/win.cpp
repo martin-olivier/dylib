@@ -1,3 +1,12 @@
+/**
+ * @file win.cpp
+ * 
+ * @author Martin Olivier <martin.olivier@live.fr>
+ * @copyright (c) 2024 Martin Olivier
+ *
+ * This library is released under MIT license
+ */
+
 #include <windows.h>
 #include <dbghelp.h>
 #include <stdio.h>
