@@ -23,6 +23,16 @@
 #endif
 
 #if (defined(_WIN32) || defined(_WIN64))
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#undef WIN32_LEAN_AND_MEAN
+#else
+#include <windows.h>
+#endif
+#endif
+
+#if (defined(_WIN32) || defined(_WIN64))
 #define DYLIB_WIN_MAC_OTHER(win_def, mac_def, other_def) win_def
 #define DYLIB_WIN_OTHER(win_def, other_def) win_def
 #elif defined(__APPLE__)
@@ -201,11 +211,7 @@ public:
         return get_variable<T>(symbol_name.c_str());
     }
 
-    struct symbols_params {
-        bool demangle;
-    };
-
-    std::vector<std::string> symbols(symbols_params params = {.demangle = false}) const;
+    std::vector<std::string> symbols(bool demangle = false) const;
 
     /**
      *  @return the dynamic library handle
@@ -214,7 +220,9 @@ public:
 
 protected:
     native_handle_type m_handle{nullptr};
+#if !(defined(_WIN32) || defined(_WIN64))
     int m_fd{-1};
+#endif
 };
 
 #undef DYLIB_WIN_MAC_OTHER

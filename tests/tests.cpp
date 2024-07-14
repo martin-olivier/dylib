@@ -2,11 +2,7 @@
 #include <utility>
 #include "dylib.hpp"
 
-#if (defined(_WIN32) || defined(_WIN64))
-#include <windows.h>
-#else
-#include <dlfcn.h>
-#endif
+#include <iostream>
 
 TEST(example, example_test) {
     testing::internal::CaptureStdout();

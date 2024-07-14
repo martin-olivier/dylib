@@ -17,12 +17,12 @@
 #endif
 #else
 #include <dlfcn.h>
+#include <unistd.h>
+#include <cxxabi.h>
 #endif
 
 #include <fcntl.h>
-#include <unistd.h>
 #include <string.h>
-#include <cxxabi.h>
 
 #include "dylib.hpp"
 
@@ -39,7 +39,22 @@
 
 /* PRIVATE */
 
+std::string get_demangled_name(const char *symbol);
+
+#if (defined(_WIN32) || defined(_WIN64))
+std::vector<std::string> get_symbols(HMODULE hModule, bool demangle);
+#else
 std::vector<std::string> get_symbols(int fd, bool demangle);
+#endif
+
+void replace_occurrences(std::string &input, const std::string &keyword, const std::string &replacement) {
+    size_t pos = 0;
+
+    while ((pos = input.find(keyword)) != std::string::npos) {
+        input.erase(pos, keyword.length());
+        input.insert(pos, replacement);
+    }
+}
 
 static dylib::native_handle_type open_lib(const char *path) noexcept {
 #if (defined(_WIN32) || defined(_WIN64))
@@ -103,17 +118,39 @@ dylib::dylib(const char *dir_path, const char *lib_name, bool decorations) {
     if (!m_handle)
         throw load_error("Could not load library '" + final_path + final_name + "'\n" + get_error_description());
 
+#if !(defined(_WIN32) || defined(_WIN64))
     m_fd = open((final_path + final_name).c_str(), O_RDONLY);
 
     if (m_fd < 0)
         throw load_error("Could not load library");
+#endif
 }
 
 dylib::~dylib() {
     if (m_handle)
         close_lib(m_handle);
+#if !(defined(_WIN32) || defined(_WIN64))
     if (m_fd > -1)
         close(m_fd);
+#endif
+}
+
+#if !(defined(_WIN32) || defined(_WIN64))
+std::string format_symbol(std::string input) {
+    replace_occurrences(result, "std::__1::", "std::");
+    replace_occurrences(result, "std::__cxx11::", "std::");
+
+    input.erase(
+        std::remove_if(
+            input.begin(),
+            input.end(),
+            ::isspace
+        ), input.end()
+    );
+
+    add_space_after_comma(input);
+
+    return input;
 }
 
 std::string get_demangled_name(const char *symbol) {
@@ -128,16 +165,18 @@ std::string get_demangled_name(const char *symbol) {
         throw std::bad_alloc();
 
     res = abi::__cxa_demangle(symbol, buf, &size, &status);
-
-    if (res) {
-        result = res;
-        buf = res;
+    if (!res) {
+        free(buf);
+        return "";
     }
 
-    free(buf);
+    result = format_symbol(res);
+
+    free(res);
 
     return result;
 }
+#endif
 
 dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const {
     std::vector<std::string> matching_symbols;
@@ -151,7 +190,7 @@ dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const {
     auto symbol = locate_symbol(m_handle, symbol_name);
 
     if (symbol == nullptr) {
-        all_symbols = symbols({.demangle = false});
+        all_symbols = symbols();
 
         for (auto &sym : all_symbols) {
             auto demangled = get_demangled_name(sym.c_str());
@@ -198,9 +237,13 @@ dylib::native_handle_type dylib::native_handle() noexcept {
     return m_handle;
 }
 
-std::vector<std::string> dylib::symbols(symbols_params params) const {
+std::vector<std::string> dylib::symbols(bool demangle) const {
     try {
-        return get_symbols(m_fd, params.demangle);
+#if !(defined(_WIN32) || defined(_WIN64))
+        return get_symbols(m_fd, demangle);
+#else
+        return get_symbols(m_handle, demangle);
+#endif
     } catch (const std::string &e) {
         throw symbol_error(e);
     }

@@ -21,22 +21,22 @@ LIB_EXPORT void print_hello() {
 
 } // extern "C"
 
-double do_you_find_me(double a, double b) {
+LIB_EXPORT double do_you_find_me(double a, double b) {
     return a + b;
 }
 
 namespace toto {
-    double and_now(double a, double b) {
+    LIB_EXPORT double and_now(double a, double b) {
         return a + b;
     }
 
-    double and_now(double a, std::string b) {
+    LIB_EXPORT double and_now(double a, std::string b) {
         return a + b.size();
     }
 }
 
-double zaza = 12;
+LIB_EXPORT double zaza = 12;
 
 namespace tata {
-    double zozo = 11;
+    LIB_EXPORT double zozo = 11;
 }
