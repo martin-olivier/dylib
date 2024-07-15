@@ -49,5 +49,9 @@ namespace tools {
         LIB_EXPORT void println(const unsigned int& val) {
             std::cout << "ref: " << val << std::endl;
         }
+
+        LIB_EXPORT void println(const char *val) {
+            std::cout << "ptr: " << val << std::endl;
+        }
     }
 }

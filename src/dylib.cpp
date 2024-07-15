@@ -18,7 +18,6 @@
 #else
 #include <dlfcn.h>
 #include <unistd.h>
-#include <cxxabi.h>
 #include <algorithm>
 #endif
 
@@ -51,9 +50,12 @@ std::vector<std::string> get_symbols(int fd, bool demangle);
 void replace_occurrences(std::string &input, const std::string &keyword, const std::string &replacement) {
     size_t pos = 0;
 
-    while ((pos = input.find(keyword)) != std::string::npos) {
-        input.erase(pos, keyword.length());
-        input.insert(pos, replacement);
+    if (keyword.empty())
+        return;
+
+    while ((pos = input.find(keyword, pos)) != std::string::npos) {
+        input.replace(pos, keyword.length(), replacement);
+        pos += replacement.length();
     }
 }
 
@@ -149,42 +151,6 @@ dylib::~dylib() {
         close(m_fd);
 #endif
 }
-
-#if !(defined(_WIN32) || defined(_WIN64))
-std::string format_symbol(std::string input) {
-    replace_occurrences(input, "std::__1::", "std::");
-    replace_occurrences(input, "std::__cxx11::", "std::");
-
-    replace_occurrences(input, "> >", ">>");
-    replace_occurrences(input, "()", "(void)");
-
-    return input;
-}
-
-std::string get_demangled_name(const char *symbol) {
-    std::string result;
-    size_t size = strlen(symbol);
-    int status;
-    char *buf;
-    char *res;
-
-    buf = reinterpret_cast<char *>(malloc(size));
-    if (buf == NULL)
-        throw std::bad_alloc();
-
-    res = abi::__cxa_demangle(symbol, buf, &size, &status);
-    if (!res) {
-        free(buf);
-        return "";
-    }
-
-    result = format_symbol(res);
-
-    free(res);
-
-    return result;
-}
-#endif
 
 dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const {
     std::vector<std::string> matching_symbols;

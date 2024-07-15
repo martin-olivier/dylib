@@ -13,11 +13,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(SOURCES src/dylib.cpp)
 
 if(APPLE)
-    list(APPEND SOURCES src/mac.cpp)
+    list(APPEND SOURCES src/mac.cpp src/unix.cpp)
 elseif(WIN32)
     list(APPEND SOURCES src/win.cpp)
 else()
-    list(APPEND SOURCES src/linux.cpp)
+    list(APPEND SOURCES src/linux.cpp src/unix.cpp)
 endif()
 
 add_library(dylib STATIC ${SOURCES})
