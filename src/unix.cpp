@@ -7,6 +7,7 @@
  * This library is released under MIT license
  */
 
+#include <cstring>
 #include <string>
 #include <cxxabi.h>
 
