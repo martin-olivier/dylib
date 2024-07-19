@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 
 #if defined(_WIN32) || defined(_WIN64)
 #define LIB_EXPORT __declspec(dllexport)
@@ -38,20 +39,20 @@ namespace tools {
     }
 
     namespace string {
-        LIB_EXPORT void println(const std::string &str) {
-            std::cout << "ref: " << str << std::endl;
+        LIB_EXPORT std::string format(const std::string &str) {
+            return std::string("ref: ") + str;
         }
 
-        LIB_EXPORT void println(std::string &&str) {
-            std::cout << "mov: " << str << std::endl;
+        LIB_EXPORT std::string format(std::string &&str) {
+            return std::string("mov: ") + str;
         }
 
-        LIB_EXPORT void println(const unsigned int& val) {
-            std::cout << "ref: " << val << std::endl;
+        LIB_EXPORT std::string format(const unsigned int& val) {
+            return std::string("ref: ") + std::to_string(val);
         }
 
-        LIB_EXPORT void println(const char *val) {
-            std::cout << "ptr: " << val << std::endl;
+        LIB_EXPORT std::string format(const char *str) {
+            return std::string("ptr: ") + str;
         }
     }
 }

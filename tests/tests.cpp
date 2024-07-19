@@ -209,25 +209,17 @@ TEST(cpp_symbols, basic_test) {
 
     auto text = std::string("bla,bla,bla...");
 
-    testing::internal::CaptureStdout();
-    auto ptr_println = lib.get_function<void(std::string&&)>("tools::string::println(char const *)");
-    ptr_println(text.c_str());
-    EXPECT_EQ(testing::internal::GetCapturedStdout(), "ptr: \x1c" "bla,bla,bla...\n");
+    auto ptr_format = lib.get_function<std::string(const char *)>("tools::string::format(char const *)");
+    EXPECT_EQ(ptr_format(text.c_str()), std::string("ptr: bla,bla,bla..."));
 
-    testing::internal::CaptureStdout();
-    auto ref_println = lib.get_function<void(const std::string&)>("tools::string::println(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const &)");
-    ref_println(text);
-    EXPECT_EQ(testing::internal::GetCapturedStdout(), "ref: bla,bla,bla...\n");
+    auto ref_format = lib.get_function<std::string(const std::string&)>("tools::string::format(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const &)");
+    EXPECT_EQ(ref_format(text), std::string("ref: bla,bla,bla..."));
 
-    testing::internal::CaptureStdout();
-    auto mov_println = lib.get_function<void(std::string&&)>("tools::string::println(std::basic_string<char, std::char_traits<char>, std::allocator<char>> &&)");
-    mov_println(std::move(text));
-    EXPECT_EQ(testing::internal::GetCapturedStdout(), "mov: bla,bla,bla...\n");
+    auto mov_format = lib.get_function<std::string(std::string&&)>("tools::string::format(std::basic_string<char, std::char_traits<char>, std::allocator<char>> &&)");
+    EXPECT_EQ(mov_format(std::move(text)), std::string("mov: bla,bla,bla..."));
 
-    testing::internal::CaptureStdout();
-    auto int_ref_println = lib.get_function<void(const unsigned int&)>("tools::string::println(unsigned int const &)");
-    int_ref_println(123);
-    EXPECT_EQ(testing::internal::GetCapturedStdout(), "ref: 123\n");
+    auto int_ref_println = lib.get_function<std::string(const unsigned int&)>("tools::string::format(unsigned int const &)");
+    EXPECT_EQ(int_ref_println(123), std::string("ref: 123"));
 }
 
 int main(int ac, char **av) {

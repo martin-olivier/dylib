@@ -31,6 +31,7 @@ std::string format_symbol(std::string input) {
     replace_occurrences(input, "<struct ", "<");
     replace_occurrences(input, ",struct ", ",");
 
+    replace_occurrences(input, "> >", ">>");
     replace_occurrences(input, ">const", "> const");
 
     add_space_after_comma(input);
