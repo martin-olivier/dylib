@@ -7,14 +7,13 @@
  * This library is released under MIT license
  */
 
+#include <cxxabi.h>
 #include <cstring>
 #include <string>
-#include <cxxabi.h>
 
 void replace_occurrences(std::string &input, const std::string &keyword, const std::string &replacement);
 
-static void add_sym_separator(std::string &input, char symbol)
-{
+static void add_sym_separator(std::string &input, char symbol) {
     size_t pos = 0;
 
     if (input.empty()) {
@@ -35,7 +34,10 @@ std::string format_symbol(std::string input) {
     replace_occurrences(input, "std::__1::", "std::");
     replace_occurrences(input, "std::__cxx11::", "std::");
 
+    replace_occurrences(input, "[abi:cxx11]", "");
+
     replace_occurrences(input, "()", "(void)");
+    replace_occurrences(input, "> >", ">>");
 
     add_sym_separator(input, '*');
     add_sym_separator(input, '&');

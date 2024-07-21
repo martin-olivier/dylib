@@ -63,7 +63,7 @@ jobs:
 
       - name: Run unit tests
         working-directory: build
-        run: ctest
+        run: ctest --verbose
 
       - name: Generate code coverage
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.cxx-std == 20 }}
