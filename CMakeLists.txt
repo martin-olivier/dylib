@@ -14,7 +14,7 @@ set(SOURCES src/dylib.cpp)
 
 if(APPLE)
     list(APPEND SOURCES src/mac.cpp src/unix.cpp)
-elseif(WIN32)
+elseif(WIN32 AND NOT MINGW)
     list(APPEND SOURCES src/win.cpp)
 else()
     list(APPEND SOURCES src/linux.cpp src/unix.cpp)
