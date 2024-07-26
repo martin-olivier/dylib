@@ -22,10 +22,7 @@ std::string get_demangled_name(const char *symbol);
 #if (defined(_WIN32) || defined(_WIN64))
 
 #include <windows.h>
-#include <dbghelp.h>
 #include <tchar.h>
-
-#pragma comment(lib, "dbghelp.lib")
 
 std::vector<std::string> get_symbols(HMODULE hModule, bool demangle) {
     std::vector<std::string> result;

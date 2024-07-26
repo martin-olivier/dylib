@@ -4,6 +4,12 @@ std::string format_symbol(std::string input);
 
 #if (defined(_WIN32) || defined(_WIN64))
 
+#include <windows.h>
+#include <dbghelp.h>
+#include <tchar.h>
+
+#pragma comment(lib, "dbghelp.lib")
+
 std::string get_demangled_name(const char *symbol) {
     char undecorated[MAX_SYM_NAME];
     DWORD flags = UNDNAME_COMPLETE | UNDNAME_NO_FUNCTION_RETURNS | UNDNAME_NO_MS_KEYWORDS;
@@ -37,6 +43,7 @@ std::string get_demangled_name(const char *symbol) {
 #else
 
 #include <cxxabi.h>
+#include <cstring>
 
 std::string get_demangled_name(const char *symbol) {
     std::string result;
