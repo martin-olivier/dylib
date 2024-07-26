@@ -21,7 +21,7 @@ static void replace_occurrences(std::string &input, const std::string &keyword, 
     }
 }
 
-#if (defined(_WIN32) || defined(_WIN64))
+#if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
 
 static void add_space_after_comma(std::string &input) {
     std::string result;
