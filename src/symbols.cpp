@@ -7,13 +7,13 @@
  * This library is released under MIT license
  */
 
-#include <vector>
-#include <string>
-#include <algorithm>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <vector>
+#include <string>
+#include <algorithm>
 
 std::string get_demangled_name(const char *symbol);
 
@@ -214,7 +214,7 @@ std::vector<std::string> get_symbols(int fd, bool demangle) {
     return result;
 }
 
-#else // Linux
+#else  // Linux
 
 #include <libelf.h>
 #include <gelf.h>

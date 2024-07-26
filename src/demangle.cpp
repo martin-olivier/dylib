@@ -1,3 +1,12 @@
+/**
+ * @file demangle.cpp
+ * 
+ * @author Martin Olivier <martin.olivier@live.fr>
+ * @copyright (c) 2024 Martin Olivier
+ *
+ * This library is released under MIT license
+ */
+
 #include <string>
 
 std::string format_symbol(std::string input);
