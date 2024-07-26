@@ -7,13 +7,17 @@
 [![ci](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml/badge.svg)](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml)
 [![coverage](https://codecov.io/gh/martin-olivier/dylib/branch/main/graph/badge.svg)](https://codecov.io/gh/martin-olivier/dylib)
 
-The goal of this C++ library is to load dynamic libraries (.so, .dll, .dylib) and access its functions and global variables at runtime.  
+The goal of this C++ library is to load dynamic libraries (.so, .dll, .dylib) and access its C and C++ functions and global variables at runtime.  
 
 `⭐ Don't forget to put a star if you like the project!`
 
 ## Compatibility
 
+- **OS**:
 Works on `Linux`, `MacOS` and `Windows`
+
+- **Compilers**:
+Works with `GCC`, `Clang`, `MSVC` and `MinGW`
 
 ## Installation
 
@@ -93,12 +97,14 @@ Get a function from the dynamic library currently loaded in the object
 `get_variable`  
 Get a global variable from the dynamic library currently loaded in the object
 
+#### C symbols
+
 ```c++
 // Load "foo" dynamic library
 
 dylib lib("foo");
 
-// Get the function "adder" (get_function<T> will return T*)
+// Get the C function "adder" (get_function<T> will return T*)
 
 auto adder = lib.get_function<double(double, double)>("adder");
 
@@ -109,6 +115,26 @@ double pi = lib.get_variable<double>("pi_value");
 // Use the function "adder" with "pi_value"
 
 double result = adder(pi, pi);
+```
+
+#### C++ symbols
+
+```c++
+// Load "foo" dynamic library
+
+dylib lib("foo");
+
+// Get the C++ functions "to_string" located in the namespace "tools"
+
+auto int_to_string = lib.get_function<std::string(int)>("tools::to_string(int)");
+auto double_to_string = lib.get_function<std::string(double)>("tools::to_string(double)");
+
+// Get the variable "pi_value" located in the namespace "global::math"
+
+double pi = lib.get_variable<double>("global::math::pi_value");
+
+std::string meaning_of_life_str = int_to_string(42);
+std::string pi_str = double_to_string(pi);
 ```
 
 ### Miscellaneous tools
