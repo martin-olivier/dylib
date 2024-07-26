@@ -37,41 +37,10 @@
 #define DYLIB_WIN_OTHER(win_def, other_def) other_def
 #endif
 
-/* PRIVATE */
+using os_fd_t = DYLIB_WIN_OTHER(HMODULE, int);
 
 std::string get_demangled_name(const char *symbol);
-
-#if (defined(_WIN32) || defined(_WIN64))
-std::vector<std::string> get_symbols(HMODULE hModule, bool demangle);
-#else
-std::vector<std::string> get_symbols(int fd, bool demangle);
-#endif
-
-void replace_occurrences(std::string &input, const std::string &keyword, const std::string &replacement) {
-    size_t pos = 0;
-
-    if (keyword.empty())
-        return;
-
-    while ((pos = input.find(keyword, pos)) != std::string::npos) {
-        input.replace(pos, keyword.length(), replacement);
-        pos += replacement.length();
-    }
-}
-
-void add_space_after_comma(std::string &input) {
-    std::string result;
-
-    for (char c : input) {
-        if (c == ',') {
-            result += ", ";
-        } else {
-            result += c;
-        }
-    }
-
-    input = result;
-}
+std::vector<std::string> get_symbols(os_fd_t fd, bool demangle);
 
 static dylib::native_handle_type open_lib(const char *path) noexcept {
 #if (defined(_WIN32) || defined(_WIN64))

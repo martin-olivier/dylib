@@ -10,15 +10,12 @@ if(NOT "${CMAKE_CXX_STANDARD}")
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(SOURCES src/dylib.cpp)
-
-if(APPLE)
-    list(APPEND SOURCES src/mac.cpp src/unix.cpp)
-elseif(WIN32 AND NOT MINGW)
-    list(APPEND SOURCES src/win.cpp)
-else()
-    list(APPEND SOURCES src/linux.cpp src/unix.cpp)
-endif()
+set(SOURCES
+    src/dylib.cpp
+    src/symbols.cpp
+    src/demangle.cpp
+    src/format.cpp
+)
 
 add_library(dylib STATIC ${SOURCES})
 

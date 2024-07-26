@@ -187,6 +187,10 @@ TEST(filesystem, basic_test) {
 TEST(cpp_symbols, basic_test) {
     dylib lib("./", "dynamic_lib");
 
+    auto symbols = lib.symbols(true);
+    for (auto &sym : symbols)
+        std::cout << sym << std::endl;
+
     auto mean = lib.get_variable<double>("meaning_of_life");
     EXPECT_EQ(mean, 42);
 
@@ -212,13 +216,13 @@ TEST(cpp_symbols, basic_test) {
     auto ptr_format = lib.get_function<std::string(const char *)>("tools::string::format(char const *)");
     EXPECT_EQ(ptr_format(text.c_str()), std::string("ptr: bla,bla,bla..."));
 
-    auto ref_format = lib.get_function<std::string(const std::string&)>("tools::string::format(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const &)");
+    auto ref_format = lib.get_function<std::string(const std::string &)>("tools::string::format(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const &)");
     EXPECT_EQ(ref_format(text), std::string("ref: bla,bla,bla..."));
 
-    auto mov_format = lib.get_function<std::string(std::string&&)>("tools::string::format(std::basic_string<char, std::char_traits<char>, std::allocator<char>> &&)");
+    auto mov_format = lib.get_function<std::string(std::string &&)>("tools::string::format(std::basic_string<char, std::char_traits<char>, std::allocator<char>> &&)");
     EXPECT_EQ(mov_format(std::move(text)), std::string("mov: bla,bla,bla..."));
 
-    auto int_ref_println = lib.get_function<std::string(const unsigned int&)>("tools::string::format(unsigned int const &)");
+    auto int_ref_println = lib.get_function<std::string(const unsigned int &)>("tools::string::format(unsigned int const &)");
     EXPECT_EQ(int_ref_println(123), std::string("ref: 123"));
 }
 
