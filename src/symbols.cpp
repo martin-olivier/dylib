@@ -13,8 +13,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <string.h>
 
 std::string get_demangled_name(const char *symbol);
@@ -81,6 +79,8 @@ std::vector<std::string> get_symbols(HMODULE hModule, bool demangle) {
 #include <mach-o/loader.h>
 #include <mach-o/nlist.h>
 #include <mach-o/fat.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 std::vector<std::string> get_symbols_at_off(int fd, bool demangle, off_t offset, bool is_64_bit) {
     std::vector<std::string> result;
@@ -218,6 +218,8 @@ std::vector<std::string> get_symbols(int fd, bool demangle) {
 
 #include <libelf.h>
 #include <gelf.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 std::vector<std::string> get_symbols(int fd, bool demangle) {
     std::vector<std::string> result;
