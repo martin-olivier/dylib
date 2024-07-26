@@ -2,7 +2,7 @@
 
 std::string format_symbol(std::string input);
 
-#if (defined(_WIN32) || defined(_WIN64))
+#if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
 
 #include <windows.h>
 #include <dbghelp.h>
