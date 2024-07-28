@@ -37,10 +37,10 @@
 #define DYLIB_WIN_OTHER(win_def, other_def) other_def
 #endif
 
-using os_fd_t = DYLIB_WIN_OTHER(HMODULE, int);
+using lib_fd_t = DYLIB_WIN_OTHER(HMODULE, int);
 
 std::string get_demangled_name(const char *symbol);
-std::vector<std::string> get_symbols(os_fd_t fd, bool demangle);
+std::vector<std::string> get_symbols(lib_fd_t fd, bool demangle);
 
 static dylib::native_handle_type open_lib(const char *path) noexcept {
 #if (defined(_WIN32) || defined(_WIN64))
@@ -108,7 +108,7 @@ dylib::dylib(const char *dir_path, const char *lib_name, bool decorations) {
     m_fd = open((final_path + final_name).c_str(), O_RDONLY);
 
     if (m_fd < 0)
-        throw load_error("Could not load library");
+        throw load_error("Could not read library file");
 #endif
 }
 
@@ -123,7 +123,7 @@ dylib::~dylib() {
 
 dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const {
     std::vector<std::string> matching_symbols;
-    std::vector<std::string> all_symbols;
+    std::vector<std::string> symbols;
 
     if (!symbol_name)
         throw std::invalid_argument("Null parameter");
@@ -133,9 +133,9 @@ dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const {
     auto symbol = locate_symbol(m_handle, symbol_name);
 
     if (symbol == nullptr) {
-        all_symbols = symbols();
+        symbols = symbols();
 
-        for (auto &sym : all_symbols) {
+        for (auto &sym : symbols) {
             auto demangled = get_demangled_name(sym.c_str());
 
             if (demangled.empty())
@@ -182,11 +182,7 @@ dylib::native_handle_type dylib::native_handle() noexcept {
 
 std::vector<std::string> dylib::symbols(bool demangle) const {
     try {
-#if !(defined(_WIN32) || defined(_WIN64))
-        return get_symbols(m_fd, demangle);
-#else
-        return get_symbols(m_handle, demangle);
-#endif
+        return get_symbols(DYLIB_WIN_OTHER(m_handle, m_fd), demangle);
     } catch (const std::string &e) {
         throw symbol_error(e);
     }
