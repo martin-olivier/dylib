@@ -82,7 +82,7 @@ std::vector<std::string> get_symbols(HMODULE hModule, bool demangle) {
 #include <fcntl.h>
 #include <unistd.h>
 
-std::vector<std::string> get_symbols_at_off(int fd, bool demangle, off_t offset, bool is_64_bit) {
+static std::vector<std::string> get_symbols_at_off(int fd, bool demangle, off_t offset, bool is_64_bit) {
     std::vector<std::string> result;
 
     lseek(fd, offset, SEEK_SET);
