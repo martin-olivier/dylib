@@ -68,7 +68,7 @@ jobs:
 
   memory_check:
     name: memory check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v3
@@ -87,7 +87,7 @@ jobs:
 
       - name: Run unit tests with valgrind
         working-directory: build
-        run: valgrind --leak-check=full --show-leak-kinds=definite,possible --error-exitcode=1 ./unit_tests
+        run: valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./unit_tests
 
   linter:
     name: linter
