@@ -123,7 +123,7 @@ dylib::~dylib() {
 
 dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const {
     std::vector<std::string> matching_symbols;
-    std::vector<std::string> symbols;
+    std::vector<std::string> all_symbols;
 
     if (!symbol_name)
         throw std::invalid_argument("Null parameter");
@@ -133,9 +133,9 @@ dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const {
     auto symbol = locate_symbol(m_handle, symbol_name);
 
     if (symbol == nullptr) {
-        symbols = symbols();
+        all_symbols = symbols();
 
-        for (auto &sym : symbols) {
+        for (auto &sym : all_symbols) {
             auto demangled = get_demangled_name(sym.c_str());
 
             if (demangled.empty())
