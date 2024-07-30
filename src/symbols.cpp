@@ -114,14 +114,14 @@ static std::vector<std::string> get_symbols_at_off(int fd, bool demangle, off_t 
             struct nlist_64 *symbols64 = NULL;
             struct nlist *symbols = NULL;
             if (is_64_bit) {
-                symbols64 = reinterpret_cast<struct nlist_64 *>(malloc(symtab.nsyms * sizeof(struct nlist_64)));
+                symbols64 = (struct nlist_64 *)(malloc(symtab.nsyms * sizeof(struct nlist_64)));
                 if (symbols64 == nullptr)
                     throw std::bad_alloc();
 
                 lseek(fd, offset + symtab.symoff, SEEK_SET);
                 read(fd, symbols64, symtab.nsyms * sizeof(struct nlist_64));
             } else {
-                symbols = reinterpret_cast<struct nlist *>(malloc(symtab.nsyms * sizeof(struct nlist)));
+                symbols = (struct nlist *)(malloc(symtab.nsyms * sizeof(struct nlist)));
                 if (symbols == nullptr)
                     throw std::bad_alloc();
 
@@ -129,7 +129,7 @@ static std::vector<std::string> get_symbols_at_off(int fd, bool demangle, off_t 
                 read(fd, symbols, symtab.nsyms * sizeof(struct nlist));
             }
 
-            char *strtab = reinterpret_cast<char *>(malloc(symtab.strsize));
+            char *strtab = (char *)(malloc(symtab.strsize));
             if (strtab == nullptr)
                 throw std::bad_alloc();
 
@@ -171,7 +171,7 @@ std::vector<std::string> get_symbols(int fd, bool demangle) {
         struct fat_header fat_header;
         read(fd, &fat_header, sizeof(fat_header));
 
-        struct fat_arch *fat_arches = reinterpret_cast<struct fat_arch *>(malloc(sizeof(struct fat_arch) * ntohl(fat_header.nfat_arch)));
+        struct fat_arch *fat_arches = (struct fat_arch *)(malloc(sizeof(struct fat_arch) * ntohl(fat_header.nfat_arch)));
         if (fat_arches == nullptr)
             throw std::bad_alloc();
         read(fd, fat_arches, sizeof(struct fat_arch) * ntohl(fat_header.nfat_arch));

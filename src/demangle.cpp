@@ -61,7 +61,7 @@ std::string get_demangled_name(const char *symbol) {
     char *buf;
     char *res;
 
-    buf = reinterpret_cast<char *>(malloc(size));
+    buf = (char *)(malloc(size));
     if (buf == NULL)
         throw std::bad_alloc();
 
