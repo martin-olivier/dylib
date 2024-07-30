@@ -18,11 +18,10 @@
 #else
 #include <dlfcn.h>
 #include <unistd.h>
-#include <algorithm>
 #endif
 
 #include <fcntl.h>
-#include <string.h>
+#include <cstring>
 
 #include "dylib.hpp"
 

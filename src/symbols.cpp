@@ -9,13 +9,33 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include <vector>
 #include <string>
+#include <cstring>
 #include <algorithm>
 
 std::string get_demangled_name(const char *symbol);
+
+static void add_symbol(std::vector<std::string> &result, const char *name, bool demangle) {
+    if (!name || strcmp(name, "") == 0)
+        return;
+
+    if (demangle) {
+        std::string demangled = get_demangled_name(name);
+        if (!demangled.empty()) {
+            if (std::find(result.begin(), result.end(), name) == result.end())
+                result.push_back(demangled);
+        }
+    } else {
+#if defined(__APPLE__)
+        if (name[0] == '_')
+            name++;
+#endif
+        if (std::find(result.begin(), result.end(), name) == result.end())
+            result.push_back(name);
+    }
+}
 
 #if (defined(_WIN32) || defined(_WIN64))
 
@@ -50,31 +70,13 @@ std::vector<std::string> get_symbols(HMODULE hModule, bool demangle) {
     for (DWORD i = 0; i < pExportDir->NumberOfNames; ++i) {
         const char* name = (const char*)((BYTE*)hModule + pNames[i]);
 
-        if (!name)
-            continue;
-
-        if (strcmp(name, "") == 0)
-            continue;
-
-        if (demangle) {
-            std::string demangled = get_demangled_name(name);
-            if (!demangled.empty()) {
-                if (std::find(result.begin(), result.end(), name) == result.end())
-                    result.push_back(demangled);
-                continue;
-            }
-        }
-
-        if (std::find(result.begin(), result.end(), name) != result.end())
-            continue;
-
-        result.push_back(name);
+        add_symbol(result, name, demangle);
     }
 
     return result;
 }
 
-#elif (defined(__APPLE__) && defined(__MACH__))
+#elif defined(__APPLE__)
 
 #include <mach-o/loader.h>
 #include <mach-o/nlist.h>
@@ -142,26 +144,7 @@ static std::vector<std::string> get_symbols_at_off(int fd, bool demangle, off_t 
                     strx = symbols[j].n_un.n_strx;
 
                 const char *name = &strtab[strx];
-                if (!name)
-                    continue;
-
-                if (strcmp(name, "") == 0)
-                    continue;
-
-                if (demangle) {
-                    std::string demangled = get_demangled_name(name);
-                    if (!demangled.empty()) {
-                        if (std::find(result.begin(), result.end(), name) == result.end())
-                            result.push_back(demangled);
-                        continue;
-                    }
-                }
-
-                if (name[0] == '_')
-                    name++;
-                if (std::find(result.begin(), result.end(), name) != result.end())
-                    continue;
-                result.push_back(name);
+                add_symbol(result, name, demangle);
             }
 
             free(symbols64);
@@ -262,24 +245,7 @@ std::vector<std::string> get_symbols(int fd, bool demangle) {
                 }
 
                 const char *name = elf_strptr(elf, shdr.sh_link, sym.st_name);
-                if (!name)
-                    continue;
-
-                if (strcmp(name, "") == 0)
-                    continue;
-
-                if (demangle) {
-                    std::string demangled = get_demangled_name(name);
-                    if (!demangled.empty()) {
-                        if (std::find(result.begin(), result.end(), name) == result.end())
-                            result.push_back(demangled);
-                        continue;
-                    }
-                }
-
-                if (std::find(result.begin(), result.end(), name) != result.end())
-                    continue;
-                result.push_back(name);
+                add_symbol(result, name, demangle);
             }
         }
     }
