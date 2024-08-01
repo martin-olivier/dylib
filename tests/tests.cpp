@@ -187,10 +187,6 @@ TEST(filesystem, basic_test) {
 TEST(cpp_symbols, basic_test) {
     dylib lib("./", "dynamic_lib");
 
-    auto symbols = lib.symbols(true);
-    for (auto &sym : symbols)
-        std::cout << sym << std::endl;
-
     auto mean = lib.get_variable<double>("meaning_of_life");
     EXPECT_EQ(mean, 42);
 

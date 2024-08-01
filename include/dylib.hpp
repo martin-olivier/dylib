@@ -63,8 +63,9 @@ public:
     static constexpr bool no_filename_decorations = false;
 
     struct symbol_params {
-        bool demangle = false;
-        bool loadable = false;
+        symbol_params(): demangle(false), loadable(false) {}
+        bool demangle;
+        bool loadable;
     };
 
     /**
@@ -226,7 +227,7 @@ public:
      *
      *  @return the list of symbols
      */
-    std::vector<std::string> symbols(symbol_params params = {}) const;
+    std::vector<std::string> symbols(symbol_params params = symbol_params()) const;
 
     /**
      *  @return the dynamic library handle
