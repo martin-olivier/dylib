@@ -86,7 +86,7 @@ std::vector<std::string> get_symbols(HMODULE handle, bool demangle, bool loadabl
 #include <fcntl.h>
 #include <unistd.h>
 
-static std::vector<std::string> get_symbols_at_off(int fd, bool demangle, bool loadable, off_t offset, bool is_64_bit) {
+static std::vector<std::string> get_symbols_at_off(void *handle, int fd, bool demangle, bool loadable, off_t offset, bool is_64_bit) {
     std::vector<std::string> result;
 
     lseek(fd, offset, SEEK_SET);
@@ -181,6 +181,7 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
 
         for (uint32_t i = 0; i < ntohl(fat_header.nfat_arch); i++) {
             tmp = get_symbols_at_off(
+                handle,
                 fd,
                 demangle,
                 loadable,
@@ -191,9 +192,9 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
 
         free(fat_arches);
     } else if (magic == MH_MAGIC_64 || magic == MH_CIGAM_64) {
-        result = get_symbols_at_off(fd, demangle, 0, true);
+        result = get_symbols_at_off(handle, fd, demangle, loadable, 0, true);
     } else if (magic == MH_MAGIC || magic == MH_CIGAM) {
-        result = get_symbols_at_off(fd, demangle, 0, false);
+        result = get_symbols_at_off(handle, fd, demangle, loadable, 0, false);
     } else {
         throw std::string("Unsupported file format");
     }
