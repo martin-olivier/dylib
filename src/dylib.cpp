@@ -36,10 +36,13 @@
 #define DYLIB_WIN_OTHER(win_def, other_def) other_def
 #endif
 
-using lib_fd_t = DYLIB_WIN_OTHER(HMODULE, int);
-
 std::string get_demangled_name(const char *symbol);
-std::vector<std::string> get_symbols(lib_fd_t fd, bool demangle);
+
+#if (defined(_WIN32) || defined(_WIN64))
+std::vector<std::string> get_symbols(HMODULE handle, bool demangle, bool loadable);
+#else
+std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool loadable);
+#endif
 
 static dylib::native_handle_type open_lib(const char *path) noexcept {
 #if (defined(_WIN32) || defined(_WIN64))
@@ -179,9 +182,16 @@ dylib::native_handle_type dylib::native_handle() noexcept {
     return m_handle;
 }
 
-std::vector<std::string> dylib::symbols(bool demangle) const {
+std::vector<std::string> dylib::symbols(symbol_params params) const {
     try {
-        return get_symbols(DYLIB_WIN_OTHER(m_handle, m_fd), demangle);
+        return get_symbols(
+            m_handle,
+#if !(defined(_WIN32) || defined(_WIN64))
+            m_fd,
+#endif
+            params.demangle,
+            params.loadable
+        );
     } catch (const std::string &e) {
         throw symbol_error(e);
     }

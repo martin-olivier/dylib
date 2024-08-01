@@ -42,16 +42,16 @@ static void add_symbol(std::vector<std::string> &result, const char *name, bool 
 #include <windows.h>
 #include <tchar.h>
 
-std::vector<std::string> get_symbols(HMODULE hModule, bool demangle) {
+std::vector<std::string> get_symbols(HMODULE handle, bool demangle, bool loadable) {
     std::vector<std::string> result;
 
     // Get the DOS header
-    PIMAGE_DOS_HEADER pDosHeader = (PIMAGE_DOS_HEADER)hModule;
+    PIMAGE_DOS_HEADER pDosHeader = (PIMAGE_DOS_HEADER)handle;
     if (pDosHeader->e_magic != IMAGE_DOS_SIGNATURE)
         throw std::string("Invalid DOS header");
 
     // Get the NT headers
-    PIMAGE_NT_HEADERS pNTHeaders = (PIMAGE_NT_HEADERS)((BYTE *)hModule + pDosHeader->e_lfanew);
+    PIMAGE_NT_HEADERS pNTHeaders = (PIMAGE_NT_HEADERS)((BYTE *)handle + pDosHeader->e_lfanew);
     if (pNTHeaders->Signature != IMAGE_NT_SIGNATURE)
         throw std::string("Invalid NT headers");
 
@@ -60,17 +60,18 @@ std::vector<std::string> get_symbols(HMODULE hModule, bool demangle) {
     if (exportDirRVA == 0)
         throw std::string("No export directory found");
 
-    PIMAGE_EXPORT_DIRECTORY pExportDir = (PIMAGE_EXPORT_DIRECTORY)((BYTE *)hModule + exportDirRVA);
+    PIMAGE_EXPORT_DIRECTORY pExportDir = (PIMAGE_EXPORT_DIRECTORY)((BYTE *)handle + exportDirRVA);
 
     // Get the list of exported function names
-    DWORD *pNames = (DWORD *)((BYTE *)hModule + pExportDir->AddressOfNames);
-    DWORD *pFunctions = (DWORD *)((BYTE *)hModule + pExportDir->AddressOfFunctions);
-    WORD *pNameOrdinals = (WORD *)((BYTE *)hModule + pExportDir->AddressOfNameOrdinals);
+    DWORD *pNames = (DWORD *)((BYTE *)handle + pExportDir->AddressOfNames);
+    DWORD *pFunctions = (DWORD *)((BYTE *)handle + pExportDir->AddressOfFunctions);
+    WORD *pNameOrdinals = (WORD *)((BYTE *)handle + pExportDir->AddressOfNameOrdinals);
 
     for (DWORD i = 0; i < pExportDir->NumberOfNames; ++i) {
-        const char *name = (const char *)((BYTE *)hModule + pNames[i]);
+        const char *name = (const char *)((BYTE *)handle + pNames[i]);
 
-        add_symbol(result, name, demangle);
+        if (!loadable || GetProcAddress(handle, name))
+            add_symbol(result, name, demangle);
     }
 
     return result;
@@ -84,7 +85,7 @@ std::vector<std::string> get_symbols(HMODULE hModule, bool demangle) {
 #include <fcntl.h>
 #include <unistd.h>
 
-static std::vector<std::string> get_symbols_at_off(int fd, bool demangle, off_t offset, bool is_64_bit) {
+static std::vector<std::string> get_symbols_at_off(int fd, bool demangle, bool loadable, off_t offset, bool is_64_bit) {
     std::vector<std::string> result;
 
     lseek(fd, offset, SEEK_SET);
@@ -144,7 +145,8 @@ static std::vector<std::string> get_symbols_at_off(int fd, bool demangle, off_t 
                     strx = symbols[j].n_un.n_strx;
 
                 const char *name = &strtab[strx];
-                add_symbol(result, name, demangle);
+                if (!loadable || dlsym(handle, name))
+                    add_symbol(result, name, demangle);
             }
 
             free(symbols64);
@@ -158,7 +160,7 @@ static std::vector<std::string> get_symbols_at_off(int fd, bool demangle, off_t 
     return result;
 }
 
-std::vector<std::string> get_symbols(int fd, bool demangle) {
+std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool loadable) {
     std::vector<std::string> result;
     std::vector<std::string> tmp;
     uint32_t magic;
@@ -180,6 +182,7 @@ std::vector<std::string> get_symbols(int fd, bool demangle) {
             tmp = get_symbols_at_off(
                 fd,
                 demangle,
+                loadable,
                 ntohl(fat_arches[i].offset),
                 ntohl(fat_arches[i].cputype) == CPU_TYPE_X86_64);
             std::move(tmp.begin(), tmp.end(), std::back_inserter(result));
@@ -204,7 +207,7 @@ std::vector<std::string> get_symbols(int fd, bool demangle) {
 #include <fcntl.h>
 #include <unistd.h>
 
-std::vector<std::string> get_symbols(int fd, bool demangle) {
+std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool loadable) {
     std::vector<std::string> result;
 
     if (elf_version(EV_CURRENT) == EV_NONE)
@@ -245,7 +248,8 @@ std::vector<std::string> get_symbols(int fd, bool demangle) {
                 }
 
                 const char *name = elf_strptr(elf, shdr.sh_link, sym.st_name);
-                add_symbol(result, name, demangle);
+                if (!loadable || dlsym(handle, name))
+                    add_symbol(result, name, demangle);
             }
         }
     }

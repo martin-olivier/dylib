@@ -62,6 +62,11 @@ public:
     static constexpr bool add_filename_decorations = true;
     static constexpr bool no_filename_decorations = false;
 
+    struct symbol_params {
+        bool demangle = false;
+        bool loadable = false;
+    };
+
     /**
      *  This exception is raised when the library failed to load a dynamic library or a symbol
      *
@@ -211,7 +216,17 @@ public:
         return get_variable<T>(symbol_name.c_str());
     }
 
-    std::vector<std::string> symbols(bool demangle = false) const;
+    /**
+     *  Get the list of symbols from the dynamic library currently loaded in the object
+     *
+     *  @throws dylib::symbol_error if an error occured during symbols collection
+     *
+     *  @param demangle if true, returns unmangled symbols
+     *  @param loadable if true, returns only loadable symbols
+     *
+     *  @return the list of symbols
+     */
+    std::vector<std::string> symbols(symbol_params params = {}) const;
 
     /**
      *  @return the dynamic library handle
