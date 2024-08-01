@@ -68,6 +68,7 @@ std::string get_demangled_name(const char *symbol) {
     res = abi::__cxa_demangle(symbol, buf, &size, &status);
     if (!res) {
         free(buf);
+
         return "";
     }
 

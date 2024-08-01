@@ -51,7 +51,7 @@ std::vector<std::string> get_symbols(HMODULE hModule, bool demangle) {
         throw std::string("Invalid DOS header");
 
     // Get the NT headers
-    PIMAGE_NT_HEADERS pNTHeaders = (PIMAGE_NT_HEADERS)((BYTE*)hModule + pDosHeader->e_lfanew);
+    PIMAGE_NT_HEADERS pNTHeaders = (PIMAGE_NT_HEADERS)((BYTE *)hModule + pDosHeader->e_lfanew);
     if (pNTHeaders->Signature != IMAGE_NT_SIGNATURE)
         throw std::string("Invalid NT headers");
 
@@ -60,15 +60,15 @@ std::vector<std::string> get_symbols(HMODULE hModule, bool demangle) {
     if (exportDirRVA == 0)
         throw std::string("No export directory found");
 
-    PIMAGE_EXPORT_DIRECTORY pExportDir = (PIMAGE_EXPORT_DIRECTORY)((BYTE*)hModule + exportDirRVA);
+    PIMAGE_EXPORT_DIRECTORY pExportDir = (PIMAGE_EXPORT_DIRECTORY)((BYTE *)hModule + exportDirRVA);
 
     // Get the list of exported function names
-    DWORD* pNames = (DWORD*)((BYTE*)hModule + pExportDir->AddressOfNames);
-    DWORD* pFunctions = (DWORD*)((BYTE*)hModule + pExportDir->AddressOfFunctions);
-    WORD* pNameOrdinals = (WORD*)((BYTE*)hModule + pExportDir->AddressOfNameOrdinals);
+    DWORD *pNames = (DWORD *)((BYTE *)hModule + pExportDir->AddressOfNames);
+    DWORD *pFunctions = (DWORD *)((BYTE *)hModule + pExportDir->AddressOfFunctions);
+    WORD *pNameOrdinals = (WORD *)((BYTE *)hModule + pExportDir->AddressOfNameOrdinals);
 
     for (DWORD i = 0; i < pExportDir->NumberOfNames; ++i) {
-        const char* name = (const char*)((BYTE*)hModule + pNames[i]);
+        const char *name = (const char *)((BYTE *)hModule + pNames[i]);
 
         add_symbol(result, name, demangle);
     }
