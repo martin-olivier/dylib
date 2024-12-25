@@ -1,9 +1,0 @@
-prefix=@CMAKE_INSTALL_PREFIX@
-libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
-includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
-
-Name: @PKG_CONFIG_NAME@
-Description: @CPACK_PACKAGE_DESCRIPTION@
-Version: @CPACK_PACKAGE_VERSION@
-Libs: -L${libdir} -l@LIB_FILE_NAME@
-Cflags: -I${includedir}
