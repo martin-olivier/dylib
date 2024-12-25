@@ -234,7 +234,7 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
         }
 
         if (shdr.sh_type == SHT_SYMTAB || shdr.sh_type == SHT_DYNSYM) {
-            Elf_Data *data = elf_getdata(scn, data);
+            Elf_Data *data = elf_getdata(scn, NULL);
             if (!data) {
                 elf_end(elf);
                 throw std::string("elf_getdata() failed");
