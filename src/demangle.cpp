@@ -55,8 +55,8 @@ std::string get_demangled_name(const char *symbol) {
 #include <cstring>
 
 std::string get_demangled_name(const char *symbol) {
-    std::string result;
     size_t size = strlen(symbol);
+    std::string result;
     int status;
     char *buf;
     char *res;

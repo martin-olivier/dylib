@@ -62,17 +62,20 @@ static void close_lib(dylib::native_handle_type lib) noexcept {
 
 static std::string get_error_description() noexcept {
 #if (defined(_WIN32) || defined(_WIN64))
-    constexpr const size_t buf_size = 512;
-    auto error_code = GetLastError();
+    WORD lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
+    DWORD error_code = GetLastError();
+    char description[512];
+
     if (!error_code)
         return "Unknown error (GetLastError failed)";
-    char description[512];
-    auto lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
-    const DWORD length =
-        FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, lang, description, buf_size, nullptr);
+
+    const DWORD length = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code,
+                                        lang, description, 512, nullptr);
+
     return (length == 0) ? "Unknown error (FormatMessage failed)" : description;
 #else
-    auto description = dlerror();
+    char *description = dlerror();
+
     return (description == nullptr) ? "Unknown error (dlerror failed)" : description;
 #endif
 }
@@ -126,22 +129,19 @@ dylib::~dylib() {
 dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const {
     std::vector<std::string> matching_symbols;
     std::vector<std::string> all_symbols;
+    dylib::native_symbol_type symbol;
 
     if (!symbol_name)
         throw std::invalid_argument("Null parameter");
     if (!m_handle)
         throw std::logic_error("The dynamic library handle is null");
 
-    auto symbol = locate_symbol(m_handle, symbol_name);
-
+    symbol = locate_symbol(m_handle, symbol_name);
     if (symbol == nullptr) {
         all_symbols = symbols();
 
         for (auto &sym : all_symbols) {
-            auto demangled = get_demangled_name(sym.c_str());
-
-            if (demangled.empty())
-                continue;
+            std::string demangled = get_demangled_name(sym.c_str());
 
             if (demangled.find(symbol_name) == 0 &&
                 (demangled[strlen(symbol_name)] == '(' ||

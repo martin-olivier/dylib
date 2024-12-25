@@ -88,11 +88,10 @@ std::vector<std::string> get_symbols(HMODULE handle, bool demangle, bool loadabl
 
 static std::vector<std::string> get_symbols_at_off(void *handle, int fd, bool demangle, bool loadable, off_t offset, bool is_64_bit) {
     std::vector<std::string> result;
-
-    lseek(fd, offset, SEEK_SET);
-
     struct mach_header_64 mh64;
     struct mach_header mh;
+
+    lseek(fd, offset, SEEK_SET);
 
     if (is_64_bit)
         read(fd, &mh64, sizeof(mh64));
@@ -235,8 +234,7 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
         }
 
         if (shdr.sh_type == SHT_SYMTAB || shdr.sh_type == SHT_DYNSYM) {
-            Elf_Data *data = NULL;
-            data = elf_getdata(scn, data);
+            Elf_Data *data = elf_getdata(scn, data);
             if (!data) {
                 elf_end(elf);
                 throw std::string("elf_getdata() failed");
@@ -245,12 +243,19 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
             int count = shdr.sh_size / shdr.sh_entsize;
             for (int i = 0; i < count; i++) {
                 GElf_Sym sym;
+                char *name;
+
                 if (!gelf_getsym(data, i, &sym)) {
                     elf_end(elf);
                     throw std::string("gelf_getsym() failed");
                 }
 
-                const char *name = elf_strptr(elf, shdr.sh_link, sym.st_name);
+                name = elf_strptr(elf, shdr.sh_link, sym.st_name);
+                if (!name) {
+                    elf_end(elf);
+                    throw std::string("elf_strptr() failed");
+                }
+
                 if (!loadable || dlsym(handle, name))
                     add_symbol(result, name, demangle);
             }

@@ -68,7 +68,7 @@ static void add_sym_separator(std::string &input, char symbol) {
             input.replace(pos, 1, std::string(" ") + symbol);
             pos += 2;
         } else {
-            pos++;
+            pos += 1;
         }
     }
 }
