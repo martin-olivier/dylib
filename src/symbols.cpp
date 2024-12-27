@@ -112,8 +112,8 @@ static std::vector<std::string> get_symbols_at_off(void *handle, int fd, bool de
             lseek(fd, current_command_offset - sizeof(lc), SEEK_SET);
             read(fd, &symtab, sizeof(symtab));
 
-            struct nlist_64 *symbols64 = NULL;
-            struct nlist *symbols = NULL;
+            struct nlist_64 *symbols64 = nullptr;
+            struct nlist *symbols = nullptr;
             if (is_64_bit) {
                 symbols64 = (struct nlist_64 *)(malloc(symtab.nsyms * sizeof(struct nlist_64)));
                 if (symbols64 == nullptr)
@@ -215,7 +215,7 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
     if (elf_version(EV_CURRENT) == EV_NONE)
         throw std::string("ELF library initialization failed");
 
-    Elf *elf = elf_begin(fd, ELF_C_READ, NULL);
+    Elf *elf = elf_begin(fd, ELF_C_READ, nullptr);
     if (!elf)
         throw std::string("elf_begin() failed");
 
@@ -225,16 +225,16 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
         throw std::string("elf_getshdrstrndx() failed");
     }
 
-    Elf_Scn *scn = NULL;
+    Elf_Scn *scn = nullptr;
     GElf_Shdr shdr;
-    while ((scn = elf_nextscn(elf, scn)) != NULL) {
+    while ((scn = elf_nextscn(elf, scn))) {
         if (gelf_getshdr(scn, &shdr) != &shdr) {
             elf_end(elf);
             throw std::string("gelf_getshdr() failed");
         }
 
         if (shdr.sh_type == SHT_SYMTAB || shdr.sh_type == SHT_DYNSYM) {
-            Elf_Data *data = elf_getdata(scn, NULL);
+            Elf_Data *data = elf_getdata(scn, nullptr);
             if (!data) {
                 elf_end(elf);
                 throw std::string("elf_getdata() failed");

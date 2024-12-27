@@ -62,7 +62,7 @@ std::string get_demangled_name(const char *symbol) {
     char *res;
 
     buf = (char *)(malloc(size));
-    if (buf == NULL)
+    if (!buf)
         throw std::bad_alloc();
 
     res = abi::__cxa_demangle(symbol, buf, &size, &status);
