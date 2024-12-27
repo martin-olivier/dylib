@@ -22,6 +22,9 @@
 
 #include <fcntl.h>
 #include <cstring>
+#include <utility>
+#include <string>
+#include <vector>
 
 #include "dylib.hpp"
 
