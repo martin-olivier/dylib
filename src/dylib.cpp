@@ -129,8 +129,6 @@ dylib::~dylib() {
 }
 
 dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const {
-    std::vector<std::string> matching_symbols;
-    std::vector<std::string> all_symbols;
     dylib::native_symbol_type symbol;
 
     if (!symbol_name)
@@ -140,9 +138,10 @@ dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const {
 
     symbol = locate_symbol(m_handle, symbol_name);
     if (symbol == nullptr) {
-        all_symbols = symbols();
+        std::string initial_error = get_error_description();
+        std::vector<std::string> matching_symbols;
 
-        for (auto &sym : all_symbols) {
+        for (auto &sym : symbols()) {
             std::string demangled = demangle_symbol(sym.c_str());
 
             if (demangled.find(symbol_name) == 0 &&
@@ -152,11 +151,15 @@ dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const {
         }
 
         if (matching_symbols.size() == 0) {
-            throw symbol_error("Could not get symbol '" + std::string(symbol_name) + "'\n" + get_error_description());
+            throw symbol_error("Could not get symbol '" +
+                                std::string(symbol_name) +
+                                "':\n" + initial_error);
         } else if (matching_symbols.size() == 1) {
             symbol = locate_symbol(m_handle, matching_symbols.front().c_str());
             if (symbol == nullptr)
-                throw symbol_error("Could not get symbol '" + std::string(symbol_name) + "'\n" + get_error_description());
+                throw symbol_error("Could not get symbol '" +
+                                    std::string(symbol_name) + "':\n"
+                                    + get_error_description());
         } else {
             throw symbol_error(
                 "Could not get symbol '" + std::string(symbol_name) + "': multiple matches");
