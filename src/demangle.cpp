@@ -11,6 +11,7 @@
 
 std::string format_symbol(std::string input);
 
+/************************   MSVC   ************************/
 #if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
 
 #include <windows.h>
@@ -19,42 +20,43 @@ std::string format_symbol(std::string input);
 
 #pragma comment(lib, "dbghelp.lib")
 
-std::string get_demangled_name(const char *symbol) {
+std::string demangle_symbol(const char *symbol) {
+    DWORD sign_flags = UNDNAME_COMPLETE | UNDNAME_NO_FUNCTION_RETURNS | UNDNAME_NO_MS_KEYWORDS;
+    DWORD name_flags = UNDNAME_NAME_ONLY;
     char undecorated[MAX_SYM_NAME];
-    DWORD flags = UNDNAME_COMPLETE | UNDNAME_NO_FUNCTION_RETURNS | UNDNAME_NO_MS_KEYWORDS;
 
     // Get undecorated symbol signature
-    if (UnDecorateSymbolName(symbol, undecorated, MAX_SYM_NAME, flags)) {
+    if (UnDecorateSymbolName(symbol, undecorated, MAX_SYM_NAME, sign_flags)) {
         std::string signature = undecorated;
 
         // Get undecorated symbol name
-        if (UnDecorateSymbolName(symbol, undecorated, MAX_SYM_NAME, UNDNAME_NAME_ONLY)) {
+        if (UnDecorateSymbolName(symbol, undecorated, MAX_SYM_NAME, name_flags)) {
             /*
              * If symbol signature starts with symbol name, it means
              * that this is a function, otherwise, this is a variable:
              * 
              * signature: tools::adder(double, double)
-             * symbol name: tools::adder
+             * name:      tools::adder
              * 
              * signature: long ptr
-             * symbol name: ptr
+             * name:      ptr
              */
             if (signature.find(undecorated) == 0)
                 return format_symbol(signature);
-            else
-                return format_symbol(undecorated);
+            else // This is a variable, no need to format it.
+                return undecorated;
         }
     }
 
     return "";
 }
 
-#else
+#else /************************   gcc, clang, MinGW   ************************/
 
 #include <cxxabi.h>
 #include <cstring>
 
-std::string get_demangled_name(const char *symbol) {
+std::string demangle_symbol(const char *symbol) {
     size_t size = strlen(symbol);
     std::string result;
     int status;

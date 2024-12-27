@@ -111,10 +111,9 @@ public:
      *  the case of the library file not being found)
      *
      *  @param dir_path the directory path where is located the dynamic library you want to load
-     *  @param name the name of the dynamic library to load
+     *  @param lib_name the name of the dynamic library to load
      *  @param decorations add os decorations to the library name
      */
-    ///@{
     dylib(const char *dir_path, const char *lib_name, bool decorations = add_filename_decorations);
 
     dylib(const std::string &dir_path, const std::string &lib_name, bool decorations = add_filename_decorations)
@@ -142,7 +141,6 @@ public:
     dylib(const std::filesystem::path &dir_path, const char *lib_name, bool decorations = add_filename_decorations)
         : dylib(dir_path.string().c_str(), lib_name, decorations) {}
 #endif
-    ///@}
 
     ~dylib();
 
@@ -168,7 +166,7 @@ public:
      *  @return true if the symbol exists in the dynamic library, false otherwise
      */
     bool has_symbol(const char *symbol_name) const noexcept;
-    bool has_symbol(const std::string &symbol) const noexcept;
+    bool has_symbol(const std::string &symbol_name) const noexcept;
 
     /**
      *  Get a function from the dynamic library currently loaded in the object
@@ -220,12 +218,12 @@ public:
     /**
      *  Get the list of symbols from the dynamic library currently loaded in the object
      *
-     *  @throws dylib::symbol_error if an error occured during symbols collection
+     *  @throws dylib::symbol_error if an error occurred during symbols collection
      *
-     *  @param demangle if true, returns unmangled symbols
-     *  @param loadable if true, returns only loadable symbols
+     *  @param symbol_params::demangle if true, returns demangled symbols
+     *  @param symbol_params::loadable if true, returns only loadable symbols
      *
-     *  @return the list of symbols
+     *  @return the list of symbols in the dynamic library
      */
     std::vector<std::string> symbols(symbol_params params = symbol_params()) const;
 

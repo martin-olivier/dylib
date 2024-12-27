@@ -36,7 +36,7 @@
 #define DYLIB_WIN_OTHER(win_def, other_def) other_def
 #endif
 
-std::string get_demangled_name(const char *symbol);
+std::string demangle_symbol(const char *symbol);
 
 #if (defined(_WIN32) || defined(_WIN64))
 std::vector<std::string> get_symbols(HMODULE handle, bool demangle, bool loadable);
@@ -63,14 +63,16 @@ static void close_lib(dylib::native_handle_type lib) noexcept {
 static std::string get_error_description() noexcept {
 #if (defined(_WIN32) || defined(_WIN64))
     WORD lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
-    DWORD error_code = GetLastError();
     char description[512];
+    DWORD error_code;
+    DWORD length;
 
+    error_code = GetLastError();
     if (!error_code)
         return "Unknown error (GetLastError failed)";
 
-    const DWORD length = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code,
-                                        lang, description, 512, nullptr);
+    length = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code,
+                            lang, description, 512, nullptr);
 
     return (length == 0) ? "Unknown error (FormatMessage failed)" : description;
 #else
@@ -113,7 +115,7 @@ dylib::dylib(const char *dir_path, const char *lib_name, bool decorations) {
     m_fd = open((final_path + final_name).c_str(), O_RDONLY);
 
     if (m_fd < 0)
-        throw load_error("Could not read library file");
+        throw load_error("Could not open library file");
 #endif
 }
 
@@ -141,7 +143,7 @@ dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const {
         all_symbols = symbols();
 
         for (auto &sym : all_symbols) {
-            std::string demangled = get_demangled_name(sym.c_str());
+            std::string demangled = demangle_symbol(sym.c_str());
 
             if (demangled.find(symbol_name) == 0 &&
                 (demangled[strlen(symbol_name)] == '(' ||
@@ -174,8 +176,8 @@ bool dylib::has_symbol(const char *symbol_name) const noexcept {
     return locate_symbol(m_handle, symbol_name) != nullptr;
 }
 
-bool dylib::has_symbol(const std::string &symbol) const noexcept {
-    return has_symbol(symbol.c_str());
+bool dylib::has_symbol(const std::string &symbol_name) const noexcept {
+    return has_symbol(symbol_name.c_str());
 }
 
 dylib::native_handle_type dylib::native_handle() noexcept {

@@ -9,63 +9,59 @@
 
 #include <string>
 
-static void replace_occurrences(std::string &input, const std::string &keyword, const std::string &replacement) {
+static void replace_occurrences(std::string &symbol, const std::string &find, const std::string &replace) {
     size_t pos = 0;
 
-    if (keyword.empty())
+    if (find.empty())
         return;
 
-    while ((pos = input.find(keyword, pos)) != std::string::npos) {
-        input.replace(pos, keyword.length(), replacement);
-        pos += replacement.length();
+    while ((pos = symbol.find(find, pos)) != std::string::npos) {
+        symbol.replace(pos, find.length(), replace);
+        pos += replace.length();
     }
 }
 
+/************************   MSVC   ************************/
 #if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
 
-static void add_space_after_comma(std::string &input) {
+static void add_space_after_comma(std::string &symbol) {
     std::string result;
 
-    for (char c : input) {
-        if (c == ',') {
+    for (char c : symbol) {
+        if (c == ',')
             result += ", ";
-        } else {
+        else
             result += c;
-        }
     }
 
-    input = result;
+    symbol = result;
 }
 
-std::string format_symbol(std::string input) {
-    replace_occurrences(input, "(class ", "(");
-    replace_occurrences(input, "<class ", "<");
-    replace_occurrences(input, ",class ", ",");
+std::string format_symbol(std::string symbol) {
+    replace_occurrences(symbol, "(class ", "(");
+    replace_occurrences(symbol, "<class ", "<");
+    replace_occurrences(symbol, ",class ", ",");
 
-    replace_occurrences(input, "(struct ", "(");
-    replace_occurrences(input, "<struct ", "<");
-    replace_occurrences(input, ",struct ", ",");
+    replace_occurrences(symbol, "(struct ", "(");
+    replace_occurrences(symbol, "<struct ", "<");
+    replace_occurrences(symbol, ",struct ", ",");
 
-    replace_occurrences(input, "> >", ">>");
-    replace_occurrences(input, ">const", "> const");
+    replace_occurrences(symbol, "> >", ">>");
+    replace_occurrences(symbol, ">const", "> const");
 
-    add_space_after_comma(input);
+    add_space_after_comma(symbol);
 
-    return input;
+    return symbol;
 }
 
-#else
+#else /************************   gcc, clang, MinGW   ************************/
 
-static void add_sym_separator(std::string &input, char symbol) {
+static void add_sym_separator(std::string &symbol, char c) {
     size_t pos = 0;
 
-    if (input.empty()) {
-        return;
-    }
-
-    while ((pos = input.find(symbol, pos)) != std::string::npos) {
-        if (pos && input[pos - 1] != ' ' && input[pos - 1] != '&' && input[pos - 1] != '*') {
-            input.replace(pos, 1, std::string(" ") + symbol);
+    while ((pos = symbol.find(c, pos)) != std::string::npos) {
+        if (pos && symbol[pos - 1] != ' ' && symbol[pos - 1] != '&' && symbol[pos - 1] != '*') {
+            symbol.replace(pos, 1, std::string(" ") + c);
             pos += 2;
         } else {
             pos += 1;
@@ -73,21 +69,20 @@ static void add_sym_separator(std::string &input, char symbol) {
     }
 }
 
-std::string format_symbol(std::string input) {
-    replace_occurrences(input, "std::__1::", "std::");
-    replace_occurrences(input, "std::__cxx11::", "std::");
+std::string format_symbol(std::string symbol) {
+    replace_occurrences(symbol, "std::__1::", "std::");
+    replace_occurrences(symbol, "std::__cxx11::", "std::");
 
-    replace_occurrences(input, "[abi:cxx11]", "");
-    replace_occurrences(input, "[abi:ue170006]", "");
+    replace_occurrences(symbol, "[abi:cxx11]", "");
+    replace_occurrences(symbol, "[abi:ue170006]", "");
 
-    replace_occurrences(input, "()", "(void)");
-    replace_occurrences(input, "> >", ">>");
+    replace_occurrences(symbol, "()", "(void)");
+    replace_occurrences(symbol, "> >", ">>");
 
-    add_sym_separator(input, '*');
-    add_sym_separator(input, '&');
+    add_sym_separator(symbol, '*');
+    add_sym_separator(symbol, '&');
 
-    return input;
+    return symbol;
 }
 
 #endif
-

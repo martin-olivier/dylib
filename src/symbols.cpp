@@ -15,68 +15,73 @@
 #include <cstring>
 #include <algorithm>
 
-std::string get_demangled_name(const char *symbol);
+std::string demangle_symbol(const char *symbol);
 
-static void add_symbol(std::vector<std::string> &result, const char *name, bool demangle) {
-    if (!name || strcmp(name, "") == 0)
+static void add_symbol(std::vector<std::string> &result, const char *symbol, bool demangle) {
+    if (!symbol || strcmp(symbol, "") == 0)
         return;
 
     if (demangle) {
-        std::string demangled = get_demangled_name(name);
+        std::string demangled = demangle_symbol(symbol);
         if (!demangled.empty()) {
-            if (std::find(result.begin(), result.end(), name) == result.end())
+            if (std::find(result.begin(), result.end(), demangled) == result.end())
                 result.push_back(demangled);
         }
     } else {
 #if defined(__APPLE__)
-        if (name[0] == '_')
-            name++;
+        if (symbol[0] == '_')
+            symbol++;
 #endif
-        if (std::find(result.begin(), result.end(), name) == result.end())
-            result.push_back(name);
+        if (std::find(result.begin(), result.end(), symbol) == result.end())
+            result.push_back(symbol);
     }
 }
 
+/************************   Windows   ************************/
 #if (defined(_WIN32) || defined(_WIN64))
 
 #include <windows.h>
 #include <tchar.h>
 
 std::vector<std::string> get_symbols(HMODULE handle, bool demangle, bool loadable) {
-    std::vector<std::string> result;
+    std::vector<std::string> symbols_list;
+    PIMAGE_EXPORT_DIRECTORY pExportDir;
+    PIMAGE_DOS_HEADER pDosHeader;
+    PIMAGE_NT_HEADERS pNTHeaders;
+    DWORD exportDirRVA;
+    DWORD *pNames;
 
     // Get the DOS header
-    PIMAGE_DOS_HEADER pDosHeader = (PIMAGE_DOS_HEADER)handle;
+    pDosHeader = (PIMAGE_DOS_HEADER)handle;
     if (pDosHeader->e_magic != IMAGE_DOS_SIGNATURE)
         throw std::string("Invalid DOS header");
 
     // Get the NT headers
-    PIMAGE_NT_HEADERS pNTHeaders = (PIMAGE_NT_HEADERS)((BYTE *)handle + pDosHeader->e_lfanew);
+    pNTHeaders = (PIMAGE_NT_HEADERS)((BYTE *)handle + pDosHeader->e_lfanew);
     if (pNTHeaders->Signature != IMAGE_NT_SIGNATURE)
         throw std::string("Invalid NT headers");
 
     // Get the export directory
-    DWORD exportDirRVA = pNTHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
+    exportDirRVA = pNTHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
     if (exportDirRVA == 0)
         throw std::string("No export directory found");
 
-    PIMAGE_EXPORT_DIRECTORY pExportDir = (PIMAGE_EXPORT_DIRECTORY)((BYTE *)handle + exportDirRVA);
+    pExportDir = (PIMAGE_EXPORT_DIRECTORY)((BYTE *)handle + exportDirRVA);
 
     // Get the list of exported function names
-    DWORD *pNames = (DWORD *)((BYTE *)handle + pExportDir->AddressOfNames);
-    DWORD *pFunctions = (DWORD *)((BYTE *)handle + pExportDir->AddressOfFunctions);
-    WORD *pNameOrdinals = (WORD *)((BYTE *)handle + pExportDir->AddressOfNameOrdinals);
+    pNames = (DWORD *)((BYTE *)handle + pExportDir->AddressOfNames);
 
     for (DWORD i = 0; i < pExportDir->NumberOfNames; ++i) {
         const char *name = (const char *)((BYTE *)handle + pNames[i]);
 
         if (!loadable || GetProcAddress(handle, name))
-            add_symbol(result, name, demangle);
+            add_symbol(symbols_list, name, demangle);
     }
 
-    return result;
+    return symbols_list;
 }
 
+/************************   Mac OS   ************************/
 #elif defined(__APPLE__)
 
 #include <mach-o/loader.h>
@@ -87,7 +92,7 @@ std::vector<std::string> get_symbols(HMODULE handle, bool demangle, bool loadabl
 #include <unistd.h>
 
 static std::vector<std::string> get_symbols_at_off(void *handle, int fd, bool demangle, bool loadable, off_t offset, bool is_64_bit) {
-    std::vector<std::string> result;
+    std::vector<std::string> symbols_list;
     struct mach_header_64 mh64;
     struct mach_header mh;
 
@@ -146,7 +151,7 @@ static std::vector<std::string> get_symbols_at_off(void *handle, int fd, bool de
 
                 const char *name = &strtab[strx];
                 if (!loadable || dlsym(handle, name))
-                    add_symbol(result, name, demangle);
+                    add_symbol(symbols_list, name, demangle);
             }
 
             free(symbols64);
@@ -157,12 +162,11 @@ static std::vector<std::string> get_symbols_at_off(void *handle, int fd, bool de
         lseek(fd, current_command_offset + lc.cmdsize - sizeof(lc), SEEK_SET);
     }
 
-    return result;
+    return symbols_list;
 }
 
 std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool loadable) {
-    std::vector<std::string> result;
-    std::vector<std::string> tmp;
+    std::vector<std::string> symbols_list;
     uint32_t magic;
 
     lseek(fd, 0, SEEK_SET);
@@ -179,29 +183,29 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
         read(fd, fat_arches, sizeof(struct fat_arch) * ntohl(fat_header.nfat_arch));
 
         for (uint32_t i = 0; i < ntohl(fat_header.nfat_arch); i++) {
-            tmp = get_symbols_at_off(
+            std::vector<std::string> tmp = get_symbols_at_off(
                 handle,
                 fd,
                 demangle,
                 loadable,
                 ntohl(fat_arches[i].offset),
                 ntohl(fat_arches[i].cputype) == CPU_TYPE_X86_64);
-            std::move(tmp.begin(), tmp.end(), std::back_inserter(result));
+            std::move(tmp.begin(), tmp.end(), std::back_inserter(symbols_list));
         }
 
         free(fat_arches);
     } else if (magic == MH_MAGIC_64 || magic == MH_CIGAM_64) {
-        result = get_symbols_at_off(handle, fd, demangle, loadable, 0, true);
+        symbols_list = get_symbols_at_off(handle, fd, demangle, loadable, 0, true);
     } else if (magic == MH_MAGIC || magic == MH_CIGAM) {
-        result = get_symbols_at_off(handle, fd, demangle, loadable, 0, false);
+        symbols_list = get_symbols_at_off(handle, fd, demangle, loadable, 0, false);
     } else {
         throw std::string("Unsupported file format");
     }
 
-    return result;
+    return symbols_list;
 }
 
-#else  // Linux
+#else /************************   Linux   ************************/
 
 #include <libelf.h>
 #include <gelf.h>
@@ -211,37 +215,33 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
 
 std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool loadable) {
     std::vector<std::string> result;
+    Elf_Scn *scn = nullptr;
+    Elf *elf;
 
     if (elf_version(EV_CURRENT) == EV_NONE)
-        throw std::string("ELF library initialization failed");
+        throw std::string("ELF library is out of date");
 
-    Elf *elf = elf_begin(fd, ELF_C_READ, nullptr);
+    elf = elf_begin(fd, ELF_C_READ, nullptr);
     if (!elf)
         throw std::string("elf_begin() failed");
 
-    size_t shstrndx;
-    if (elf_getshdrstrndx(elf, &shstrndx) != 0) {
-        elf_end(elf);
-        throw std::string("elf_getshdrstrndx() failed");
-    }
-
-    Elf_Scn *scn = nullptr;
-    GElf_Shdr shdr;
     while ((scn = elf_nextscn(elf, scn))) {
-        if (gelf_getshdr(scn, &shdr) != &shdr) {
+        GElf_Shdr shdr;
+
+        if (gelf_getshdr(scn, &shdr) == nullptr) {
             elf_end(elf);
             throw std::string("gelf_getshdr() failed");
         }
 
         if (shdr.sh_type == SHT_SYMTAB || shdr.sh_type == SHT_DYNSYM) {
             Elf_Data *data = elf_getdata(scn, nullptr);
+
             if (!data) {
                 elf_end(elf);
                 throw std::string("elf_getdata() failed");
             }
 
-            int count = shdr.sh_size / shdr.sh_entsize;
-            for (int i = 0; i < count; i++) {
+            for (int i = 0; i < (shdr.sh_size / shdr.sh_entsize); i++) {
                 GElf_Sym sym;
                 char *name;
 
