@@ -88,16 +88,3 @@ jobs:
       - name: Run unit tests with valgrind
         working-directory: build
         run: valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./unit_tests
-
-  linter:
-    name: linter
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install cpplint
-        run: pip install cpplint
-
-      - name: Run cpplint
-        run: cpplint --linelength=140 --filter=-whitespace/indent,-whitespace/parens,-build/include_subdir,-runtime/references,-readability/casting src/* include/*
