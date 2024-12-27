@@ -87,10 +87,10 @@ std::vector<std::string> get_symbols(HMODULE handle, bool demangle, bool loadabl
 #include <mach-o/loader.h>
 #include <mach-o/nlist.h>
 #include <mach-o/fat.h>
+#include <utility>
 #include <dlfcn.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <utility>
 
 static std::vector<std::string> get_symbols_at_off(void *handle, int fd, bool demangle, bool loadable, off_t offset, bool is_64_bit) {
     std::vector<std::string> symbols_list;
