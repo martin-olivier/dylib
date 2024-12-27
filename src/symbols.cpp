@@ -87,7 +87,6 @@ std::vector<std::string> get_symbols(HMODULE handle, bool demangle, bool loadabl
 #include <mach-o/loader.h>
 #include <mach-o/nlist.h>
 #include <mach-o/fat.h>
-#include <utility>
 #include <dlfcn.h>
 #include <fcntl.h>
 #include <unistd.h>
