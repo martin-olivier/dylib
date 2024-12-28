@@ -57,26 +57,16 @@ std::string demangle_symbol(const char *symbol) {
 #include <cstring>
 
 std::string demangle_symbol(const char *symbol) {
-    size_t size = strlen(symbol);
     std::string result;
-    int status;
-    char *buf;
-    char *res;
+    char *demangled;
 
-    buf = (char *)(malloc(size));
-    if (!buf)
-        throw std::bad_alloc();
-
-    res = abi::__cxa_demangle(symbol, buf, &size, &status);
-    if (!res) {
-        free(buf);
-
+    demangled = abi::__cxa_demangle(symbol, 0, 0, 0);
+    if (!demangled)
         return "";
-    }
 
-    result = format_symbol(res);
+    result = format_symbol(demangled);
 
-    free(res);
+    free(demangled);
 
     return result;
 }
