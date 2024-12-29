@@ -180,12 +180,23 @@ public:
      */
     template <typename T>
     T *get_function(const char *symbol_name) const {
-#if (defined(__GNUC__) && __GNUC__ >= 8)
+#if defined(__GNUC__) && __GNUC__ >= 8 && !defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
+#if defined __clang__
+#if __has_warning("-Wcast-function-type-mismatch")
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
+#endif
+#endif
         return reinterpret_cast<T *>(get_symbol(symbol_name));
-#if (defined(__GNUC__) && __GNUC__ >= 8)
+#if defined __clang__
+#if __has_warning("-Wcast-function-type-mismatch")
+#pragma clang diagnostic pop
+#endif
+#endif
+#if defined(__GNUC__) && __GNUC__ >= 8 && !defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
     }

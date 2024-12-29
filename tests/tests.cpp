@@ -147,14 +147,27 @@ TEST(handle_management, basic_test) {
     auto sym = dlsym(handle, "adder_c");
 #endif
     EXPECT_FALSE(sym == nullptr);
-#if (defined(__GNUC__) && __GNUC__ >= 8)
+
+#if defined(__GNUC__) && __GNUC__ >= 8 && !defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
+#if defined __clang__
+#if __has_warning("-Wcast-function-type-mismatch")
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
+#endif
+#endif
     auto res = ((double (*)(double, double))(sym))(10, 10);
-#if (defined(__GNUC__) && __GNUC__ >= 8)
+#if defined __clang__
+#if __has_warning("-Wcast-function-type-mismatch")
+#pragma clang diagnostic pop
+#endif
+#endif
+#if defined(__GNUC__) && __GNUC__ >= 8 && !defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
+
     EXPECT_EQ(res, 20);
 }
 
