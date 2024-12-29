@@ -30,13 +30,16 @@ jobs:
         cxx-std: [11, 14, 17, 20]
         include:
           - os: windows-latest
+            compiler: MSVC
             generator: Visual Studio 17
           - os: macos-latest
+            compiler: clang
             generator: Unix Makefiles
           - os: ubuntu-latest
+            compiler: gcc
             generator: Unix Makefiles
 
-    name: ${{ matrix.os }} (C++${{ matrix.cxx-std }} - ${{ matrix.generator }})
+    name: ${{ matrix.os }} (C++${{ matrix.cxx-std }} - ${{ matrix.compiler }})
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -65,6 +68,38 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           files: dylib.hpp.gcov
+
+  unit_tests_msys2:
+    defaults:
+      run:
+        shell: msys2 {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        sys: [mingw32, mingw64, ucrt64, clang64]
+        cxx-std: [11, 14, 17, 20]
+
+    name: windows-latest (C++${{ matrix.cxx-std }} - ${{matrix.sys}})
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.sys}}
+          update: true
+          install: make
+          pacboy: toolchain:p cmake:p
+
+      - name: Generate project files
+        run: cmake . -B build -G "MinGW Makefiles" -DCMAKE_CXX_STANDARD=${{ matrix.cxx-std }} -DDYLIB_BUILD_TESTS=ON -DDYLIB_WARNING_AS_ERRORS=ON
+
+      - name: Build dynamic library and unit tests
+        run: cmake --build build
+
+      - name: Run unit tests
+        working-directory: build
+        run: ctest --verbose
 
   memory_check:
     name: memory check
