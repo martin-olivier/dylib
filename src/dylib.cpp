@@ -25,17 +25,6 @@
 
 #include "dylib.hpp"
 
-#if (defined(_WIN32) || defined(_WIN64))
-#define DYLIB_WIN_MAC_OTHER(win_def, mac_def, other_def) win_def
-#define DYLIB_WIN_OTHER(win_def, other_def) win_def
-#elif defined(__APPLE__)
-#define DYLIB_WIN_MAC_OTHER(win_def, mac_def, other_def) mac_def
-#define DYLIB_WIN_OTHER(win_def, other_def) other_def
-#else
-#define DYLIB_WIN_MAC_OTHER(win_def, mac_def, other_def) other_def
-#define DYLIB_WIN_OTHER(win_def, other_def) other_def
-#endif
-
 std::string demangle_symbol(const char *symbol);
 
 #if (defined(_WIN32) || defined(_WIN64))
@@ -53,11 +42,19 @@ static dylib::native_handle_type open_lib(const char *path) noexcept {
 }
 
 static dylib::native_symbol_type locate_symbol(dylib::native_handle_type lib, const char *name) noexcept {
-    return DYLIB_WIN_OTHER(GetProcAddress, dlsym)(lib, name);
+#if (defined(_WIN32) || defined(_WIN64))
+    return GetProcAddress(lib, name);
+#else
+    return dlsym(lib, name);
+#endif
 }
 
 static void close_lib(dylib::native_handle_type lib) noexcept {
-    DYLIB_WIN_OTHER(FreeLibrary, dlclose)(lib);
+#if (defined(_WIN32) || defined(_WIN64))
+    FreeLibrary(lib);
+#else
+    dlclose(lib);
+#endif
 }
 
 static std::string get_error_description() noexcept {
