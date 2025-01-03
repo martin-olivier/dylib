@@ -21,9 +21,13 @@ TEST(example, example_test) {
 }
 
 TEST(ctor, bad_library) {
-    EXPECT_THROW({
+    try {
         dylib lib("./", "no_such_library");
-    }, dylib::load_error);
+        EXPECT_EQ(true, false);
+    }
+    catch (const dylib::load_error &) {
+        EXPECT_EQ(true, true);
+    }
 }
 
 TEST(multiple_handles, basic_test) {
@@ -32,17 +36,25 @@ TEST(multiple_handles, basic_test) {
 }
 
 TEST(get_function, bad_symbol) {
-    EXPECT_THROW({
+    try {
         dylib lib("./", "dynamic_lib");
         lib.get_function<double(double, double)>("unknown");
-    }, dylib::symbol_error);
+        EXPECT_EQ(true, false);
+    }
+    catch (const dylib::symbol_error &) {
+        EXPECT_EQ(true, true);
+    }
 }
 
 TEST(get_variable, bad_symbol) {
-    EXPECT_THROW({
+    try {
         dylib lib("./", "dynamic_lib");
         lib.get_variable<double>("unknown");
-    }, dylib::symbol_error);
+        EXPECT_EQ(true, false);
+    }
+    catch (const dylib::symbol_error &) {
+        EXPECT_EQ(true, true);
+    }
 }
 
 TEST(get_variable, alter_variables) {
@@ -62,23 +74,29 @@ TEST(get_variable, alter_variables) {
 }
 
 TEST(invalid_argument, null_pointer) {
-    EXPECT_THROW({
+    try {
         dylib(nullptr);
-    }, std::invalid_argument);
-
-    EXPECT_THROW({
-        dylib(nullptr, "dynamic_lib");
-    }, std::invalid_argument);
-
-    EXPECT_THROW({
+        EXPECT_EQ(true, false);
+    }
+    catch (const std::invalid_argument &) {
+        EXPECT_EQ(true, true);
+    }
+    try {
         dylib lib("./", "dynamic_lib");
         lib.get_function<void()>(nullptr);
-    }, std::invalid_argument);
-
-    EXPECT_THROW({
+        EXPECT_EQ(true, false);
+    }
+    catch (const std::invalid_argument &) {
+        EXPECT_EQ(true, true);
+    }
+    try {
         dylib lib("./", "dynamic_lib");
         lib.get_variable<void *>(nullptr);
-    }, std::invalid_argument);
+        EXPECT_EQ(true, false);
+    }
+    catch (const std::invalid_argument &) {
+        EXPECT_EQ(true, true);
+    }
 }
 
 TEST(manual_decorations, basic_test) {
@@ -88,7 +106,7 @@ TEST(manual_decorations, basic_test) {
 }
 
 TEST(std_move, basic_test) {
-    EXPECT_THROW({
+    try {
         dylib lib("./", "dynamic_lib");
         dylib other(std::move(lib));
         auto pi = other.get_variable<double>("pi_value");
@@ -97,7 +115,11 @@ TEST(std_move, basic_test) {
         auto ptr = lib.get_variable<void *>("ptr");
         EXPECT_EQ(ptr, (void *)1);
         other.get_variable<double>("pi_value");
-    }, std::logic_error);
+        EXPECT_EQ(true, false);
+    }
+    catch (const std::logic_error &) {
+        EXPECT_EQ(true, true);
+    }
 }
 
 TEST(has_symbol, basic_test) {

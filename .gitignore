@@ -1,50 +1,18 @@
 # Editor files and folders
+
 .idea/
-.vs/
 .vscode/
-.DS_Store/
+.DS_Store
 *~
 \#*#
 
 # Build Folders
-cmake-build-*/
-build/
-out/
+
+cmake-build-*
+build
 
 # Coverage files
+
 *.gcda
 *.gcno
 *.gcov
-
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
