@@ -35,7 +35,7 @@ if(DYLIB_BUILD_TESTS)
     include(FetchContent)
     FetchContent_Declare(
         googletest
-        URL https://github.com/google/googletest/archive/refs/tags/release-1.12.1.zip
+        URL https://github.com/google/googletest/archive/refs/tags/v1.15.2.zip
     )
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(googletest)
