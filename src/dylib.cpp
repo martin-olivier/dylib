@@ -91,28 +91,36 @@ dylib &dylib::operator=(dylib &&other) noexcept {
 }
 
 dylib::dylib(const char *dir_path, const char *lib_name, bool decorations) {
-    if (!dir_path || !lib_name)
-        throw std::invalid_argument("Null parameter");
+    std::string final_name;
+    std::string final_dir;
+    std::string full_path;
 
-    std::string final_name = lib_name;
-    std::string final_path = dir_path;
+    if (!dir_path)
+        throw std::invalid_argument("The directory path to lookup is null");
+    if (!lib_name)
+        throw std::invalid_argument("The library name to lookup is null");
+    if (lib_name[0] == '\0')
+        throw std::invalid_argument("The library name to lookup is an empty string");
+
+    final_name = lib_name;
+    final_dir = dir_path;
 
     if (decorations)
         final_name = filename_components::prefix + final_name + filename_components::suffix;
 
-    if (!final_path.empty() && final_path.find_last_of('/') != final_path.size() - 1)
-        final_path += '/';
+    if (!final_dir.empty() && final_dir.back() != '/')
+        final_dir += '/';
 
-    m_handle = open_lib((final_path + final_name).c_str());
+    full_path = final_dir + final_name;
 
+    m_handle = open_lib(full_path.c_str());
     if (!m_handle)
-        throw load_error("Could not load library '" + final_path + final_name + "'\n" + get_error_description());
+        throw load_error("Could not load library '" + full_path + "'\n" + get_error_description());
 
 #if !(defined(_WIN32) || defined(_WIN64))
-    m_fd = open((final_path + final_name).c_str(), O_RDONLY);
-
+    m_fd = open(full_path.c_str(), O_RDONLY);
     if (m_fd < 0)
-        throw load_error("Could not open library file");
+        throw load_error("Could not open file '" + full_path + "': " + strerror(errno));
 #endif
 }
 
@@ -127,11 +135,16 @@ dylib::~dylib() {
 
 dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const {
     dylib::native_symbol_type symbol;
+    size_t symbol_name_len;
 
     if (!symbol_name)
-        throw std::invalid_argument("Null parameter");
+        throw std::invalid_argument("The symbol name to lookup is null");
+    if (symbol_name[0] == '\0')
+        throw std::invalid_argument("The symbol name to lookup is an empty string");
     if (!m_handle)
-        throw std::logic_error("The dynamic library handle is null");
+        throw std::logic_error("Attempted to use a moved dylib object, the library handle is null.");
+
+    symbol_name_len = strlen(symbol_name);
 
     symbol = locate_symbol(m_handle, symbol_name);
     if (symbol == nullptr) {
@@ -142,24 +155,22 @@ dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const {
             std::string demangled = demangle_symbol(sym.c_str());
 
             if (demangled.find(symbol_name) == 0 &&
-                (demangled[strlen(symbol_name)] == '(' ||
-                 demangled[strlen(symbol_name)] == '\0'))
+                (demangled.size() == symbol_name_len || demangled[symbol_name_len] == '('))
                 matching_symbols.push_back(sym);
         }
 
         if (matching_symbols.size() == 0) {
-            throw symbol_error("Could not get symbol '" +
-                                std::string(symbol_name) +
-                                "':\n" + initial_error);
+            throw symbol_error("Could not get symbol '" + std::string(symbol_name) + "':\n" + initial_error);
         } else if (matching_symbols.size() == 1) {
             symbol = locate_symbol(m_handle, matching_symbols.front().c_str());
             if (symbol == nullptr)
-                throw symbol_error("Could not get symbol '" +
-                                    std::string(symbol_name) + "':\n"
-                                    + get_error_description());
+                throw symbol_error("Could not get symbol '" + std::string(symbol_name) + "':\n" + get_error_description());
         } else {
-            throw symbol_error(
-                "Could not get symbol '" + std::string(symbol_name) + "': multiple matches");
+            std::string error = "Could not get symbol '" + std::string(symbol_name) + "', multiple matches:\n";
+            for (auto &sym : matching_symbols)
+                error += "- " + sym + '\n';
+
+            throw symbol_error(error);
         }
     }
 
@@ -185,6 +196,9 @@ dylib::native_handle_type dylib::native_handle() noexcept {
 }
 
 std::vector<std::string> dylib::symbols(symbol_params params) const {
+    if (!m_handle)
+        throw std::logic_error("Attempted to use a moved dylib object, the library handle is null.");
+
     try {
         return get_symbols(
             m_handle,
