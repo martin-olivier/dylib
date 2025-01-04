@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.24)
 
 project(dylib VERSION 3.0.0 LANGUAGES CXX)
 
