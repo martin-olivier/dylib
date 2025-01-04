@@ -79,14 +79,20 @@ static std::string get_error_description() noexcept {
 #endif
 }
 
-dylib::dylib(dylib &&other) noexcept
-    : m_handle(other.m_handle) {
-    other.m_handle = nullptr;
+dylib::dylib(dylib &&other) noexcept {
+    std::swap(m_handle, other.m_handle);
+#if !(defined(_WIN32) || defined(_WIN64))
+    std::swap(m_fd, other.m_fd);
+#endif
 }
 
 dylib &dylib::operator=(dylib &&other) noexcept {
-    if (this != &other)
+    if (this != &other) {
         std::swap(m_handle, other.m_handle);
+#if !(defined(_WIN32) || defined(_WIN64))
+        std::swap(m_fd, other.m_fd);
+#endif
+    }
     return *this;
 }
 
