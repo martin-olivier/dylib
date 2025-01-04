@@ -173,7 +173,7 @@ TEST(handle_management, basic_test) {
 
 #if (defined(_WIN32) || defined(_WIN64))
 TEST(system_lib, basic_test) {
-    dylib lib("kernel32");
+    dylib::library lib("kernel32");
     lib.get_function<DWORD()>("GetCurrentThreadId");
 }
 #endif
