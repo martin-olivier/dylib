@@ -5,7 +5,7 @@
  * @link https://github.com/martin-olivier/dylib
  * 
  * @author Martin Olivier <martin.olivier@live.fr>
- * @copyright (c) 2024 Martin Olivier
+ * @copyright (c) 2025 Martin Olivier
  *
  * This library is released under MIT license
  */
