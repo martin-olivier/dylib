@@ -10,10 +10,20 @@
 #if (defined(_WIN32) || defined(_WIN64))
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#define DYLIB_UNDEFINE_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#define DYLIB_UNDEFINE_NOMINMAX
+#endif
 #include <windows.h>
+#ifdef DYLIB_UNDEFINE_LEAN_AND_MEAN
 #undef WIN32_LEAN_AND_MEAN
-#else
-#include <windows.h>
+#undef DYLIB_UNDEFINE_LEAN_AND_MEAN
+#endif
+#ifdef DYLIB_UNDEFINE_NOMINMAX
+#undef NOMINMAX
+#undef DYLIB_UNDEFINE_NOMINMAX
 #endif
 #else
 #include <dlfcn.h>
@@ -24,6 +34,9 @@
 #include <cstring>
 
 #include "dylib.hpp"
+
+using dylib::library;
+
 
 std::string demangle_symbol(const char *symbol);
 
@@ -79,14 +92,14 @@ static std::string get_error_description() noexcept {
 #endif
 }
 
-dylib::dylib(dylib &&other) noexcept {
+library::library(library &&other) noexcept {
     std::swap(m_handle, other.m_handle);
 #if !(defined(_WIN32) || defined(_WIN64))
     std::swap(m_fd, other.m_fd);
 #endif
 }
 
-dylib &dylib::operator=(dylib &&other) noexcept {
+library &library::operator=(library &&other) noexcept {
     if (this != &other) {
         std::swap(m_handle, other.m_handle);
 #if !(defined(_WIN32) || defined(_WIN64))
@@ -96,7 +109,7 @@ dylib &dylib::operator=(dylib &&other) noexcept {
     return *this;
 }
 
-dylib::dylib(const char *dir_path, const char *lib_name, bool decorations) {
+library::library(const char *dir_path, const char *lib_name, bool decorations) {
     std::string final_name;
     std::string final_dir;
     std::string full_path;
@@ -130,7 +143,7 @@ dylib::dylib(const char *dir_path, const char *lib_name, bool decorations) {
 #endif
 }
 
-dylib::~dylib() {
+library::~library() {
     if (m_handle)
         close_lib(m_handle);
 #if !(defined(_WIN32) || defined(_WIN64))
@@ -139,7 +152,7 @@ dylib::~dylib() {
 #endif
 }
 
-dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const {
+dylib::native_symbol_type library::get_symbol(const char *symbol_name) const {
     dylib::native_symbol_type symbol;
     size_t symbol_name_len;
 
@@ -148,7 +161,7 @@ dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const {
     if (symbol_name[0] == '\0')
         throw std::invalid_argument("The symbol name to lookup is an empty string");
     if (!m_handle)
-        throw std::logic_error("Attempted to use a moved dylib object, the library handle is null.");
+        throw std::logic_error("Attempted to use a moved library object.");
 
     symbol_name_len = strlen(symbol_name);
 
@@ -183,27 +196,27 @@ dylib::native_symbol_type dylib::get_symbol(const char *symbol_name) const {
     return symbol;
 }
 
-dylib::native_symbol_type dylib::get_symbol(const std::string &symbol_name) const {
+dylib::native_symbol_type library::get_symbol(const std::string &symbol_name) const {
     return get_symbol(symbol_name.c_str());
 }
 
-bool dylib::has_symbol(const char *symbol_name) const noexcept {
+bool library::has_symbol(const char *symbol_name) const noexcept {
     if (!m_handle || !symbol_name)
         return false;
     return locate_symbol(m_handle, symbol_name) != nullptr;
 }
 
-bool dylib::has_symbol(const std::string &symbol_name) const noexcept {
+bool library::has_symbol(const std::string &symbol_name) const noexcept {
     return has_symbol(symbol_name.c_str());
 }
 
-dylib::native_handle_type dylib::native_handle() noexcept {
+dylib::native_handle_type library::native_handle() noexcept {
     return m_handle;
 }
 
-std::vector<std::string> dylib::symbols(symbol_params params) const {
+std::vector<std::string> library::symbols(symbol_params params) const {
     if (!m_handle)
-        throw std::logic_error("Attempted to use a moved dylib object, the library handle is null.");
+        throw std::logic_error("Attempted to use a moved library object.");
 
     try {
         return get_symbols(

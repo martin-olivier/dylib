@@ -23,26 +23,6 @@
 #endif
 
 #if (defined(_WIN32) || defined(_WIN64))
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#define DYLIB_UNDEFINE_LEAN_AND_MEAN
-#endif
-#ifndef NOMINMAX
-#define NOMINMAX
-#define DYLIB_UNDEFINE_NOMINMAX
-#endif
-#include <windows.h>
-#ifdef DYLIB_UNDEFINE_LEAN_AND_MEAN
-#undef WIN32_LEAN_AND_MEAN
-#undef DYLIB_UNDEFINE_LEAN_AND_MEAN
-#endif
-#ifdef DYLIB_UNDEFINE_NOMINMAX
-#undef NOMINMAX
-#undef DYLIB_UNDEFINE_NOMINMAX
-#endif
-#endif
-
-#if (defined(_WIN32) || defined(_WIN64))
 #define DYLIB_WIN_MAC_OTHER(win_def, mac_def, other_def) win_def
 #define DYLIB_WIN_OTHER(win_def, other_def) win_def
 #elif defined(__APPLE__)
@@ -53,66 +33,65 @@
 #define DYLIB_WIN_OTHER(win_def, other_def) other_def
 #endif
 
+namespace dylib {
+
+using native_handle_type = DYLIB_WIN_OTHER(HINSTANCE, void *);
+using native_symbol_type = DYLIB_WIN_OTHER(FARPROC, void *);
+
+static_assert(std::is_pointer<native_handle_type>::value, "Expecting HINSTANCE to be a pointer");
+static_assert(std::is_pointer<native_symbol_type>::value, "Expecting FARPROC to be a pointer");
+
+struct symbol_params {
+    bool demangle{false};
+    bool loadable{false};
+};
+
+struct filename_components {
+    static constexpr const char *prefix = DYLIB_WIN_OTHER("", "lib");
+    static constexpr const char *suffix = DYLIB_WIN_MAC_OTHER(".dll", ".dylib", ".so");
+};
+
 /**
- *  The dylib class can hold a dynamic library instance and interact with it
+ *  This exception is raised when the library failed to load a dynamic library or a symbol
+ *
+ *  @param message the error message
+ */
+class exception : public std::runtime_error {
+public:
+    explicit exception(const std::string &message) : std::runtime_error(message) {}
+};
+
+/**
+ *  This exception is raised when the library failed to load or encountered symbol resolution issues
+ *
+ *  @param message the error message
+ */
+class load_error : public exception {
+public:
+    explicit load_error(const std::string &message) : exception(message) {}
+};
+
+/**
+ *  This exception is raised when the library failed to load a symbol
+ *
+ *  @param message the error message
+ */
+class symbol_error : public exception {
+public:
+    explicit symbol_error(const std::string &message) : exception(message) {}
+};
+
+/**
+ *  The dylib::library class can hold a dynamic library instance and interact with it
  *  by getting its symbols like functions or global variables
  */
-class dylib {
+class library {
 public:
-    struct filename_components {
-        static constexpr const char *prefix = DYLIB_WIN_OTHER("", "lib");
-        static constexpr const char *suffix = DYLIB_WIN_MAC_OTHER(".dll", ".dylib", ".so");
-    };
-    using native_handle_type = DYLIB_WIN_OTHER(HINSTANCE, void *);
-    using native_symbol_type = DYLIB_WIN_OTHER(FARPROC, void *);
+    library(const library &) = delete;
+    library &operator=(const library &) = delete;
 
-    static_assert(std::is_pointer<native_handle_type>::value, "Expecting HINSTANCE to be a pointer");
-    static_assert(std::is_pointer<native_symbol_type>::value, "Expecting FARPROC to be a pointer");
-
-    static constexpr bool add_filename_decorations = true;
-    static constexpr bool no_filename_decorations = false;
-
-    struct symbol_params {
-        symbol_params(): demangle(false), loadable(false) {}
-        bool demangle;
-        bool loadable;
-    };
-
-    /**
-     *  This exception is raised when the library failed to load a dynamic library or a symbol
-     *
-     *  @param message the error message
-     */
-    class exception : public std::runtime_error {
-    public:
-        explicit exception(const std::string &message) : std::runtime_error(message) {}
-    };
-
-    /**
-     *  This exception is raised when the library failed to load or encountered symbol resolution issues
-     *
-     *  @param message the error message
-     */
-    class load_error : public exception {
-    public:
-        explicit load_error(const std::string &message) : exception(message) {}
-    };
-
-    /**
-     *  This exception is raised when the library failed to load a symbol
-     *
-     *  @param message the error message
-     */
-    class symbol_error : public exception {
-    public:
-        explicit symbol_error(const std::string &message) : exception(message) {}
-    };
-
-    dylib(const dylib &) = delete;
-    dylib &operator=(const dylib &) = delete;
-
-    dylib(dylib &&other) noexcept;
-    dylib &operator=(dylib &&other) noexcept;
+    library(library &&other) noexcept;
+    library &operator=(library &&other) noexcept;
 
     /**
      *  @brief Loads a dynamic library
@@ -124,35 +103,35 @@ public:
      *  @param lib_name the name of the dynamic library to load
      *  @param decorations add os decorations to the library name
      */
-    dylib(const char *dir_path, const char *lib_name, bool decorations = add_filename_decorations);
+    library(const char *dir_path, const char *lib_name, bool decorations = true);
 
-    dylib(const std::string &dir_path, const std::string &lib_name, bool decorations = add_filename_decorations)
-        : dylib(dir_path.c_str(), lib_name.c_str(), decorations) {}
+    library(const std::string &dir_path, const std::string &lib_name, bool decorations = true)
+        : library(dir_path.c_str(), lib_name.c_str(), decorations) {}
 
-    dylib(const std::string &dir_path, const char *lib_name, bool decorations = add_filename_decorations)
-        : dylib(dir_path.c_str(), lib_name, decorations) {}
+    library(const std::string &dir_path, const char *lib_name, bool decorations = true)
+        : library(dir_path.c_str(), lib_name, decorations) {}
 
-    dylib(const char *dir_path, const std::string &lib_name, bool decorations = add_filename_decorations)
-        : dylib(dir_path, lib_name.c_str(), decorations) {}
+    library(const char *dir_path, const std::string &lib_name, bool decorations = true)
+        : library(dir_path, lib_name.c_str(), decorations) {}
 
-    explicit dylib(const std::string &lib_name, bool decorations = add_filename_decorations)
-        : dylib("", lib_name.c_str(), decorations) {}
+    explicit library(const std::string &lib_name, bool decorations = true)
+        : library("", lib_name.c_str(), decorations) {}
 
-    explicit dylib(const char *lib_name, bool decorations = add_filename_decorations)
-        : dylib("", lib_name, decorations) {}
+    explicit library(const char *lib_name, bool decorations = true)
+        : library("", lib_name, decorations) {}
 
 #ifdef DYLIB_CPP17
-    explicit dylib(const std::filesystem::path &lib_path)
-        : dylib("", lib_path.string().c_str(), no_filename_decorations) {}
+    explicit library(const std::filesystem::path &lib_path)
+        : library("", lib_path.string().c_str(), false) {}
 
-    dylib(const std::filesystem::path &dir_path, const std::string &lib_name, bool decorations = add_filename_decorations)
-        : dylib(dir_path.string().c_str(), lib_name.c_str(), decorations) {}
+    library(const std::filesystem::path &dir_path, const std::string &lib_name, bool decorations = true)
+        : library(dir_path.string().c_str(), lib_name.c_str(), decorations) {}
 
-    dylib(const std::filesystem::path &dir_path, const char *lib_name, bool decorations = add_filename_decorations)
-        : dylib(dir_path.string().c_str(), lib_name, decorations) {}
+    library(const std::filesystem::path &dir_path, const char *lib_name, bool decorations = true)
+        : library(dir_path.string().c_str(), lib_name, decorations) {}
 #endif
 
-    ~dylib();
+    ~library();
 
     /**
      *  Get a symbol from the dynamic library currently loaded in the object
@@ -259,6 +238,8 @@ protected:
     int m_fd{-1};
 #endif
 };
+
+} // namespace dylib
 
 #undef DYLIB_WIN_MAC_OTHER
 #undef DYLIB_WIN_OTHER

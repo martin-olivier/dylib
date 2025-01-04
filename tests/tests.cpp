@@ -9,7 +9,7 @@
 
 TEST(example, example_test) {
     testing::internal::CaptureStdout();
-    dylib lib("./", "dynamic_lib");
+    dylib::library lib("./", "dynamic_lib");
 
     auto adder = lib.get_function<double(double, double)>("adder_c");
     EXPECT_EQ(adder(5, 10), 15);
@@ -27,7 +27,7 @@ TEST(example, example_test) {
 
 TEST(ctor, bad_library) {
     try {
-        dylib lib("./", "no_such_library");
+        dylib::library lib("./", "no_such_library");
         EXPECT_EQ(true, false);
     }
     catch (const dylib::load_error &) {
@@ -36,13 +36,13 @@ TEST(ctor, bad_library) {
 }
 
 TEST(multiple_handles, basic_test) {
-    dylib libA("./", "dynamic_lib");
-    dylib libB("./", "dynamic_lib");
+    dylib::library libA("./", "dynamic_lib");
+    dylib::library libB("./", "dynamic_lib");
 }
 
 TEST(get_function, bad_symbol) {
     try {
-        dylib lib("./", "dynamic_lib");
+        dylib::library lib("./", "dynamic_lib");
         lib.get_function<double(double, double)>("unknown");
         EXPECT_EQ(true, false);
     }
@@ -53,7 +53,7 @@ TEST(get_function, bad_symbol) {
 
 TEST(get_variable, bad_symbol) {
     try {
-        dylib lib("./", "dynamic_lib");
+        dylib::library lib("./", "dynamic_lib");
         lib.get_variable<double>("unknown");
         EXPECT_EQ(true, false);
     }
@@ -63,7 +63,7 @@ TEST(get_variable, bad_symbol) {
 }
 
 TEST(get_variable, alter_variables) {
-    dylib lib("./", "dynamic_lib");
+    dylib::library lib("./", "dynamic_lib");
 
     auto &pi = lib.get_variable<double>("pi_value_c");
     EXPECT_EQ(pi, 3.14159);
@@ -80,14 +80,14 @@ TEST(get_variable, alter_variables) {
 
 TEST(invalid_argument, null_pointer) {
     try {
-        dylib(nullptr);
+        dylib::library(nullptr);
         EXPECT_EQ(true, false);
     }
     catch (const std::invalid_argument &) {
         EXPECT_EQ(true, true);
     }
     try {
-        dylib lib("./", "dynamic_lib");
+        dylib::library lib("./", "dynamic_lib");
         lib.get_function<void()>(nullptr);
         EXPECT_EQ(true, false);
     }
@@ -95,7 +95,7 @@ TEST(invalid_argument, null_pointer) {
         EXPECT_EQ(true, true);
     }
     try {
-        dylib lib("./", "dynamic_lib");
+        dylib::library lib("./", "dynamic_lib");
         lib.get_variable<void *>(nullptr);
         EXPECT_EQ(true, false);
     }
@@ -105,15 +105,15 @@ TEST(invalid_argument, null_pointer) {
 }
 
 TEST(manual_decorations, basic_test) {
-    dylib lib(".", dylib::filename_components::prefix + std::string("dynamic_lib") + dylib::filename_components::suffix, dylib::no_filename_decorations);
+    dylib::library lib(".", dylib::filename_components::prefix + std::string("dynamic_lib") + dylib::filename_components::suffix, false);
     auto pi = lib.get_variable<double>("pi_value_c");
     EXPECT_EQ(pi, 3.14159);
 }
 
 TEST(std_move, basic_test) {
     try {
-        dylib lib("./", "dynamic_lib");
-        dylib other(std::move(lib));
+        dylib::library lib("./", "dynamic_lib");
+        dylib::library other(std::move(lib));
         auto pi = other.get_variable<double>("pi_value_c");
         EXPECT_EQ(pi, 3.14159);
         lib = std::move(other);
@@ -128,8 +128,8 @@ TEST(std_move, basic_test) {
 }
 
 TEST(has_symbol, basic_test) {
-    dylib dummy("./", "dynamic_lib");
-    dylib lib(std::move(dummy));
+    dylib::library dummy("./", "dynamic_lib");
+    dylib::library lib(std::move(dummy));
 
     EXPECT_TRUE(lib.has_symbol("pi_value_c"));
     EXPECT_FALSE(lib.has_symbol("bad_symbol"));
@@ -138,7 +138,7 @@ TEST(has_symbol, basic_test) {
 }
 
 TEST(handle_management, basic_test) {
-    dylib lib("./", "dynamic_lib");
+    dylib::library lib("./", "dynamic_lib");
     EXPECT_FALSE(lib.native_handle() == nullptr);
     auto handle = lib.native_handle();
 #if (defined(_WIN32) || defined(_WIN64))
@@ -180,14 +180,14 @@ TEST(system_lib, basic_test) {
 
 #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 TEST(filesystem, basic_test) {
-    bool has_sym = dylib(std::filesystem::path("."), "dynamic_lib").has_symbol("pi_value_c");
+    bool has_sym = dylib::library(std::filesystem::path("."), "dynamic_lib").has_symbol("pi_value_c");
     EXPECT_TRUE(has_sym);
 
     bool found = false;
     for (const auto &file : std::filesystem::recursive_directory_iterator(".")) {
         if (file.path().extension() == dylib::filename_components::suffix) {
             try {
-                dylib lib(file.path());
+                dylib::library lib(file.path());
                 if (lib.has_symbol("pi_value_c"))
                     found = true;
             } catch (const std::exception &) {}
@@ -198,7 +198,7 @@ TEST(filesystem, basic_test) {
 #endif
 
 TEST(cpp_symbols, basic_test) {
-    dylib lib("./", "dynamic_lib");
+    dylib::library lib("./", "dynamic_lib");
 
     auto mean = lib.get_variable<double>("meaning_of_life");
     EXPECT_EQ(mean, 42);
