@@ -23,6 +23,26 @@
 #endif
 
 #if (defined(_WIN32) || defined(_WIN64))
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#define DYLIB_UNDEFINE_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#define DYLIB_UNDEFINE_NOMINMAX
+#endif
+#include <windows.h>
+#ifdef DYLIB_UNDEFINE_LEAN_AND_MEAN
+#undef WIN32_LEAN_AND_MEAN
+#undef DYLIB_UNDEFINE_LEAN_AND_MEAN
+#endif
+#ifdef DYLIB_UNDEFINE_NOMINMAX
+#undef NOMINMAX
+#undef DYLIB_UNDEFINE_NOMINMAX
+#endif
+#endif
+
+#if (defined(_WIN32) || defined(_WIN64))
 #define DYLIB_WIN_MAC_OTHER(win_def, mac_def, other_def) win_def
 #define DYLIB_WIN_OTHER(win_def, other_def) win_def
 #elif defined(__APPLE__)
