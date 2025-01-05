@@ -91,34 +91,43 @@ library &library::operator=(library &&other) noexcept {
     return *this;
 }
 
-library::library(std::string lib_path, dylib::decorations decorations) {
+library::library(const char *lib_path, dylib::decorations decorations) {
     std::string lib_name;
     std::string lib_dir;
+    std::string lib;
 
-    if (lib_path.empty())
-        throw std::invalid_argument("The library to lookup is an empty string");
-    if (lib_path.find('/') == std::string::npos)
-        throw std::invalid_argument("Could not load library '" + lib_path + "': invalid path");
+    if (!lib_path)
+        throw std::invalid_argument("The library path to lookup is null");
 
-    lib_name = lib_path.substr(lib_path.find_last_of('/') + 1);
-    lib_dir = lib_path.substr(0, lib_path.find_last_of('/'));
+    lib = lib_path;
+
+    if (lib.empty())
+        throw std::invalid_argument("The library path to lookup is an empty string");
+    if (lib.find('/') == std::string::npos)
+        throw std::invalid_argument("Could not load library '" + lib + "': invalid path");
+
+    lib_name = lib.substr(lib.find_last_of('/') + 1);
+    lib_dir = lib.substr(0, lib.find_last_of('/'));
 
     if (lib_name.empty())
-        throw std::invalid_argument("Could not load library '" + lib_path + "': invalid path");
+        throw std::invalid_argument("Could not load library '" + lib + "': invalid path");
 
     lib_name = decorations.decorate(lib_name);
-    lib_path = lib_dir + '/' + lib_name;
+    lib = lib_dir + '/' + lib_name;
 
-    m_handle = open_lib(lib_path.c_str());
+    m_handle = open_lib(lib.c_str());
     if (!m_handle)
-        throw load_error("Could not load library '" + lib_path + "'\n" + get_error_description());
+        throw load_error("Could not load library '" + lib + "'\n" + get_error_description());
 
 #if !(defined(_WIN32) || defined(_WIN64))
-    m_fd = open(lib_path.c_str(), O_RDONLY);
+    m_fd = open(lib.c_str(), O_RDONLY);
     if (m_fd < 0)
-        throw load_error("Could not open file '" + lib_path + "': " + strerror(errno));
+        throw load_error("Could not open file '" + lib + "': " + strerror(errno));
 #endif
 }
+
+library::library(const std::string &lib_path, decorations decorations)
+    : library(lib_path.c_str(), decorations) {}
 
 #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 library::library(const std::filesystem::path &lib_path, decorations decorations)

@@ -139,7 +139,8 @@ public:
      *  @param lib_path the path to the dynamic library to load
      *  @param decorations os decorations to append to the library name
      */
-    explicit library(std::string lib_path, decorations decorations = decorations::none());
+    explicit library(const char *lib_path, decorations decorations = decorations::none());
+    explicit library(const std::string &lib_path, decorations decorations = decorations::none());
 #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
     explicit library(const std::filesystem::path &lib_path, decorations decorations = decorations::none());
 #endif
