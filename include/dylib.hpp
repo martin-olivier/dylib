@@ -254,6 +254,3 @@ protected:
 };
 
 } // namespace dylib
-
-#undef DYLIB_WIN_MAC_OTHER
-#undef DYLIB_WIN_OTHER
