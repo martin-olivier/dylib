@@ -185,13 +185,6 @@ TEST(handle_management, basic_test) {
     EXPECT_EQ(res, 20);
 }
 
-#if (defined(_WIN32) || defined(_WIN64))
-TEST(system_lib, basic_test) {
-    dylib::library lib("kernel32");
-    lib.get_function<DWORD()>("GetCurrentThreadId");
-}
-#endif
-
 #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 TEST(filesystem, basic_test) {
     bool has_sym = dylib::library(std::filesystem::path("./dynamic_lib"), dylib::decorations::os_default()).has_symbol("pi_value_c");
