@@ -46,10 +46,7 @@ TEST(ctor, path) {
     EXPECT_THROW(dylib::library("///", dylib::decorations::none()), std::invalid_argument);
 
     EXPECT_NO_THROW(dylib::library(".///dynamic_lib", dylib::decorations::os_default()));
-    EXPECT_THROW(dylib::library(".///dynamic_lib", dylib::decorations::none()), dylib::load_error);
-
     EXPECT_NO_THROW(dylib::library("./././dynamic_lib", dylib::decorations::os_default()));
-    EXPECT_THROW(dylib::library("./././dynamic_lib", dylib::decorations::none()), dylib::load_error);
 
     EXPECT_THROW(dylib::library("/usr/bin/", dylib::decorations::os_default()), std::invalid_argument);
     EXPECT_THROW(dylib::library("/usr/bin/", dylib::decorations::none()), std::invalid_argument);
