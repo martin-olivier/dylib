@@ -61,14 +61,11 @@ static_assert(std::is_pointer<native_handle_type>::value, "Expecting HINSTANCE t
 static_assert(std::is_pointer<native_symbol_type>::value, "Expecting FARPROC to be a pointer");
 
 struct decorations {
-    const char *prefix;
-    const char *suffix;
+    const char *prefix{""};
+    const char *suffix{""};
 
     static decorations none() noexcept {
-        return {
-            "",
-            "",
-        };
+        return {};
     }
 
     static decorations os_default() noexcept {
