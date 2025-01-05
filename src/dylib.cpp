@@ -18,17 +18,13 @@
 #include "dylib.hpp"
 
 using dylib::library;
+using dylib::native_handle_type;
+using dylib::native_symbol_type;
 
-
+std::vector<std::string> get_symbols(native_handle_type handle, int fd, bool demangle, bool loadable);
 std::string demangle_symbol(const char *symbol);
 
-#if (defined(_WIN32) || defined(_WIN64))
-std::vector<std::string> get_symbols(HMODULE handle, bool demangle, bool loadable);
-#else
-std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool loadable);
-#endif
-
-static dylib::native_handle_type open_lib(const char *path) noexcept {
+static native_handle_type open_lib(const char *path) noexcept {
 #if (defined(_WIN32) || defined(_WIN64))
     return LoadLibraryA(path);
 #else
@@ -36,7 +32,7 @@ static dylib::native_handle_type open_lib(const char *path) noexcept {
 #endif
 }
 
-static dylib::native_symbol_type locate_symbol(dylib::native_handle_type lib, const char *name) noexcept {
+static native_symbol_type locate_symbol(native_handle_type lib, const char *name) noexcept {
 #if (defined(_WIN32) || defined(_WIN64))
     return GetProcAddress(lib, name);
 #else
@@ -44,7 +40,7 @@ static dylib::native_symbol_type locate_symbol(dylib::native_handle_type lib, co
 #endif
 }
 
-static void close_lib(dylib::native_handle_type lib) noexcept {
+static void close_lib(native_handle_type lib) noexcept {
 #if (defined(_WIN32) || defined(_WIN64))
     FreeLibrary(lib);
 #else
@@ -148,8 +144,8 @@ library::~library() {
 #endif
 }
 
-dylib::native_symbol_type library::get_symbol(const char *symbol_name) const {
-    dylib::native_symbol_type symbol;
+native_symbol_type library::get_symbol(const char *symbol_name) const {
+    native_symbol_type symbol;
     size_t symbol_name_len;
 
     if (!symbol_name)
@@ -192,7 +188,7 @@ dylib::native_symbol_type library::get_symbol(const char *symbol_name) const {
     return symbol;
 }
 
-dylib::native_symbol_type library::get_symbol(const std::string &symbol_name) const {
+native_symbol_type library::get_symbol(const std::string &symbol_name) const {
     return get_symbol(symbol_name.c_str());
 }
 
@@ -206,7 +202,7 @@ bool library::has_symbol(const std::string &symbol_name) const noexcept {
     return has_symbol(symbol_name.c_str());
 }
 
-dylib::native_handle_type library::native_handle() noexcept {
+native_handle_type library::native_handle() noexcept {
     return m_handle;
 }
 
@@ -217,9 +213,7 @@ std::vector<std::string> library::symbols(symbol_params params) const {
     try {
         return get_symbols(
             m_handle,
-#if !(defined(_WIN32) || defined(_WIN64))
-            m_fd,
-#endif
+            DYLIB_WIN_OTHER(-1, m_fd),
             params.demangle,
             params.loadable
         );

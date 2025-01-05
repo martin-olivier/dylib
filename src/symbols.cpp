@@ -43,7 +43,7 @@ static void add_symbol(std::vector<std::string> &result, const char *symbol, boo
 #include <windows.h>
 #include <tchar.h>
 
-std::vector<std::string> get_symbols(HMODULE handle, bool demangle, bool loadable) {
+std::vector<std::string> get_symbols(HMODULE handle, int fd, bool demangle, bool loadable) {
     std::vector<std::string> symbols_list;
     PIMAGE_EXPORT_DIRECTORY pExportDir;
     PIMAGE_DOS_HEADER pDosHeader;
