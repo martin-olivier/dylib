@@ -18,7 +18,6 @@
 #include <utility>
 
 #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
-#define DYLIB_CPP17
 #include <filesystem>
 #endif
 
@@ -61,14 +60,32 @@ using native_symbol_type = DYLIB_WIN_OTHER(FARPROC, void *);
 static_assert(std::is_pointer<native_handle_type>::value, "Expecting HINSTANCE to be a pointer");
 static_assert(std::is_pointer<native_symbol_type>::value, "Expecting FARPROC to be a pointer");
 
+struct decorations {
+    const char *prefix;
+    const char *suffix;
+
+    static decorations none() noexcept {
+        return {
+            .prefix = "",
+            .suffix = "",
+        };
+    }
+
+    static decorations os_default() noexcept {
+        return {
+            .prefix = DYLIB_WIN_OTHER("", "lib"),
+            .suffix = DYLIB_WIN_MAC_OTHER(".dll", ".dylib", ".so"),
+        };
+    }
+
+    std::string decorate(const std::string &lib_name) const {
+        return prefix + lib_name + suffix;
+    }
+};
+
 struct symbol_params {
     bool demangle{false};
     bool loadable{false};
-};
-
-struct filename_components {
-    static constexpr const char *prefix = DYLIB_WIN_OTHER("", "lib");
-    static constexpr const char *suffix = DYLIB_WIN_MAC_OTHER(".dll", ".dylib", ".so");
 };
 
 /**
@@ -119,36 +136,12 @@ public:
      *  @throws dylib::load_error if the library could not be opened (including
      *  the case of the library file not being found)
      *
-     *  @param dir_path the directory path where is located the dynamic library you want to load
-     *  @param lib_name the name of the dynamic library to load
-     *  @param decorations add os decorations to the library name
+     *  @param lib_path the path to the dynamic library to load
+     *  @param decorations os decorations to append to the library name
      */
-    library(const char *dir_path, const char *lib_name, bool decorations = true);
-
-    library(const std::string &dir_path, const std::string &lib_name, bool decorations = true)
-        : library(dir_path.c_str(), lib_name.c_str(), decorations) {}
-
-    library(const std::string &dir_path, const char *lib_name, bool decorations = true)
-        : library(dir_path.c_str(), lib_name, decorations) {}
-
-    library(const char *dir_path, const std::string &lib_name, bool decorations = true)
-        : library(dir_path, lib_name.c_str(), decorations) {}
-
-    explicit library(const std::string &lib_name, bool decorations = true)
-        : library("", lib_name.c_str(), decorations) {}
-
-    explicit library(const char *lib_name, bool decorations = true)
-        : library("", lib_name, decorations) {}
-
-#ifdef DYLIB_CPP17
-    explicit library(const std::filesystem::path &lib_path)
-        : library("", lib_path.string().c_str(), false) {}
-
-    library(const std::filesystem::path &dir_path, const std::string &lib_name, bool decorations = true)
-        : library(dir_path.string().c_str(), lib_name.c_str(), decorations) {}
-
-    library(const std::filesystem::path &dir_path, const char *lib_name, bool decorations = true)
-        : library(dir_path.string().c_str(), lib_name, decorations) {}
+    explicit library(std::string lib_path, decorations decorations = decorations::none());
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    explicit library(const std::filesystem::path &lib_path, decorations decorations = decorations::none());
 #endif
 
     ~library();
@@ -263,4 +256,3 @@ protected:
 
 #undef DYLIB_WIN_MAC_OTHER
 #undef DYLIB_WIN_OTHER
-#undef DYLIB_CPP17

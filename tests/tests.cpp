@@ -9,7 +9,7 @@
 
 TEST(example, example_test) {
     testing::internal::CaptureStdout();
-    dylib::library lib("./", "dynamic_lib");
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
 
     auto adder = lib.get_function<double(double, double)>("adder_c");
     EXPECT_EQ(adder(5, 10), 15);
@@ -27,7 +27,7 @@ TEST(example, example_test) {
 
 TEST(ctor, bad_library) {
     try {
-        dylib::library lib("./", "no_such_library");
+        dylib::library lib("./no_such_library", dylib::decorations::os_default());
         EXPECT_EQ(true, false);
     }
     catch (const dylib::load_error &) {
@@ -35,14 +35,34 @@ TEST(ctor, bad_library) {
     }
 }
 
+TEST(ctor, path) {
+    EXPECT_THROW(dylib::library("/", dylib::decorations::os_default()), std::invalid_argument);
+    EXPECT_THROW(dylib::library("/", dylib::decorations::none()), std::invalid_argument);
+
+    EXPECT_THROW(dylib::library("/lib", dylib::decorations::os_default()), dylib::load_error);
+    EXPECT_THROW(dylib::library("/lib", dylib::decorations::none()), dylib::load_error);
+
+    EXPECT_THROW(dylib::library("///", dylib::decorations::os_default()), std::invalid_argument);
+    EXPECT_THROW(dylib::library("///", dylib::decorations::none()), std::invalid_argument);
+
+    EXPECT_NO_THROW(dylib::library(".///dynamic_lib", dylib::decorations::os_default()));
+    EXPECT_THROW(dylib::library(".///dynamic_lib", dylib::decorations::none()), dylib::load_error);
+
+    EXPECT_NO_THROW(dylib::library("./././dynamic_lib", dylib::decorations::os_default()));
+    EXPECT_THROW(dylib::library("./././dynamic_lib", dylib::decorations::none()), dylib::load_error);
+
+    EXPECT_THROW(dylib::library("/usr/bin/", dylib::decorations::os_default()), std::invalid_argument);
+    EXPECT_THROW(dylib::library("/usr/bin/", dylib::decorations::none()), std::invalid_argument);
+}
+
 TEST(multiple_handles, basic_test) {
-    dylib::library libA("./", "dynamic_lib");
-    dylib::library libB("./", "dynamic_lib");
+    dylib::library libA("./dynamic_lib", dylib::decorations::os_default());
+    dylib::library libB("./dynamic_lib", dylib::decorations::os_default());
 }
 
 TEST(get_function, bad_symbol) {
     try {
-        dylib::library lib("./", "dynamic_lib");
+        dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
         lib.get_function<double(double, double)>("unknown");
         EXPECT_EQ(true, false);
     }
@@ -53,7 +73,7 @@ TEST(get_function, bad_symbol) {
 
 TEST(get_variable, bad_symbol) {
     try {
-        dylib::library lib("./", "dynamic_lib");
+        dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
         lib.get_variable<double>("unknown");
         EXPECT_EQ(true, false);
     }
@@ -63,7 +83,7 @@ TEST(get_variable, bad_symbol) {
 }
 
 TEST(get_variable, alter_variables) {
-    dylib::library lib("./", "dynamic_lib");
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
 
     auto &pi = lib.get_variable<double>("pi_value_c");
     EXPECT_EQ(pi, 3.14159);
@@ -80,14 +100,7 @@ TEST(get_variable, alter_variables) {
 
 TEST(invalid_argument, null_pointer) {
     try {
-        dylib::library(nullptr);
-        EXPECT_EQ(true, false);
-    }
-    catch (const std::invalid_argument &) {
-        EXPECT_EQ(true, true);
-    }
-    try {
-        dylib::library lib("./", "dynamic_lib");
+        dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
         lib.get_function<void()>(nullptr);
         EXPECT_EQ(true, false);
     }
@@ -95,7 +108,7 @@ TEST(invalid_argument, null_pointer) {
         EXPECT_EQ(true, true);
     }
     try {
-        dylib::library lib("./", "dynamic_lib");
+        dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
         lib.get_variable<void *>(nullptr);
         EXPECT_EQ(true, false);
     }
@@ -105,14 +118,15 @@ TEST(invalid_argument, null_pointer) {
 }
 
 TEST(manual_decorations, basic_test) {
-    dylib::library lib(".", dylib::filename_components::prefix + std::string("dynamic_lib") + dylib::filename_components::suffix, false);
+    dylib::decorations os_decorations = dylib::decorations::os_default();
+    dylib::library lib(std::string("./") + os_decorations.prefix + std::string("dynamic_lib") + os_decorations.suffix, dylib::decorations::none());
     auto pi = lib.get_variable<double>("pi_value_c");
     EXPECT_EQ(pi, 3.14159);
 }
 
 TEST(std_move, basic_test) {
     try {
-        dylib::library lib("./", "dynamic_lib");
+        dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
         dylib::library other(std::move(lib));
         auto pi = other.get_variable<double>("pi_value_c");
         EXPECT_EQ(pi, 3.14159);
@@ -128,7 +142,7 @@ TEST(std_move, basic_test) {
 }
 
 TEST(has_symbol, basic_test) {
-    dylib::library dummy("./", "dynamic_lib");
+    dylib::library dummy("./dynamic_lib", dylib::decorations::os_default());
     dylib::library lib(std::move(dummy));
 
     EXPECT_TRUE(lib.has_symbol("pi_value_c"));
@@ -138,7 +152,7 @@ TEST(has_symbol, basic_test) {
 }
 
 TEST(handle_management, basic_test) {
-    dylib::library lib("./", "dynamic_lib");
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
     EXPECT_FALSE(lib.native_handle() == nullptr);
     auto handle = lib.native_handle();
 #if (defined(_WIN32) || defined(_WIN64))
@@ -185,7 +199,7 @@ TEST(filesystem, basic_test) {
 
     bool found = false;
     for (const auto &file : std::filesystem::recursive_directory_iterator(".")) {
-        if (file.path().extension() == dylib::filename_components::suffix) {
+        if (file.path().extension() == dylib::decorations::os_default().suffix) {
             try {
                 dylib::library lib(file.path());
                 if (lib.has_symbol("pi_value_c"))
@@ -198,7 +212,7 @@ TEST(filesystem, basic_test) {
 #endif
 
 TEST(cpp_symbols, basic_test) {
-    dylib::library lib("./", "dynamic_lib");
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
 
     auto mean = lib.get_variable<double>("meaning_of_life");
     EXPECT_EQ(mean, 42);
