@@ -101,6 +101,10 @@ library::library(const char *lib_path, dylib::decorations decorations) {
 
     lib = lib_path;
 
+#if (defined(_WIN32) || defined(_WIN64))
+    std::replace(lib.begin(), lib.end(), '\\', '/');
+#endif
+
     if (lib.empty())
         throw std::invalid_argument("The library path to lookup is an empty string");
     if (lib.find('/') == std::string::npos)
