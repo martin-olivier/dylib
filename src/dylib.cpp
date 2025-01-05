@@ -102,7 +102,8 @@ library::library(const char *lib_path, dylib::decorations decorations) {
     lib = lib_path;
 
 #if (defined(_WIN32) || defined(_WIN64))
-    std::replace(lib.begin(), lib.end(), '\\', '/');
+    while (lib.find('\\') != std::string::npos)
+        lib.replace(lib.find('\\'), 1, "/");
 #endif
 
     if (lib.empty())
