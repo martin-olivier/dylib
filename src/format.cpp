@@ -19,7 +19,7 @@ static void replace_occurrences(std::string &symbol, const std::string &find, co
 }
 
 /************************   MSVC   ************************/
-#if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
+#if defined(_WIN32) && defined(_MSC_VER)
 
 static void add_space_after_comma(std::string &symbol) {
     std::string result;

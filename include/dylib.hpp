@@ -21,7 +21,7 @@
 #include <filesystem>
 #endif
 
-#if (defined(_WIN32) || defined(_WIN64))
+#if defined(_WIN32)
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #define DYLIB_UNDEFINE_LEAN_AND_MEAN
@@ -41,7 +41,7 @@
 #endif
 #endif
 
-#if (defined(_WIN32) || defined(_WIN64))
+#if defined(_WIN32)
 #define DYLIB_WIN_MAC_OTHER(win_def, mac_def, other_def) win_def
 #define DYLIB_WIN_OTHER(win_def, other_def) win_def
 #elif defined(__APPLE__)
@@ -245,7 +245,7 @@ public:
 
 protected:
     native_handle_type m_handle{nullptr};
-#if !(defined(_WIN32) || defined(_WIN64))
+#if !defined(_WIN32)
     int m_fd{-1};
 #endif
 };

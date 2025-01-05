@@ -38,7 +38,7 @@ static void add_symbol(std::vector<std::string> &result, const char *symbol, boo
 }
 
 /************************   Windows   ************************/
-#if (defined(_WIN32) || defined(_WIN64))
+#if defined(_WIN32)
 
 #include <windows.h>
 #include <tchar.h>

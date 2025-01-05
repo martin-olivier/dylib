@@ -12,7 +12,7 @@
 std::string format_symbol(std::string input);
 
 /************************   MSVC   ************************/
-#if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
+#if defined(_WIN32) && defined(_MSC_VER)
 
 #include <windows.h>
 #include <dbghelp.h>

@@ -3,7 +3,7 @@
 
 #include "dylib.hpp"
 
-#if !(defined(_WIN32) || defined(_WIN64))
+#if !defined(_WIN32)
 #include <dlfcn.h>
 #endif
 
@@ -152,7 +152,7 @@ TEST(handle_management, basic_test) {
     dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
     EXPECT_FALSE(lib.native_handle() == nullptr);
     auto handle = lib.native_handle();
-#if (defined(_WIN32) || defined(_WIN64))
+#if defined(_WIN32)
     auto sym = GetProcAddress(handle, "adder_c");
 #else
     auto sym = dlsym(handle, "adder_c");

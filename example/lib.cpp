@@ -1,6 +1,6 @@
 #include <iostream>
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32)
 #define LIB_EXPORT __declspec(dllexport)
 #else
 #define LIB_EXPORT
