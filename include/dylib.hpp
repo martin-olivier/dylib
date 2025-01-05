@@ -61,18 +61,21 @@ static_assert(std::is_pointer<native_handle_type>::value, "Expecting HINSTANCE t
 static_assert(std::is_pointer<native_symbol_type>::value, "Expecting FARPROC to be a pointer");
 
 struct decorations {
-    const char *prefix{""};
-    const char *suffix{""};
+    const char *prefix;
+    const char *suffix;
+
+    decorations() : prefix(""), suffix("") {}
+    decorations(const char *prefix, const char *suffix) : prefix(prefix), suffix(suffix) {}
 
     static decorations none() noexcept {
         return decorations();
     }
 
     static decorations os_default() noexcept {
-        return decorations {
+        return decorations(
             DYLIB_WIN_OTHER("", "lib"),
-            DYLIB_WIN_MAC_OTHER(".dll", ".dylib", ".so"),
-        };
+            DYLIB_WIN_MAC_OTHER(".dll", ".dylib", ".so")
+        );
     }
 
     std::string decorate(const std::string &lib_name) const {
