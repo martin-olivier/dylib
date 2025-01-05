@@ -66,15 +66,15 @@ struct decorations {
 
     static decorations none() noexcept {
         return {
-            .prefix = "",
-            .suffix = "",
+            "",
+            "",
         };
     }
 
     static decorations os_default() noexcept {
         return {
-            .prefix = DYLIB_WIN_OTHER("", "lib"),
-            .suffix = DYLIB_WIN_MAC_OTHER(".dll", ".dylib", ".so"),
+            DYLIB_WIN_OTHER("", "lib"),
+            DYLIB_WIN_MAC_OTHER(".dll", ".dylib", ".so"),
         };
     }
 
