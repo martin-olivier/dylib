@@ -7,9 +7,6 @@
  * This library is released under MIT license
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include <vector>
 #include <string>
 #include <cstring>
@@ -222,62 +219,42 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
 
 #else /************************   Linux   ************************/
 
-#include <libelf.h>
-#include <gelf.h>
 #include <dlfcn.h>
-#include <fcntl.h>
-#include <unistd.h>
+#include <link.h>
+#include <elf.h>
 
 std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool loadable) {
     std::vector<std::string> result;
-    Elf_Scn *scn = nullptr;
-    Elf *elf;
+    struct link_map *map = nullptr;
+    Elf64_Sym *symtab = nullptr;
+    char *strtab = nullptr;
+    int symentries = 0;
+    int size = 0;
 
-    if (elf_version(EV_CURRENT) == EV_NONE)
-        throw std::string("ELF library is out of date");
+    if (dlinfo(handle, RTLD_DI_LINKMAP, &map) != 0)
+        throw std::string("dlinfo failed: ") + dlerror();
 
-    elf = elf_begin(fd, ELF_C_READ, nullptr);
-    if (!elf)
-        throw std::string("elf_begin() failed");
-
-    while ((scn = elf_nextscn(elf, scn))) {
-        GElf_Shdr shdr;
-
-        if (gelf_getshdr(scn, &shdr) == nullptr) {
-            elf_end(elf);
-            throw std::string("gelf_getshdr() failed");
-        }
-
-        if (shdr.sh_type == SHT_SYMTAB || shdr.sh_type == SHT_DYNSYM) {
-            Elf_Data *data = elf_getdata(scn, nullptr);
-
-            if (!data) {
-                elf_end(elf);
-                throw std::string("elf_getdata() failed");
-            }
-
-            for (int i = 0; i < (shdr.sh_size / shdr.sh_entsize); i++) {
-                GElf_Sym sym;
-                char *name;
-
-                if (!gelf_getsym(data, i, &sym)) {
-                    elf_end(elf);
-                    throw std::string("gelf_getsym() failed");
-                }
-
-                name = elf_strptr(elf, shdr.sh_link, sym.st_name);
-                if (!name) {
-                    elf_end(elf);
-                    throw std::string("elf_strptr() failed");
-                }
-
-                if (!loadable || dlsym(handle, name))
-                    add_symbol(result, name, demangle);
-            }
-        }
+    for (auto section = map->l_ld; section->d_tag != DT_NULL; ++section) {
+        if (section->d_tag == DT_SYMTAB)
+            symtab = (Elf64_Sym *)section->d_un.d_ptr;
+        else if (section->d_tag == DT_STRTAB)
+            strtab = (char*)section->d_un.d_ptr;
+        else if (section->d_tag == DT_SYMENT)
+            symentries = section->d_un.d_val;
     }
 
-    elf_end(elf);
+    size = strtab - (char *)symtab;
+
+    for (int i = 0; i < size / symentries; ++i) {
+        Elf64_Sym* sym = &symtab[i];
+
+        if (ELF64_ST_TYPE(symtab[i].st_info) == STT_FUNC) {
+            const char *name = &strtab[sym->st_name];
+
+            if (!loadable || dlsym(handle, name))
+                add_symbol(result, name, demangle);
+        }
+    }
 
     return result;
 }
