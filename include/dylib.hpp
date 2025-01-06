@@ -248,7 +248,7 @@ public:
 
 protected:
     native_handle_type m_handle{nullptr};
-#if !defined(_WIN32)
+#if defined(__APPLE__)
     int m_fd{-1};
 #endif
 };

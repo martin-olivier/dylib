@@ -85,7 +85,6 @@ std::vector<std::string> get_symbols(HMODULE handle, int fd, bool demangle, bool
 #include <mach-o/nlist.h>
 #include <mach-o/fat.h>
 #include <dlfcn.h>
-#include <fcntl.h>
 #include <unistd.h>
 #include <utility>
 
@@ -242,6 +241,9 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
         else if (section->d_tag == DT_SYMENT)
             symentries = section->d_un.d_val;
     }
+
+    if (!symtab || !strtab || symentries == 0)
+        return result;
 
     size = strtab - (char *)symtab;
 

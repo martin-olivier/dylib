@@ -72,7 +72,7 @@ static std::string get_error_description() noexcept {
 
 library::library(library &&other) noexcept {
     std::swap(m_handle, other.m_handle);
-#if !defined(_WIN32)
+#if defined(__APPLE__)
     std::swap(m_fd, other.m_fd);
 #endif
 }
@@ -80,7 +80,7 @@ library::library(library &&other) noexcept {
 library &library::operator=(library &&other) noexcept {
     if (this != &other) {
         std::swap(m_handle, other.m_handle);
-#if !defined(_WIN32)
+#if defined(__APPLE__)
         std::swap(m_fd, other.m_fd);
 #endif
     }
@@ -120,7 +120,7 @@ library::library(const char *lib_path, dylib::decorations decorations) {
     if (!m_handle)
         throw load_error("Could not load library '" + lib + "'\n" + get_error_description());
 
-#if !defined(_WIN32)
+#if defined(__APPLE__)
     m_fd = open(lib.c_str(), O_RDONLY);
     if (m_fd < 0)
         throw load_error("Could not open file '" + lib + "': " + strerror(errno));
@@ -138,7 +138,7 @@ library::library(const std::filesystem::path &lib_path, decorations decorations)
 library::~library() {
     if (m_handle)
         close_lib(m_handle);
-#if !defined(_WIN32)
+#if defined(__APPLE__)
     if (m_fd > -1)
         close(m_fd);
 #endif
@@ -213,7 +213,7 @@ std::vector<std::string> library::symbols(symbol_params params) const {
     try {
         return get_symbols(
             m_handle,
-            DYLIB_WIN_OTHER(-1, m_fd),
+            DYLIB_WIN_MAC_OTHER(-1, m_fd, -1),
             params.demangle,
             params.loadable
         );
