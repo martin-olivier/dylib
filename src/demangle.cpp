@@ -54,7 +54,6 @@ std::string demangle_symbol(const char *symbol) {
 #else /************************   gcc, clang, MinGW   ************************/
 
 #include <cxxabi.h>
-#include <cstring>
 
 std::string demangle_symbol(const char *symbol) {
     std::string result;
