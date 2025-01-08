@@ -218,14 +218,25 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
 
 #else /************************   Linux   ************************/
 
+#include <stdint.h>
 #include <dlfcn.h>
 #include <link.h>
 #include <elf.h>
 
+#if INTPTR_MAX == INT32_MAX
+    using ElfSym = Elf32_Sym;
+    #define ELF_ST_TYPE ELF32_ST_TYPE
+#elif INTPTR_MAX == INT64_MAX
+    using ElfSym = Elf64_Sym;
+    #define ELF_ST_TYPE ELF64_ST_TYPE
+#else
+    #error "Environment not 32 or 64-bit."
+#endif
+
 std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool loadable) {
     std::vector<std::string> result;
     struct link_map *map = nullptr;
-    Elf64_Sym *symtab = nullptr;
+    ElfSym *symtab = nullptr;
     char *strtab = nullptr;
     int symentries = 0;
     int size = 0;
@@ -235,7 +246,7 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
 
     for (auto section = map->l_ld; section->d_tag != DT_NULL; ++section) {
         if (section->d_tag == DT_SYMTAB)
-            symtab = (Elf64_Sym *)section->d_un.d_ptr;
+            symtab = (ElfSym *)section->d_un.d_ptr;
         else if (section->d_tag == DT_STRTAB)
             strtab = (char*)section->d_un.d_ptr;
         else if (section->d_tag == DT_SYMENT)
@@ -248,9 +259,9 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
     size = strtab - (char *)symtab;
 
     for (int i = 0; i < size / symentries; ++i) {
-        Elf64_Sym* sym = &symtab[i];
+        ElfSym* sym = &symtab[i];
 
-        if (ELF64_ST_TYPE(symtab[i].st_info) == STT_FUNC) {
+        if (ELF_ST_TYPE(symtab[i].st_info) == STT_FUNC) {
             const char *name = &strtab[sym->st_name];
 
             if (!loadable || dlsym(handle, name))
