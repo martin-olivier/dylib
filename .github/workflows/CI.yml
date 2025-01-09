@@ -169,7 +169,7 @@ jobs:
           - arch: universal
             osx_arch: arm64;x86_64
 
-    name: macos-latest ${{ matrix.action }} / C++${{ matrix.cxx-std }} / clang
+    name: macos-latest ${{ matrix.arch }} ${{ matrix.action }} / C++${{ matrix.cxx-std }} / clang
     runs-on: macos-latest
 
     steps:
