@@ -107,6 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: i386/debian:latest
+      options: --user root
       volumes:
         - ${{ github.workspace }}:/workspace
 
@@ -114,10 +115,10 @@ jobs:
       - name: Update packages
         run: apt update
 
-      - name: Install build tools and node to be able to checkout the repository
+      - name: Install build tools
         run: apt install -y build-essential cmake nodejs
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v2
 
       - name: Generate project files
         run: cmake . -B build -DCMAKE_CXX_STANDARD=${{ matrix.cxx-std }} -DDYLIB_BUILD_TESTS=ON -DDYLIB_WARNING_AS_ERRORS=ON
