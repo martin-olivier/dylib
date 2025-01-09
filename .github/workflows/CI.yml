@@ -108,9 +108,11 @@ jobs:
     container:
       image: i386/debian:latest
       volumes:
-        - ${{ github.workspace }}:/github/workspace
+        - ${{ github.workspace }}:/workspace
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Update packages
         run: apt update
 
