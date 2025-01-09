@@ -21,8 +21,9 @@ defaults:
   run:
     shell: bash
 
+
 jobs:
-  unit_tests_windows:
+  windows_msvc:
     strategy:
       fail-fast: false
       matrix:
@@ -44,7 +45,8 @@ jobs:
         working-directory: build
         run: ctest --verbose
 
-  unit_tests_msys2:
+
+  windows_msys2:
     defaults:
       run:
         shell: msys2 {0}
@@ -76,7 +78,8 @@ jobs:
         working-directory: build
         run: ctest --verbose
 
-  unit_tests_linux:
+
+  linux:
     strategy:
       fail-fast: false
       matrix:
@@ -90,9 +93,10 @@ jobs:
             docker_arch: i386
 
     name: linux ${{ matrix.arch }} ${{ matrix.action }} / C++${{ matrix.cxx-std }} / gcc)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     container:
-      image: ${{ matrix.docker_arch }}/debian:latest
+      # replace with debian 13 (or latest) when available
+      image: ${{ matrix.docker_arch }}/debian:testing
       options: --user root
       volumes:
         - ${{ github.workspace }}:/workspace
@@ -123,7 +127,8 @@ jobs:
         working-directory: build
         run: valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./unit_tests
 
-  unit_tests_macos:
+
+  macos:
     strategy:
       fail-fast: false
       matrix:

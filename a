@@ -1,0 +1,6 @@
+apt update
+apt install -y build-essential cmake valgrind
+cmake . -B build -DCMAKE_CXX_STANDARD=${{ matrix.cxx-std }} -DDYLIB_BUILD_TESTS=ON -DDYLIB_WARNING_AS_ERRORS=ON
+cmake --build build
+cd build
+valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./unit_tests
