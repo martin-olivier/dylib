@@ -97,19 +97,25 @@ jobs:
         working-directory: build
         run: ctest --verbose
 
-  unit_tests_32bit_linux:
+  unit_tests_linux:
     strategy:
       fail-fast: false
       matrix:
         cxx-std: [11, 14, 17, 20]
+        arch: [64bit, 32bit]
+        action: [tests, valgrind]
+        include:
+          - arch: 64bit
+            docker_arch: amd64
+          - arch: 32bit
+            docker_arch: i386
 
-    name: debian-latest 32bit (C++${{ matrix.cxx-std }} - gcc)
+    name: linux ${{ matrix.arch }} ${{ matrix.action }} / C++${{ matrix.cxx-std }} / gcc)
     runs-on: ubuntu-latest
     container:
-      image: i386/debian:latest
+      image: ${{ matrix.docker_arch }}/debian:latest
       options: --user root
-      volumes:
-        - ${{ github.workspace }}:/workspace
+      volumes: ${{ github.workspace }}:/workspace
 
     steps:
       # https://github.com/actions/upload-artifact/issues/616
@@ -119,7 +125,7 @@ jobs:
         run: apt update
 
       - name: Install build tools
-        run: apt install -y build-essential cmake
+        run: apt install -y build-essential cmake valgrind
 
       - name: Generate project files
         run: cmake . -B build -DCMAKE_CXX_STANDARD=${{ matrix.cxx-std }} -DDYLIB_BUILD_TESTS=ON -DDYLIB_WARNING_AS_ERRORS=ON
@@ -128,29 +134,12 @@ jobs:
         run: cmake --build build
 
       - name: Run unit tests
+        if: ${{ matrix.action == 'tests'}}
         working-directory: build
         run: ctest --verbose
 
-  memory_check:
-    name: memory check
-    runs-on: ubuntu-24.04
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Update packages
-        run: sudo apt update
-
-      - name: Install valgrind
-        run: sudo apt install -y valgrind
-
-      - name: Generate tests build file
-        run: cmake . -B build -DCMAKE_CXX_STANDARD=20 -DDYLIB_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
-
-      - name: Build unit tests
-        run: cmake --build build
-
       - name: Run unit tests with valgrind
+        if: ${{ matrix.action == 'valgrind'}}
         working-directory: build
         run: valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./unit_tests
 
@@ -169,7 +158,7 @@ jobs:
           - arch: universal
             osx_arch: arm64;x86_64
 
-    name: macos-latest ${{ matrix.arch }} ${{ matrix.action }} / C++${{ matrix.cxx-std }} / clang
+    name: macos ${{ matrix.arch }} ${{ matrix.action }} / C++${{ matrix.cxx-std }} / clang
     runs-on: macos-latest
 
     steps:
