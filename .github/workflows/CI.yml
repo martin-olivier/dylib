@@ -56,7 +56,7 @@ jobs:
         sys: [mingw32, mingw64, ucrt64, clang64]
         cxx-std: [11, 14, 17, 20]
 
-    name: windows / C++${{ matrix.cxx-std }} / ${{matrix.sys}})
+    name: windows / C++${{ matrix.cxx-std }} / ${{matrix.sys}}
     runs-on: windows-latest
 
     steps:
@@ -92,7 +92,7 @@ jobs:
           - arch: 32bit
             docker_arch: i386
 
-    name: linux ${{ matrix.arch }} ${{ matrix.action }} / C++${{ matrix.cxx-std }} / gcc)
+    name: linux ${{ matrix.arch }} ${{ matrix.action }} / C++${{ matrix.cxx-std }} / gcc
     runs-on: ubuntu-latest
     container:
       # replace with debian 13 (or latest) when available
