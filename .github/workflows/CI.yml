@@ -112,7 +112,7 @@ jobs:
       - name: Update packages
         run: apt update
 
-      - name: Install valgrind
+      - name: Install build tools
         run: apt install -y build-essential cmake
 
       - name: Generate project files
@@ -133,10 +133,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Update packages
-        run: apt update
+        run: sudo apt update
 
       - name: Install valgrind
-        run: apt install -y valgrind
+        run: sudo apt install -y valgrind
 
       - name: Generate tests build file
         run: cmake . -B build -DCMAKE_CXX_STANDARD=20 -DDYLIB_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
