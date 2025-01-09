@@ -115,7 +115,8 @@ jobs:
     container:
       image: ${{ matrix.docker_arch }}/debian:latest
       options: --user root
-      volumes: ${{ github.workspace }}:/workspace
+      volumes:
+        - ${{ github.workspace }}:/workspace
 
     steps:
       # https://github.com/actions/upload-artifact/issues/616
