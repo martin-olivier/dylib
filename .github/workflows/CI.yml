@@ -111,13 +111,13 @@ jobs:
         - ${{ github.workspace }}:/workspace
 
     steps:
-      - uses: actions/checkout@v4
-
       - name: Update packages
         run: apt update
 
-      - name: Install build tools
-        run: apt install -y build-essential cmake
+      - name: Install build tools and node to be able to checkout the repository
+        run: apt install -y build-essential cmake nodejs
+
+      - uses: actions/checkout@v4
 
       - name: Generate project files
         run: cmake . -B build -DCMAKE_CXX_STANDARD=${{ matrix.cxx-std }} -DDYLIB_BUILD_TESTS=ON -DDYLIB_WARNING_AS_ERRORS=ON
