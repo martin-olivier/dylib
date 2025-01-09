@@ -116,8 +116,9 @@ jobs:
         run: apt update
 
       - name: Install build tools
-        run: apt install -y build-essential cmake nodejs
+        run: apt install -y build-essential cmake
 
+      # https://github.com/actions/upload-artifact/issues/616
       - uses: actions/checkout@v1
 
       - name: Generate project files
