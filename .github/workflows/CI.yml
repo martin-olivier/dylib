@@ -107,6 +107,8 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: i386/debian:latest
+      volumes:
+        - ${{ github.workspace }}:/github/workspace
 
     steps:
       - name: Update packages
