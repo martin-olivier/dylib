@@ -153,3 +153,40 @@ jobs:
       - name: Run unit tests with valgrind
         working-directory: build
         run: valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./unit_tests
+
+  unit_tests_macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        cxx-std: [11, 14, 17, 20]
+        arch: [intel, silicon, universal]
+        action: [tests, leaks]
+        include:
+          - arch: intel
+            osx_arch: x86_64
+          - arch: silicon
+            osx_arch: arm64
+          - arch: universal
+            osx_arch: arm64;x86_64
+
+    name: macos-latest ${{ matrix.action }} / C++${{ matrix.cxx-std }} / clang
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate project files
+        run: cmake . -B build "-DCMAKE_OSX_ARCHITECTURES=${{ matrix.osx_arch }}" -DCMAKE_CXX_STANDARD=${{ matrix.cxx-std }} -DDYLIB_BUILD_TESTS=ON -DDYLIB_WARNING_AS_ERRORS=ON
+
+      - name: Build dynamic library and unit tests
+        run: cmake --build build
+
+      - name: Run unit tests
+        if: ${{ matrix.action == 'tests'}}
+        working-directory: build
+        run: ctest --verbose
+
+      - name: Run unit tests with leaks
+        if: ${{ matrix.action == 'leaks'}}
+        working-directory: build
+        run: leaks -atExit -- ./unit_tests
