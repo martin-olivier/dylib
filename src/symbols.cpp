@@ -88,24 +88,32 @@ std::vector<std::string> get_symbols(HMODULE handle, int fd, bool demangle, bool
 #include <unistd.h>
 #include <utility>
 
-static std::vector<std::string> get_symbols_at_off(void *handle, int fd, bool demangle, bool loadable, off_t offset, bool is_64_bit) {
+#if INTPTR_MAX == INT32_MAX
+    using mach_header_arch = mach_header;
+    using nlist_arch = nlist;
+    #define DYLIB_MH_MAGIC MH_MAGIC
+    #define DYLIB_MH_CIGAM MH_CIGAM
+#elif INTPTR_MAX == INT64_MAX
+    using mach_header_arch = mach_header_64;
+    using nlist_arch = nlist_64;
+    #define DYLIB_MH_MAGIC MH_MAGIC_64
+    #define DYLIB_MH_CIGAM MH_CIGAM_64
+#else
+    #error "Environment not 32 or 64-bit."
+#endif
+
+static std::vector<std::string> get_symbols_at_off(void *handle, int fd, bool demangle, bool loadable, off_t offset) {
     std::vector<std::string> symbols_list;
-    struct mach_header_64 mh64;
-    struct mach_header mh;
-    off_t header_offset;
+    mach_header_arch mh;
     uint32_t ncmds;
 
     lseek(fd, offset, SEEK_SET);
 
-    if (is_64_bit)
-        read(fd, &mh64, sizeof(mh64));
-    else
-        read(fd, &mh, sizeof(mh));
+    read(fd, &mh, sizeof(mh));
 
-    ncmds = is_64_bit ? mh64.ncmds : mh.ncmds;
-    header_offset = is_64_bit ? sizeof(struct mach_header_64) : sizeof(struct mach_header);
+    ncmds = mh.ncmds;
 
-    lseek(fd, offset + header_offset, SEEK_SET);
+    lseek(fd, offset + sizeof(mach_header_arch), SEEK_SET);
 
     for (uint32_t i = 0; i < ncmds; i++) {
         struct load_command lc;
@@ -116,55 +124,33 @@ static std::vector<std::string> get_symbols_at_off(void *handle, int fd, bool de
         cmd_offset = lseek(fd, 0, SEEK_CUR);
 
         if (lc.cmd == LC_SYMTAB) {
-            struct nlist_64 *symbols64 = nullptr;
-            struct nlist *symbols = nullptr;
+            std::vector<nlist_arch> symbols;
+            std::vector<char> strtab;
             struct symtab_command symtab;
-            char *strtab;
 
             lseek(fd, cmd_offset - sizeof(lc), SEEK_SET);
             read(fd, &symtab, sizeof(symtab));
 
-            if (is_64_bit) {
-                symbols64 = (struct nlist_64 *)(malloc(symtab.nsyms * sizeof(struct nlist_64)));
-                if (symbols64 == nullptr)
-                    throw std::bad_alloc();
+            symbols.resize(symtab.nsyms);
 
-                lseek(fd, offset + symtab.symoff, SEEK_SET);
-                read(fd, symbols64, symtab.nsyms * sizeof(struct nlist_64));
-            } else {
-                symbols = (struct nlist *)(malloc(symtab.nsyms * sizeof(struct nlist)));
-                if (symbols == nullptr)
-                    throw std::bad_alloc();
+            lseek(fd, offset + symtab.symoff, SEEK_SET);
+            read(fd, symbols.data(), symtab.nsyms * sizeof(nlist_arch));
 
-                lseek(fd, offset + symtab.symoff, SEEK_SET);
-                read(fd, symbols, symtab.nsyms * sizeof(struct nlist));
-            }
-
-            strtab = (char *)(malloc(symtab.strsize));
-            if (strtab == nullptr)
-                throw std::bad_alloc();
+            strtab.resize(symtab.strsize);
 
             lseek(fd, offset + symtab.stroff, SEEK_SET);
-            read(fd, strtab, symtab.strsize);
+            read(fd, strtab.data(), symtab.strsize);
 
             for (uint32_t j = 0; j < symtab.nsyms; j++) {
                 uint32_t strx;
                 char *name;
 
-                if (is_64_bit)
-                    strx = symbols64[j].n_un.n_strx;
-                else
-                    strx = symbols[j].n_un.n_strx;
-
+                strx = symbols[j].n_un.n_strx;
                 name = &strtab[strx];
 
                 if (!loadable || dlsym(handle, name))
                     add_symbol(symbols_list, name, demangle);
             }
-
-            free(symbols64);
-            free(symbols);
-            free(strtab);
         }
 
         lseek(fd, cmd_offset + lc.cmdsize - sizeof(lc), SEEK_SET);
@@ -182,33 +168,25 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
     lseek(fd, 0, SEEK_SET);
 
     if (magic == FAT_MAGIC || magic == FAT_CIGAM) {
+        std::vector<struct fat_arch> fat_arches;
         struct fat_header fat_header;
-        struct fat_arch *fat_arches;
 
         read(fd, &fat_header, sizeof(fat_header));
 
-        fat_arches = (struct fat_arch *)(malloc(sizeof(struct fat_arch) * ntohl(fat_header.nfat_arch)));
-        if (fat_arches == nullptr)
-            throw std::bad_alloc();
+        fat_arches.resize(ntohl(fat_header.nfat_arch));
 
-        read(fd, fat_arches, sizeof(struct fat_arch) * ntohl(fat_header.nfat_arch));
+        read(fd, fat_arches.data(), sizeof(struct fat_arch) * ntohl(fat_header.nfat_arch));
 
         for (uint32_t i = 0; i < ntohl(fat_header.nfat_arch); i++) {
-            std::vector<std::string> tmp = get_symbols_at_off(
-                handle,
-                fd,
-                demangle,
-                loadable,
-                ntohl(fat_arches[i].offset),
-                ntohl(fat_arches[i].cputype) == CPU_TYPE_X86_64);
+            off_t off = ntohl(fat_arches[i].offset);
+            std::vector<std::string> tmp;
+
+            tmp = get_symbols_at_off(handle, fd, demangle, loadable, off);
+
             std::move(tmp.begin(), tmp.end(), std::back_inserter(symbols_list));
         }
-
-        free(fat_arches);
-    } else if (magic == MH_MAGIC_64 || magic == MH_CIGAM_64) {
-        symbols_list = get_symbols_at_off(handle, fd, demangle, loadable, 0, true);
-    } else if (magic == MH_MAGIC || magic == MH_CIGAM) {
-        symbols_list = get_symbols_at_off(handle, fd, demangle, loadable, 0, false);
+    } else if (magic == DYLIB_MH_MAGIC || magic == DYLIB_MH_CIGAM) {
+        symbols_list = get_symbols_at_off(handle, fd, demangle, loadable, 0);
     } else {
         throw std::string("Unsupported file format");
     }
