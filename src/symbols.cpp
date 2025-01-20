@@ -102,8 +102,8 @@ std::vector<std::string> get_symbols(HMODULE handle, int fd, bool demangle, bool
     #error "Environment not 32 or 64-bit."
 #endif
 
-static std::vector<std::string> get_symbols_at_off(void *handle, int fd, bool demangle, bool loadable, off_t offset) {
-    std::vector<std::string> symbols_list;
+static void get_symbols_at_off(std::vector<std::string> &symbols_list, void *handle, int fd,
+                               bool demangle, bool loadable, off_t offset) {
     mach_header_arch mh;
     uint32_t ncmds;
 
@@ -155,8 +155,6 @@ static std::vector<std::string> get_symbols_at_off(void *handle, int fd, bool de
 
         lseek(fd, cmd_offset + lc.cmdsize - sizeof(lc), SEEK_SET);
     }
-
-    return symbols_list;
 }
 
 std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool loadable) {
@@ -179,14 +177,11 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
 
         for (uint32_t i = 0; i < ntohl(fat_header.nfat_arch); i++) {
             off_t off = ntohl(fat_arches[i].offset);
-            std::vector<std::string> tmp;
 
-            tmp = get_symbols_at_off(handle, fd, demangle, loadable, off);
-
-            std::move(tmp.begin(), tmp.end(), std::back_inserter(symbols_list));
+            get_symbols_at_off(symbols_list, handle, fd, demangle, loadable, off);
         }
     } else if (magic == DYLIB_MH_MAGIC || magic == DYLIB_MH_CIGAM) {
-        symbols_list = get_symbols_at_off(handle, fd, demangle, loadable, 0);
+        get_symbols_at_off(symbols_list, handle, fd, demangle, loadable, 0);
     } else {
         throw std::string("Unsupported file format");
     }
