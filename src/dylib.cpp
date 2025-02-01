@@ -111,10 +111,9 @@ library::library(const char *lib_path, dylib::decorations decorations) {
     lib_dir = lib.substr(0, lib.find_last_of('/'));
 
     if (lib_name.empty())
-        throw std::invalid_argument("Could not load library '" + lib + "': invalid path");
+        throw std::invalid_argument("Could not load library '" + lib + "': a directory was provided");
 
-    lib_name = decorations.decorate(lib_name);
-    lib = lib_dir + '/' + lib_name;
+    lib = lib_dir + '/' + decorations.prefix + lib_name + decorations.suffix;
 
     m_handle = open_lib(lib.c_str());
     if (!m_handle)

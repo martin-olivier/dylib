@@ -77,10 +77,6 @@ struct decorations {
             DYLIB_WIN_MAC_OTHER(".dll", ".dylib", ".so")
         );
     }
-
-    std::string decorate(const std::string &lib_name) const {
-        return prefix + lib_name + suffix;
-    }
 };
 
 struct symbol_params {
