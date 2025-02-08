@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 #include <utility>
+#include <vector>
+#include <string>
 
 #include "dylib.hpp"
 
@@ -7,14 +9,14 @@
 #include <dlfcn.h>
 #endif
 
-TEST(example, example_test) {
+TEST(project, example_test) {
     testing::internal::CaptureStdout();
     dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
 
-    auto adder = lib.get_function<double(double, double)>("adder_c");
+    auto adder = lib.get_function<double(double, double)>("adder");
     EXPECT_EQ(adder(5, 10), 15);
 
-    auto printer = lib.get_function<void()>("print_hello_c");
+    auto printer = lib.get_function<void()>("print_hello");
     printer();
     EXPECT_EQ(testing::internal::GetCapturedStdout(), "Hello\n");
 
@@ -25,7 +27,7 @@ TEST(example, example_test) {
     EXPECT_EQ(ptr, (void *)1);
 }
 
-TEST(ctor, path) {
+TEST(library, path) {
     EXPECT_THROW(dylib::library(nullptr), std::invalid_argument);
     EXPECT_THROW(dylib::library(""), std::invalid_argument);
 
@@ -45,52 +47,12 @@ TEST(ctor, path) {
     EXPECT_THROW(dylib::library("/usr/bin/", dylib::decorations::none()), std::invalid_argument);
 }
 
-TEST(multiple_handles, basic_test) {
+TEST(library, multiple_handles) {
     dylib::library libA("./dynamic_lib", dylib::decorations::os_default());
     dylib::library libB("./dynamic_lib", dylib::decorations::os_default());
 }
 
-TEST(get_symbols, bad_symbol) {
-    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
-
-    EXPECT_THROW(lib.get_function<void()>(nullptr), std::invalid_argument);
-    EXPECT_THROW(lib.get_variable<void *>(nullptr), std::invalid_argument);
-
-    EXPECT_THROW(lib.get_function<double()>("unknown"), dylib::symbol_error);
-    EXPECT_THROW(lib.get_variable<double>("unknown"), dylib::symbol_error);
-}
-
-TEST(get_variable, alter_variables) {
-    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
-
-    auto &pi = lib.get_variable<double>("pi_value_c");
-    EXPECT_EQ(pi, 3.14159);
-    pi = 123;
-    auto &pi1 = lib.get_variable<double>("pi_value_c");
-    EXPECT_EQ(pi1, 123);
-
-    auto &ptr = lib.get_variable<void *>("ptr_c");
-    EXPECT_EQ(ptr, (void *)1);
-    ptr = &lib;
-    auto &ptr1 = lib.get_variable<void *>("ptr_c");
-    EXPECT_EQ(ptr1, &lib);
-}
-
-TEST(manual_decorations, basic_test) {
-    dylib::decorations os_decorations = dylib::decorations::os_default();
-    dylib::library lib(
-        std::string("./") +
-        os_decorations.prefix +
-        std::string("dynamic_lib") +
-        os_decorations.suffix,
-        dylib::decorations::none()
-    );
-
-    auto pi = lib.get_variable<double>("pi_value_c");
-    EXPECT_EQ(pi, 3.14159);
-}
-
-TEST(std_move, basic_test) {
+TEST(library, std_move) {
     dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
     dylib::library other(std::move(lib));
 
@@ -105,24 +67,28 @@ TEST(std_move, basic_test) {
     EXPECT_THROW(other.get_variable<double>("pi_value_c"), std::logic_error);
 }
 
-TEST(has_symbol, basic_test) {
-    dylib::library dummy("./dynamic_lib", dylib::decorations::os_default());
-    dylib::library lib(std::move(dummy));
+TEST(library, manual_decorations) {
+    dylib::decorations os_decorations = dylib::decorations::os_default();
+    dylib::library lib(
+        std::string("./") +
+        os_decorations.prefix +
+        std::string("dynamic_lib") +
+        os_decorations.suffix,
+        dylib::decorations::none()
+    );
 
-    EXPECT_TRUE(lib.has_symbol("pi_value_c"));
-    EXPECT_FALSE(lib.has_symbol("bad_symbol"));
-    EXPECT_FALSE(lib.has_symbol(nullptr));
-    EXPECT_FALSE(dummy.has_symbol("pi_value_c"));
+    auto pi = lib.get_variable<double>("pi_value_c");
+    EXPECT_EQ(pi, 3.14159);
 }
 
-TEST(handle_management, basic_test) {
+TEST(library, handle_management) {
     dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
     EXPECT_FALSE(lib.native_handle() == nullptr);
     auto handle = lib.native_handle();
 #if defined(_WIN32)
-    auto sym = GetProcAddress(handle, "adder_c");
+    auto sym = GetProcAddress(handle, "adder");
 #else
-    auto sym = dlsym(handle, "adder_c");
+    auto sym = dlsym(handle, "adder");
 #endif
     EXPECT_FALSE(sym == nullptr);
 
@@ -150,7 +116,7 @@ TEST(handle_management, basic_test) {
 }
 
 #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
-TEST(filesystem, basic_test) {
+TEST(library, std_filesystem) {
     dylib::library(std::filesystem::path("./dynamic_lib"), dylib::decorations::os_default());
 
     bool found = false;
@@ -167,27 +133,90 @@ TEST(filesystem, basic_test) {
 }
 #endif
 
-TEST(cpp_symbols, basic_test) {
+TEST(symbols, bad_symbol) {
     dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
 
-    auto mean = lib.get_variable<double>("meaning_of_life");
-    EXPECT_EQ(mean, 42);
+    EXPECT_THROW(lib.get_function<void()>(nullptr), std::invalid_argument);
+    EXPECT_THROW(lib.get_variable<void *>(nullptr), std::invalid_argument);
+
+    EXPECT_THROW(lib.get_function<double()>("unknown"), dylib::symbol_error);
+    EXPECT_THROW(lib.get_variable<double>("unknown"), dylib::symbol_error);
+}
+
+TEST(symbols, alter_variables) {
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
+
+    auto &pi = lib.get_variable<double>("pi_value_c");
+    EXPECT_EQ(pi, 3.14159);
+    pi = 123;
+    auto &pi1 = lib.get_variable<double>("pi_value_c");
+    EXPECT_EQ(pi1, 123);
+
+    auto &ptr = lib.get_variable<void *>("ptr_c");
+    EXPECT_EQ(ptr, (void *)1);
+    ptr = &lib;
+    auto &ptr1 = lib.get_variable<void *>("ptr_c");
+    EXPECT_EQ(ptr1, &lib);
+}
+
+TEST(symbols, has_symbol) {
+    dylib::library dummy("./dynamic_lib", dylib::decorations::os_default());
+    dylib::library lib(std::move(dummy));
+
+    EXPECT_TRUE(lib.has_symbol("pi_value_c"));
+    EXPECT_FALSE(lib.has_symbol("bad_symbol"));
+    EXPECT_FALSE(lib.has_symbol(nullptr));
+    EXPECT_FALSE(dummy.has_symbol("pi_value_c"));
+}
+
+#define STD_STRING "std::basic_string<char, std::char_traits<char>, std::allocator<char>>"
+#define STD_VECTOR_STRING "std::vector<" STD_STRING ", std::allocator<" STD_STRING ">>"
+
+TEST(cpp_symbols, variables) {
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
+
+    auto meaning = lib.get_variable<double>("meaning_of_life");
+    EXPECT_EQ(meaning, 42);
 
     auto secret = lib.get_variable<const char *>("secret");
     EXPECT_EQ(strcmp(secret, "12345"), 0);
+}
+
+TEST(cpp_symbols, functions) {
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
+
+    auto list_new_find = lib.get_function<std::vector<std::string>()>("list_new_string");
+    auto list_new_full = lib.get_function<std::vector<std::string>()>("list_new_string(void)");
+
+    EXPECT_EQ(list_new_find, list_new_full);
+
+    auto list_add_find = lib.get_function<void(std::vector<std::string> &, std::string)>("list_add_string");
+    auto list_add_full = lib.get_function<void(std::vector<std::string> &, std::string)>("list_add_string(" STD_VECTOR_STRING " &, " STD_STRING ")");
+
+    EXPECT_EQ(list_add_find, list_add_full);
+
+    std::vector<std::string> list = list_new_find();
+
+    list_add_find(list, "Hello");
+    list_add_find(list, "World");
+
+    EXPECT_EQ(list.size(), 2);
+    EXPECT_EQ(list[0], "Hello");
+    EXPECT_EQ(list[1], "World");
+}
+
+TEST(cpp_symbols, functions_overload_namespace) {
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
 
     EXPECT_THROW(lib.get_function<void()>("tools::adder"), dylib::symbol_error);
 
-    auto n_adder = lib.get_function<double(void)>("tools::adder(void)");
-    EXPECT_EQ(n_adder(), 0);
+    auto v_adder = lib.get_function<double(void)>("tools::adder(void)");
+    EXPECT_EQ(v_adder(), 0);
 
     auto d_adder = lib.get_function<double(double, double)>("tools::adder(double, double)");
     EXPECT_EQ(d_adder(11, 11), 22);
 
-    auto str_rep = "std::basic_string<char, std::char_traits<char>, std::allocator<char>>";
-
-    auto s_adder = lib.get_function<std::string(std::string, std::string)>
-        (std::string("tools::adder(") + str_rep + ", " + str_rep + ")");
+    auto s_adder = lib.get_function<std::string(std::string, std::string)>("tools::adder(" STD_STRING ", " STD_STRING ")");
     EXPECT_EQ(s_adder("Hello", "World"), "HelloWorld");
 
     auto text = std::string("bla,bla,bla...");
@@ -195,10 +224,10 @@ TEST(cpp_symbols, basic_test) {
     auto ptr_format = lib.get_function<std::string(const char *)>("tools::string::format(char const *)");
     EXPECT_EQ(ptr_format(text.c_str()), std::string("ptr: bla,bla,bla..."));
 
-    auto ref_format = lib.get_function<std::string(const std::string &)>("tools::string::format(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const &)");
+    auto ref_format = lib.get_function<std::string(const std::string &)>("tools::string::format(" STD_STRING " const &)");
     EXPECT_EQ(ref_format(text), std::string("ref: bla,bla,bla..."));
 
-    auto mov_format = lib.get_function<std::string(std::string &&)>("tools::string::format(std::basic_string<char, std::char_traits<char>, std::allocator<char>> &&)");
+    auto mov_format = lib.get_function<std::string(std::string &&)>("tools::string::format(" STD_STRING " &&)");
     EXPECT_EQ(mov_format(std::move(text)), std::string("mov: bla,bla,bla..."));
 
     auto int_ref_println = lib.get_function<std::string(const unsigned int &)>("tools::string::format(unsigned int const &)");
