@@ -4,6 +4,7 @@
 #include <string>
 
 #include "dylib.hpp"
+#include "lib.hpp"
 
 #if !defined(_WIN32)
 #include <dlfcn.h>
@@ -235,6 +236,14 @@ TEST(cpp_symbols, functions_overload_namespace) {
 
     auto int_ref_println = lib.get_function<std::string(const unsigned int &)>("tools::string::format(unsigned int const &)");
     EXPECT_EQ(int_ref_println(123), "ref: 123");
+}
+
+TEST(cpp_symbols, struct) {
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
+
+    auto fmt_position = lib.get_function<std::string(Position &)>("fmt_position(Position &)");
+    Position pos = {1, 2};
+    EXPECT_EQ(fmt_position(pos), "1, 2");
 }
 
 int main(int ac, char **av) {

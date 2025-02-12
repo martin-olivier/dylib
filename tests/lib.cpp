@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 
+#include "lib.hpp"
+
 #if defined(_WIN32) || defined(_WIN64)
 #define LIB_EXPORT __declspec(dllexport)
 #else
@@ -68,4 +70,8 @@ namespace tools {
             return std::string("ref: ") + std::to_string(val);
         }
     }
+}
+
+LIB_EXPORT std::string fmt_position(Position &pos) {
+    return std::to_string(pos.x) + ", " + std::to_string(pos.y);
 }
