@@ -12,10 +12,8 @@
 static void replace_occurrences(std::string &symbol, const std::string &find, const std::string &replace) {
     size_t pos = 0;
 
-    while ((pos = symbol.find(find, pos)) != std::string::npos) {
+    while ((pos = symbol.find(find, pos)) != std::string::npos)
         symbol.replace(pos, find.length(), replace);
-        pos += replace.length();
-    }
 }
 
 /************************   MSVC   ************************/
