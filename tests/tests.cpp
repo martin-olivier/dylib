@@ -206,7 +206,7 @@ TEST(cpp_symbols, functions) {
     EXPECT_EQ(list[1], "World");
 }
 
-#define TEXT "bla,bla,bla..."
+#define TEST_TEXT "bla,bla,bla..."
 
 TEST(cpp_symbols, functions_overload_namespace) {
     dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
@@ -223,16 +223,16 @@ TEST(cpp_symbols, functions_overload_namespace) {
     EXPECT_EQ(s_adder("Hello", "World"), "HelloWorld");
 
     auto ptr_format = lib.get_function<std::string(const char *)>("tools::string::format(char const *)");
-    EXPECT_EQ(ptr_format(TEXT), "ptr: " TEXT);
+    EXPECT_EQ(ptr_format(TEST_TEXT), "ptr: " TEST_TEXT);
 
     auto cpy_format = lib.get_function<std::string(std::string)>("tools::string::format(" STD_STRING ")");
-    EXPECT_EQ(cpy_format(TEXT), "cpy: " TEXT);
+    EXPECT_EQ(cpy_format(TEST_TEXT), "cpy: " TEST_TEXT);
 
     auto ref_format = lib.get_function<std::string(const std::string &)>("tools::string::format(" STD_STRING " const &)");
-    EXPECT_EQ(ref_format(TEXT), "ref: " TEXT);
+    EXPECT_EQ(ref_format(TEST_TEXT), "ref: " TEST_TEXT);
 
     auto mov_format = lib.get_function<std::string(std::string &&)>("tools::string::format(" STD_STRING " &&)");
-    EXPECT_EQ(mov_format(std::move(std::string(TEXT))), "mov: " TEXT);
+    EXPECT_EQ(mov_format(std::move(std::string(TEST_TEXT))), "mov: " TEST_TEXT);
 
     auto int_ref_println = lib.get_function<std::string(const unsigned int &)>("tools::string::format(unsigned int const &)");
     EXPECT_EQ(int_ref_println(123), "ref: 123");
