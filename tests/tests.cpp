@@ -232,7 +232,8 @@ TEST(cpp_symbols, functions_overload_namespace) {
     EXPECT_EQ(ref_format(TEST_TEXT), "ref: " TEST_TEXT);
 
     auto mov_format = lib.get_function<std::string(std::string &&)>("tools::string::format(" STD_STRING " &&)");
-    EXPECT_EQ(mov_format(std::move(std::string(TEST_TEXT))), "mov: " TEST_TEXT);
+    auto mov_text = std::string(TEST_TEXT);
+    EXPECT_EQ(mov_format(std::move(mov_text)), "mov: " TEST_TEXT);
 
     auto int_ref_println = lib.get_function<std::string(const unsigned int &)>("tools::string::format(unsigned int const &)");
     EXPECT_EQ(int_ref_println(123), "ref: 123");
