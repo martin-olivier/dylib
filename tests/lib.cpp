@@ -48,6 +48,14 @@ namespace tools {
     }
 
     namespace string {
+        LIB_EXPORT std::string format(const char *str) {
+            return std::string("ptr: ") + str;
+        }
+
+        LIB_EXPORT std::string format(const std::string str) {
+            return std::string("cpy: ") + str;
+        }
+
         LIB_EXPORT std::string format(const std::string &str) {
             return std::string("ref: ") + str;
         }
@@ -58,10 +66,6 @@ namespace tools {
 
         LIB_EXPORT std::string format(const unsigned int& val) {
             return std::string("ref: ") + std::to_string(val);
-        }
-
-        LIB_EXPORT std::string format(const char *str) {
-            return std::string("ptr: ") + str;
         }
     }
 }
