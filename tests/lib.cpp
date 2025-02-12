@@ -75,3 +75,7 @@ namespace tools {
 LIB_EXPORT std::string fmt_position(Position &pos) {
     return std::to_string(pos.x) + ", " + std::to_string(pos.y);
 }
+
+LIB_EXPORT std::string get_animal_sound(IAnimal *animal) {
+    return animal->sound();
+}

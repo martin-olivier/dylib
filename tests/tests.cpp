@@ -246,6 +246,22 @@ TEST(cpp_symbols, struct) {
     EXPECT_EQ(fmt_position(pos), "1, 2");
 }
 
+class Cat : public IAnimal {
+public:
+    std::string sound() override {
+        return "Meow";
+    }
+};
+
+TEST(cpp_symbols, interface) {
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
+    Cat cat;
+
+    auto get_animal_sound = lib.get_function<std::string(IAnimal *)>("get_animal_sound(IAnimal *)");
+
+    EXPECT_EQ(get_animal_sound(&cat), "Meow");
+}
+
 int main(int ac, char **av) {
     testing::InitGoogleTest(&ac, av);
     return RUN_ALL_TESTS();
