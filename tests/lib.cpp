@@ -19,8 +19,8 @@ LIB_EXPORT double adder(double a, double b) {
     return a + b;
 }
 
-LIB_EXPORT void print_hello() {
-    std::cout << "Hello" << std::endl;
+LIB_EXPORT const char *hello_world() {
+    return "Hello World!";
 }
 
 } // extern "C"

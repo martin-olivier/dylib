@@ -10,24 +10,6 @@
 #include <dlfcn.h>
 #endif
 
-TEST(project, example_test) {
-    testing::internal::CaptureStdout();
-    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
-
-    auto adder = lib.get_function<double(double, double)>("adder");
-    EXPECT_EQ(adder(5, 10), 15);
-
-    auto printer = lib.get_function<void()>("print_hello");
-    printer();
-    EXPECT_EQ(testing::internal::GetCapturedStdout(), "Hello\n");
-
-    double pi_value = lib.get_variable<double>("pi_value_c");
-    EXPECT_EQ(pi_value, 3.14159);
-
-    void *ptr = lib.get_variable<void *>("ptr_c");
-    EXPECT_EQ(ptr, (void *)1);
-}
-
 TEST(library, path) {
     EXPECT_THROW(dylib::library(nullptr), std::invalid_argument);
     EXPECT_THROW(dylib::library(""), std::invalid_argument);
@@ -144,7 +126,17 @@ TEST(symbols, bad_symbol) {
     EXPECT_THROW(lib.get_variable<double>("unknown"), dylib::symbol_error);
 }
 
-TEST(symbols, alter_variables) {
+TEST(symbols, fuctions) {
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
+
+    auto adder = lib.get_function<double(double, double)>("adder");
+    EXPECT_EQ(adder(5, 10), 15);
+
+    auto hello_world = lib.get_function<const char *()>("hello_world");
+    EXPECT_STREQ(hello_world(), "Hello World!");
+}
+
+TEST(symbols, variables) {
     dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
 
     auto &pi = lib.get_variable<double>("pi_value_c");
