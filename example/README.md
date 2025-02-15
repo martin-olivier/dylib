@@ -2,7 +2,7 @@
 
 Here is an example about the usage of the `dylib` library in a project.
 
-The functions and variables of our forthcoming dynamic library are located inside [lib.cpp](lib.cpp)
+The functions and variables of our future dynamic library are located inside [lib.cpp](lib.cpp)
 
 The code that will load the functions and global variables of our dynamic library at runtime is located inside [main.cpp](main.cpp)
 
@@ -33,8 +33,15 @@ Let's run our code:
 You will have the following result:
 
 ```sh
-15
-Hello
-3.14159
-1
+Hello World!
+dylib - v3.0.0
+pi value: 3.14159
+magic value: cafebabe
+10 + 10 = 20
+string = abcdef
+vector:
+- abc
+- def
+- ghi
+- jkl
 ```
