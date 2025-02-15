@@ -55,7 +55,11 @@ static void add_sym_separator(std::string &symbol, char c) {
     size_t pos = 0;
 
     while ((pos = symbol.find(c, pos)) != std::string::npos) {
-        if (pos && symbol[pos - 1] != ' ' && symbol[pos - 1] != '&' && symbol[pos - 1] != '*') {
+        if (pos &&
+            symbol[pos - 1] != ' ' &&
+            symbol[pos - 1] != '&' &&
+            symbol[pos - 1] != '*' &&
+            symbol[pos - 1] != '(') {
             symbol.replace(pos, 1, std::string(" ") + c);
             pos += 2;
         } else {

@@ -79,3 +79,7 @@ LIB_EXPORT std::string fmt_position(Position &pos) {
 LIB_EXPORT std::string get_animal_sound(IAnimal *animal) {
     return animal->sound();
 }
+
+LIB_EXPORT double callback(double a, double b, double (*cb)(double, double)) {
+    return cb(a, b);
+}

@@ -263,6 +263,16 @@ TEST(cpp_symbols, interface) {
     EXPECT_EQ(get_animal_sound(&cat), "Meow");
 }
 
+TEST(cpp_symbols, callback) {
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
+
+    auto adder = lib.get_function<double(double, double)>("tools::adder(double, double)");
+    auto callback = lib.get_function<double(double, double, double (*)(double, double))>
+        ("callback(double, double, double (*)(double, double))");
+
+    EXPECT_EQ(callback(10, 10, adder), 20);
+}
+
 int main(int ac, char **av) {
     testing::InitGoogleTest(&ac, av);
     return RUN_ALL_TESTS();
