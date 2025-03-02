@@ -176,15 +176,15 @@ native_symbol_type library::get_symbol(const char *symbol_name) const {
 
     switch (matching_symbols.size()) {
     case 0:
-        throw symbol_error("Could not get symbol '" + std::string(symbol_name) + "':\n" + initial_error);
+        throw symbol_not_found(symbol_name, initial_error);
     case 1:
         return locate_symbol(m_handle, matching_symbols.front().c_str());
     default:
-        std::string error = "Could not get symbol '" + std::string(symbol_name) + "', multiple matches:\n";
+        std::string matching_symbols_display = "";
         for (auto &sym : matching_symbols)
-            error += "- " + sym + '\n';
+            matching_symbols_display += "- " + sym + '\n';
 
-        throw symbol_error(error);
+        throw symbol_multiple_matches(symbol_name, matching_symbols_display);
     }
 }
 
@@ -208,6 +208,6 @@ std::vector<std::string> library::symbols(symbol_params params) const {
             params.loadable
         );
     } catch (const std::string &e) {
-        throw symbol_error(e);
+        throw symbol_collection_error(e);
     }
 }

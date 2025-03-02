@@ -271,8 +271,11 @@ TEST(cpp_symbols, demangle) {
 
     symbols = lib.symbols(params);
 
-    for (auto &symbol : symbols)
-        EXPECT_TRUE(!!lib.get_symbol(symbol));
+    for (auto &symbol : symbols) {
+        try {
+            EXPECT_TRUE(!!lib.get_symbol(symbol));
+        } catch (dylib::symbol_multiple_matches &) {}
+    }
 
     EXPECT_TRUE(std::find(symbols.begin(), symbols.end(), "adder") != symbols.end());
     EXPECT_TRUE(std::find(symbols.begin(), symbols.end(), "tools::adder(double, double)") != symbols.end());

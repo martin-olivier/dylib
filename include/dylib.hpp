@@ -105,13 +105,51 @@ public:
 };
 
 /**
- *  This exception is raised when the library failed to load a symbol
+ *  This exception is raised when the library failed to collect or load symbols
  *
  *  @param message the error message
  */
 class symbol_error : public exception {
 public:
     explicit symbol_error(const std::string &message) : exception(message) {}
+};
+
+/**
+ *  This exception is raised when the library could not find the requested symbol
+ *
+ *  @param symbol the requested symbol
+ *  @param error the error message
+ */
+class symbol_not_found : public symbol_error {
+public:
+    explicit symbol_not_found(const std::string &symbol, const std::string &error) : symbol_error(
+        "Could not get symbol '" + symbol + "':\n" + error
+    ) {}
+};
+
+/**
+ *  This exception is raised when the library found multiple matching symbols
+ *
+ *  @param symbol the requested symbol
+ *  @param matching_symbols the list of matching symbols
+ */
+class symbol_multiple_matches : public symbol_error {
+public:
+    explicit symbol_multiple_matches(const std::string &symbol, const std::string &matching_symbols) : symbol_error(
+        "Could not get symbol '" + symbol + "', multiple matches:\n" + matching_symbols
+    ) {}
+};
+
+/**
+ *  This exception is raised when the library failed to load symbol list
+ *
+ *  @param error the error message
+ */
+class symbol_collection_error : public symbol_error {
+public:
+    explicit symbol_collection_error(const std::string &error) : symbol_error(
+        "Could not collect symbols:\n" + error
+    ) {}
 };
 
 /**
