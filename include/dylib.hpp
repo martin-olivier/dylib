@@ -184,7 +184,11 @@ public:
     /**
      *  Get a symbol from the dynamic library currently loaded in the object
      *
-     *  @throws dylib::symbol_error if the symbol could not be found
+     *  @throws dylib::symbol_not_found if the symbol could not be found
+     *  @throws dylib::symbol_multiple_matches if multiple matching symbols were found
+     *  @throws dylib::symbol_collection_error if an error occurred during symbols collection
+     * 
+     *  Those exceptions inherit from dylib::symbol_error
      *
      *  @param symbol_name the symbol name to get from the dynamic library
      *
@@ -196,7 +200,11 @@ public:
     /**
      *  Get a function from the dynamic library currently loaded in the object
      *
-     *  @throws dylib::symbol_error if the symbol could not be found
+     *  @throws dylib::symbol_not_found if the symbol could not be found
+     *  @throws dylib::symbol_multiple_matches if multiple matching symbols were found
+     *  @throws dylib::symbol_collection_error if an error occurred during symbols collection
+     * 
+     *  Those exceptions inherit from dylib::symbol_error
      *
      *  @param T the template argument must be the function prototype to get
      *  @param symbol_name the symbol name of a function to get from the dynamic library
@@ -234,7 +242,11 @@ public:
     /**
      *  Get a variable from the dynamic library currently loaded in the object
      *
-     *  @throws dylib::symbol_error if the symbol could not be found
+     *  @throws dylib::symbol_not_found if the symbol could not be found
+     *  @throws dylib::symbol_multiple_matches if multiple matching symbols were found
+     *  @throws dylib::symbol_collection_error if an error occurred during symbols collection
+     * 
+     *  Those exceptions inherit from dylib::symbol_error
      *
      *  @param T the template argument must be the type of the variable to get
      *  @param symbol_name the symbol name of a variable to get from the dynamic library
@@ -254,7 +266,7 @@ public:
     /**
      *  Get the list of symbols from the dynamic library currently loaded in the object
      *
-     *  @throws dylib::symbol_error if an error occurred during symbols collection
+     *  @throws dylib::symbol_collection_error if an error occurred during symbols collection
      *
      *  @param symbol_params::demangle if true, returns demangled symbols
      *  @param symbol_params::loadable if true, returns only loadable symbols

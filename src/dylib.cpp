@@ -117,12 +117,12 @@ library::library(const char *lib_path, dylib::decorations decorations) {
 
     m_handle = open_lib(lib.c_str());
     if (!m_handle)
-        throw load_error("Could not load library '" + lib + "'\n" + get_error_description());
+        throw load_error("Could not load library '" + lib + "':\n" + get_error_description());
 
 #if defined(__APPLE__)
     m_fd = open(lib.c_str(), O_RDONLY);
     if (m_fd < 0)
-        throw load_error("Could not open file '" + lib + "': " + strerror(errno));
+        throw load_error("Could not open file '" + lib + "':\n" + strerror(errno));
 #endif
 }
 

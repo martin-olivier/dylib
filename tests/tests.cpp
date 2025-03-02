@@ -115,8 +115,8 @@ TEST(symbols, bad_symbol) {
     EXPECT_THROW(lib.get_function<void()>(nullptr), std::invalid_argument);
     EXPECT_THROW(lib.get_variable<void *>(nullptr), std::invalid_argument);
 
-    EXPECT_THROW(lib.get_function<double()>("unknown"), dylib::symbol_error);
-    EXPECT_THROW(lib.get_variable<double>("unknown"), dylib::symbol_error);
+    EXPECT_THROW(lib.get_function<double()>("unknown"), dylib::symbol_not_found);
+    EXPECT_THROW(lib.get_variable<double>("unknown"), dylib::symbol_not_found);
 }
 
 TEST(symbols, fuctions) {
@@ -186,7 +186,7 @@ TEST(cpp_symbols, functions) {
 TEST(cpp_symbols, functions_overload_namespace) {
     dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
 
-    EXPECT_THROW(lib.get_function<void()>("tools::adder"), dylib::symbol_error);
+    EXPECT_THROW(lib.get_function<void()>("tools::adder"), dylib::symbol_multiple_matches);
 
     auto v_adder = lib.get_function<double(void)>("tools::adder(void)");
     EXPECT_EQ(v_adder(), 0);
