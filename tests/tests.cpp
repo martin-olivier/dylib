@@ -255,8 +255,9 @@ TEST(cpp_symbols, loadable) {
     symbols = lib.symbols();
 
     for (auto &symbol : symbols) {
-        if (symbol.loadable)
+        if (symbol.loadable) {
             EXPECT_TRUE(!!GET_SYM(lib.native_handle(), symbol.name.c_str()));
+        }
     }
 }
 
@@ -268,8 +269,9 @@ TEST(cpp_symbols, demangle) {
 
     for (auto &symbol : symbols) {
         try {
-            if (symbol.loadable)
+            if (symbol.loadable) {
                 EXPECT_TRUE(!!lib.get_symbol(symbol.name));
+            }
         } catch (dylib::symbol_multiple_matches &) {}
     }
 }

@@ -11,6 +11,7 @@
 #include <string>
 #include <cstring>
 #include <algorithm>
+#include <stdexcept>
 
 std::string demangle_symbol(const char *symbol);
 
