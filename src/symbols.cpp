@@ -49,7 +49,7 @@ static void add_symbol(std::vector<symbol_info> &result, const char *symbol, boo
 #include <windows.h>
 #include <tchar.h>
 
-std::vector<symbol_info> get_symbols(HMODULE handle, int fd, bool demangle, bool loadable) {
+std::vector<symbol_info> get_symbols(HMODULE handle, int fd) {
     std::vector<symbol_info> symbols_list;
     PIMAGE_EXPORT_DIRECTORY pExportDir;
     PIMAGE_DOS_HEADER pDosHeader;
@@ -215,7 +215,7 @@ std::vector<symbol_info> get_symbols(void *handle, int fd) {
     #error "Environment not 32 or 64-bit."
 #endif
 
-std::vector<symbol_info> get_symbols(void *handle, int fd, bool demangle, bool loadable) {
+std::vector<symbol_info> get_symbols(void *handle, int fd) {
     std::vector<symbol_info> result;
     struct link_map *map = nullptr;
     ElfSym *symtab = nullptr;
