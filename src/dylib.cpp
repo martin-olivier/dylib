@@ -144,7 +144,10 @@ library::~library() {
 }
 
 native_symbol_type library::get_symbol(const char *symbol_name) const {
+    std::vector<std::string> matching_symbols;
+    std::string initial_error;
     native_symbol_type symbol;
+    symbol_params sym_params;
     size_t symbol_name_len;
 
     if (!symbol_name)
@@ -157,48 +160,36 @@ native_symbol_type library::get_symbol(const char *symbol_name) const {
     symbol_name_len = strlen(symbol_name);
 
     symbol = locate_symbol(m_handle, symbol_name);
-    if (symbol == nullptr) {
-        std::string initial_error = get_error_description();
-        std::vector<std::string> matching_symbols;
+    if (symbol)
+        return symbol;
 
-        for (auto &sym : symbols()) {
-            std::string demangled = demangle_symbol(sym.c_str());
+    initial_error = get_error_description();
+    sym_params.loadable = true;
 
-            if (demangled.find(symbol_name) == 0 &&
-                (demangled.size() == symbol_name_len || demangled[symbol_name_len] == '('))
-                matching_symbols.push_back(sym);
-        }
+    for (auto &sym : symbols(sym_params)) {
+        std::string demangled = demangle_symbol(sym.c_str());
 
-        if (matching_symbols.size() == 0) {
-            throw symbol_error("Could not get symbol '" + std::string(symbol_name) + "':\n" + initial_error);
-        } else if (matching_symbols.size() == 1) {
-            symbol = locate_symbol(m_handle, matching_symbols.front().c_str());
-            if (symbol == nullptr)
-                throw symbol_error("Could not get symbol '" + std::string(symbol_name) + "':\n" + get_error_description());
-        } else {
-            std::string error = "Could not get symbol '" + std::string(symbol_name) + "', multiple matches:\n";
-            for (auto &sym : matching_symbols)
-                error += "- " + sym + '\n';
-
-            throw symbol_error(error);
-        }
+        if (demangled.find(symbol_name) == 0 &&
+            (demangled.size() == symbol_name_len || demangled[symbol_name_len] == '('))
+            matching_symbols.push_back(sym);
     }
 
-    return symbol;
+    switch (matching_symbols.size()) {
+    case 0:
+        throw symbol_error("Could not get symbol '" + std::string(symbol_name) + "':\n" + initial_error);
+    case 1:
+        return locate_symbol(m_handle, matching_symbols.front().c_str());
+    default:
+        std::string error = "Could not get symbol '" + std::string(symbol_name) + "', multiple matches:\n";
+        for (auto &sym : matching_symbols)
+            error += "- " + sym + '\n';
+
+        throw symbol_error(error);
+    }
 }
 
 native_symbol_type library::get_symbol(const std::string &symbol_name) const {
     return get_symbol(symbol_name.c_str());
-}
-
-bool library::has_symbol(const char *symbol_name) const noexcept {
-    if (!m_handle || !symbol_name)
-        return false;
-    return locate_symbol(m_handle, symbol_name) != nullptr;
-}
-
-bool library::has_symbol(const std::string &symbol_name) const noexcept {
-    return has_symbol(symbol_name.c_str());
 }
 
 native_handle_type library::native_handle() noexcept {

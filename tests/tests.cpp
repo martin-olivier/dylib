@@ -10,6 +10,8 @@
 #include <dlfcn.h>
 #endif
 
+#define GET_SYM DYLIB_WIN_OTHER(GetProcAddress, dlsym)
+
 TEST(library, path) {
     EXPECT_THROW(dylib::library(nullptr), std::invalid_argument);
     EXPECT_THROW(dylib::library(""), std::invalid_argument);
@@ -66,14 +68,11 @@ TEST(library, manual_decorations) {
 
 TEST(library, handle_management) {
     dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
-    EXPECT_FALSE(lib.native_handle() == nullptr);
     auto handle = lib.native_handle();
-#if defined(_WIN32)
-    auto sym = GetProcAddress(handle, "adder");
-#else
-    auto sym = dlsym(handle, "adder");
-#endif
-    EXPECT_FALSE(sym == nullptr);
+    auto sym = GET_SYM(handle, "adder");
+
+    EXPECT_TRUE(!!handle);
+    EXPECT_TRUE(!!sym);
 
 #if defined(__GNUC__) && __GNUC__ >= 8 && !defined(__clang__)
 #pragma GCC diagnostic push
@@ -102,17 +101,10 @@ TEST(library, handle_management) {
 TEST(library, std_filesystem) {
     dylib::library(std::filesystem::path("./dynamic_lib"), dylib::decorations::os_default());
 
-    bool found = false;
     for (const auto &file : std::filesystem::recursive_directory_iterator(".")) {
-        if (file.path().extension() == dylib::decorations::os_default().suffix) {
-            try {
-                if (dylib::library(file.path()).has_symbol("pi_value_c"))
-                    found = true;
-            } catch (const std::exception &) {}
-        }
+        if (file.path().extension() == dylib::decorations::os_default().suffix)
+            dylib::library(file.path());
     }
-
-    EXPECT_TRUE(found);
 }
 #endif
 
@@ -150,16 +142,6 @@ TEST(symbols, variables) {
     ptr = &lib;
     auto &ptr1 = lib.get_variable<void *>("ptr_c");
     EXPECT_EQ(ptr1, &lib);
-}
-
-TEST(symbols, has_symbol) {
-    dylib::library dummy("./dynamic_lib", dylib::decorations::os_default());
-    dylib::library lib(std::move(dummy));
-
-    EXPECT_TRUE(lib.has_symbol("pi_value_c"));
-    EXPECT_FALSE(lib.has_symbol("bad_symbol"));
-    EXPECT_FALSE(lib.has_symbol(nullptr));
-    EXPECT_FALSE(dummy.has_symbol("pi_value_c"));
 }
 
 #define STD_STRING "std::basic_string<char, std::char_traits<char>, std::allocator<char>>"
@@ -263,6 +245,36 @@ TEST(cpp_symbols, callback) {
         ("callback(double, double, double (*)(double, double))");
 
     EXPECT_EQ(callback(10, 10, adder), 20);
+}
+
+TEST(cpp_symbols, loadable) {
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
+    dylib::symbol_params params;
+    std::vector<std::string> symbols;
+
+    params.loadable = true;
+
+    symbols = lib.symbols(params);
+
+    for (auto &symbol : symbols)
+        EXPECT_TRUE(!!GET_SYM(lib.native_handle(), symbol.c_str()));
+}
+
+TEST(cpp_symbols, demangle) {
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
+    dylib::symbol_params params;
+    std::vector<std::string> symbols;
+
+    params.loadable = true;
+    params.demangle = true;
+
+    symbols = lib.symbols(params);
+
+    for (auto &symbol : symbols)
+        EXPECT_TRUE(!!lib.get_symbol(symbol));
+
+    EXPECT_TRUE(std::find(symbols.begin(), symbols.end(), "adder") != symbols.end());
+    EXPECT_TRUE(std::find(symbols.begin(), symbols.end(), "tools::adder(double, double)") != symbols.end());
 }
 
 int main(int ac, char **av) {

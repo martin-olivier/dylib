@@ -156,18 +156,6 @@ public:
     native_symbol_type get_symbol(const std::string &symbol_name) const;
 
     /**
-     *  Check if a symbol exists in the currently loaded dynamic library.
-     *  This method will return false if no dynamic library is currently loaded
-     *  or if the symbol name is nullptr
-     *
-     *  @param symbol_name the symbol name to look for
-     *
-     *  @return true if the symbol exists in the dynamic library, false otherwise
-     */
-    bool has_symbol(const char *symbol_name) const noexcept;
-    bool has_symbol(const std::string &symbol_name) const noexcept;
-
-    /**
      *  Get a function from the dynamic library currently loaded in the object
      *
      *  @throws dylib::symbol_error if the symbol could not be found

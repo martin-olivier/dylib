@@ -15,23 +15,19 @@
 std::string demangle_symbol(const char *symbol);
 
 static void add_symbol(std::vector<std::string> &result, const char *symbol, bool demangle) {
+    std::string final_symbol = symbol;
+
     if (!symbol || strcmp(symbol, "") == 0)
         return;
 
     if (demangle) {
         std::string demangled = demangle_symbol(symbol);
-        if (!demangled.empty()) {
-            if (std::find(result.begin(), result.end(), demangled) == result.end())
-                result.push_back(demangled);
-        }
-    } else {
-#if defined(__APPLE__)
-        if (symbol[0] == '_')
-            symbol++;
-#endif
-        if (std::find(result.begin(), result.end(), symbol) == result.end())
-            result.push_back(symbol);
+        if (!demangled.empty())
+            final_symbol = demangled;
     }
+
+    if (std::find(result.begin(), result.end(), final_symbol) == result.end())
+        result.push_back(final_symbol);
 }
 
 /************************   Windows   ************************/
@@ -147,6 +143,9 @@ static void get_symbols_at_off(std::vector<std::string> &symbols_list, void *han
 
                 strx = symbols[j].n_un.n_strx;
                 name = &strtab[strx];
+
+                if (name[0] == '_')
+                    name++;
 
                 if (!loadable || dlsym(handle, name))
                     add_symbol(symbols_list, name, demangle);
