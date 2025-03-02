@@ -68,14 +68,14 @@ struct decorations {
     decorations(const char *prefix, const char *suffix) : prefix(prefix), suffix(suffix) {}
 
     static decorations none() noexcept {
-        return decorations();
+        return {};
     }
 
     static decorations os_default() noexcept {
-        return decorations(
+        return {
             DYLIB_WIN_OTHER("", "lib"),
             DYLIB_WIN_MAC_OTHER(".dll", ".dylib", ".so")
-        );
+        };
     }
 };
 

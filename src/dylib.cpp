@@ -180,7 +180,8 @@ native_symbol_type library::get_symbol(const char *symbol_name) const {
     case 1:
         return locate_symbol(m_handle, matching_symbols.front().c_str());
     default:
-        std::string matching_symbols_display = "";
+        std::string matching_symbols_display;
+
         for (auto &sym : matching_symbols)
             matching_symbols_display += "- " + sym + '\n';
 
@@ -207,7 +208,7 @@ std::vector<std::string> library::symbols(symbol_params params) const {
             params.demangle,
             params.loadable
         );
-    } catch (const std::string &e) {
-        throw symbol_collection_error(e);
+    } catch (const std::runtime_error &e) {
+        throw symbol_collection_error(e.what());
     }
 }

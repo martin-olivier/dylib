@@ -47,17 +47,17 @@ std::vector<std::string> get_symbols(HMODULE handle, int fd, bool demangle, bool
     // Get the DOS header
     pDosHeader = (PIMAGE_DOS_HEADER)handle;
     if (pDosHeader->e_magic != IMAGE_DOS_SIGNATURE)
-        throw std::string("Invalid DOS header");
+        throw std::runtime_error("Invalid DOS header");
 
     // Get the NT headers
     pNTHeaders = (PIMAGE_NT_HEADERS)((BYTE *)handle + pDosHeader->e_lfanew);
     if (pNTHeaders->Signature != IMAGE_NT_SIGNATURE)
-        throw std::string("Invalid NT headers");
+        throw std::runtime_error("Invalid NT headers");
 
     // Get the export directory
     exportDirRVA = pNTHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
     if (exportDirRVA == 0)
-        throw std::string("No export directory found");
+        throw std::runtime_error("No export directory found");
 
     pExportDir = (PIMAGE_EXPORT_DIRECTORY)((BYTE *)handle + exportDirRVA);
 
@@ -182,7 +182,7 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
     } else if (magic == DYLIB_MH_MAGIC || magic == DYLIB_MH_CIGAM) {
         get_symbols_at_off(symbols_list, handle, fd, demangle, loadable, 0);
     } else {
-        throw std::string("Unsupported file format");
+        throw std::runtime_error("Unsupported file format");
     }
 
     return symbols_list;
@@ -190,17 +190,17 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
 
 #else /************************   Linux   ************************/
 
-#include <stdint.h>
+#include <cstdint>
 #include <dlfcn.h>
 #include <link.h>
 #include <elf.h>
 
 #if INTPTR_MAX == INT32_MAX
     using ElfSym = Elf32_Sym;
-    #define ELF_ST_TYPE ELF32_ST_TYPE
+    #define DYLIB_ELF_ST_TYPE ELF32_ST_TYPE
 #elif INTPTR_MAX == INT64_MAX
     using ElfSym = Elf64_Sym;
-    #define ELF_ST_TYPE ELF64_ST_TYPE
+    #define DYLIB_ELF_ST_TYPE ELF64_ST_TYPE
 #else
     #error "Environment not 32 or 64-bit."
 #endif
@@ -213,8 +213,10 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
     int symentries = 0;
     int size = 0;
 
-    if (dlinfo(handle, RTLD_DI_LINKMAP, &map) != 0)
-        throw std::string("dlinfo failed: ") + dlerror();
+    if (dlinfo(handle, RTLD_DI_LINKMAP, &map) != 0) {
+        const char *error = dlerror();
+        throw std::runtime_error("dlinfo failed: " + std::string(error ? error : "Unknown error (dlerror failed)"));
+    }
 
     for (auto section = map->l_ld; section->d_tag != DT_NULL; ++section) {
         if (section->d_tag == DT_SYMTAB)
@@ -233,7 +235,7 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
     for (int i = 0; i < size / symentries; ++i) {
         ElfSym* sym = &symtab[i];
 
-        if (ELF_ST_TYPE(symtab[i].st_info) == STT_FUNC) {
+        if (DYLIB_ELF_ST_TYPE(symtab[i].st_info) == STT_FUNC) {
             const char *name = &strtab[sym->st_name];
 
             if (!loadable || dlsym(handle, name))

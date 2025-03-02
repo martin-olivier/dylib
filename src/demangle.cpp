@@ -59,7 +59,7 @@ std::string demangle_symbol(const char *symbol) {
     std::string result;
     char *demangled;
 
-    demangled = abi::__cxa_demangle(symbol, 0, 0, 0);
+    demangled = abi::__cxa_demangle(symbol, nullptr, nullptr, nullptr);
     if (!demangled)
         return "";
 
