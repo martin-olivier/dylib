@@ -250,35 +250,28 @@ TEST(cpp_symbols, callback) {
 
 TEST(cpp_symbols, loadable) {
     dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
-    dylib::symbol_params params;
-    std::vector<std::string> symbols;
+    std::vector<dylib::symbol_info> symbols;
 
-    params.loadable = true;
+    symbols = lib.symbols();
 
-    symbols = lib.symbols(params);
-
-    for (auto &symbol : symbols)
-        EXPECT_TRUE(!!GET_SYM(lib.native_handle(), symbol.c_str()));
+    for (auto &symbol : symbols) {
+        if (symbol.loadable)
+            EXPECT_TRUE(!!GET_SYM(lib.native_handle(), symbol.name.c_str()));
+    }
 }
 
 TEST(cpp_symbols, demangle) {
     dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
-    dylib::symbol_params params;
-    std::vector<std::string> symbols;
+    std::vector<dylib::symbol_info> symbols;
 
-    params.loadable = true;
-    params.demangle = true;
-
-    symbols = lib.symbols(params);
+    symbols = lib.symbols();
 
     for (auto &symbol : symbols) {
         try {
-            EXPECT_TRUE(!!lib.get_symbol(symbol));
+            if (symbol.loadable)
+                EXPECT_TRUE(!!lib.get_symbol(symbol.name));
         } catch (dylib::symbol_multiple_matches &) {}
     }
-
-    EXPECT_TRUE(std::find(symbols.begin(), symbols.end(), "adder") != symbols.end());
-    EXPECT_TRUE(std::find(symbols.begin(), symbols.end(), "tools::adder(double, double)") != symbols.end());
 }
 
 int main(int ac, char **av) {

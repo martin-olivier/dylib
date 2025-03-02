@@ -79,9 +79,16 @@ struct decorations {
     }
 };
 
-struct symbol_params {
-    bool demangle{false};
-    bool loadable{false};
+enum symbol_type {
+    C,
+    CPP,
+};
+
+struct symbol_info {
+    std::string name;
+    std::string demangled_name;
+    symbol_type type;
+    bool loadable;
 };
 
 /**
@@ -273,7 +280,7 @@ public:
      *
      *  @return the list of symbols in the dynamic library
      */
-    std::vector<std::string> symbols(symbol_params params = symbol_params()) const;
+    std::vector<symbol_info> symbols() const;
 
     /**
      *  @return the dynamic library handle

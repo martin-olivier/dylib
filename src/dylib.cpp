@@ -18,10 +18,11 @@
 #include "dylib.hpp"
 
 using dylib::library;
+using dylib::symbol_info;
 using dylib::native_handle_type;
 using dylib::native_symbol_type;
 
-std::vector<std::string> get_symbols(native_handle_type handle, int fd, bool demangle, bool loadable);
+std::vector<symbol_info> get_symbols(native_handle_type handle, int fd);
 std::string demangle_symbol(const char *symbol);
 
 static native_handle_type open_lib(const char *path) noexcept {
@@ -147,7 +148,6 @@ native_symbol_type library::get_symbol(const char *symbol_name) const {
     std::vector<std::string> matching_symbols;
     std::string initial_error;
     native_symbol_type symbol;
-    symbol_params sym_params;
     size_t symbol_name_len;
 
     if (!symbol_name)
@@ -164,14 +164,16 @@ native_symbol_type library::get_symbol(const char *symbol_name) const {
         return symbol;
 
     initial_error = get_error_description();
-    sym_params.loadable = true;
 
-    for (auto &sym : symbols(sym_params)) {
-        std::string demangled = demangle_symbol(sym.c_str());
+    for (const auto &sym : symbols()) {
+        if (!sym.loadable)
+            continue;
+
+        std::string demangled = demangle_symbol(sym.name.c_str());
 
         if (demangled.find(symbol_name) == 0 &&
             (demangled.size() == symbol_name_len || demangled[symbol_name_len] == '('))
-            matching_symbols.push_back(sym);
+            matching_symbols.push_back(sym.name);
     }
 
     switch (matching_symbols.size()) {
@@ -197,16 +199,14 @@ native_handle_type library::native_handle() noexcept {
     return m_handle;
 }
 
-std::vector<std::string> library::symbols(symbol_params params) const {
+std::vector<symbol_info> library::symbols() const {
     if (!m_handle)
         throw std::logic_error("Attempted to use a moved library object.");
 
     try {
         return get_symbols(
             m_handle,
-            DYLIB_WIN_MAC_OTHER(-1, m_fd, -1),
-            params.demangle,
-            params.loadable
+            DYLIB_WIN_MAC_OTHER(-1, m_fd, -1)
         );
     } catch (const std::runtime_error &e) {
         throw symbol_collection_error(e.what());

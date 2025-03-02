@@ -14,20 +14,32 @@
 
 std::string demangle_symbol(const char *symbol);
 
-static void add_symbol(std::vector<std::string> &result, const char *symbol, bool demangle) {
-    std::string final_symbol = symbol;
+enum symbol_type {
+    C,
+    CPP,
+};
+
+struct symbol_info {
+    std::string name;
+    std::string demangled_name;
+    symbol_type type;
+    bool loadable;
+};
+
+static void add_symbol(std::vector<symbol_info> &result, const char *symbol, bool loadable) {
+    symbol_type type = symbol_type::C;
+    std::string demangled;
 
     if (!symbol || strcmp(symbol, "") == 0)
         return;
 
-    if (demangle) {
-        std::string demangled = demangle_symbol(symbol);
-        if (!demangled.empty())
-            final_symbol = demangled;
-    }
+    demangled = demangle_symbol(symbol);
+    if (demangled.empty())
+        demangled = symbol;
+    else
+        type = symbol_type::CPP;
 
-    if (std::find(result.begin(), result.end(), final_symbol) == result.end())
-        result.push_back(final_symbol);
+    result.push_back({symbol, demangled, type, loadable});
 }
 
 /************************   Windows   ************************/
@@ -36,8 +48,8 @@ static void add_symbol(std::vector<std::string> &result, const char *symbol, boo
 #include <windows.h>
 #include <tchar.h>
 
-std::vector<std::string> get_symbols(HMODULE handle, int fd, bool demangle, bool loadable) {
-    std::vector<std::string> symbols_list;
+std::vector<symbol_info> get_symbols(HMODULE handle, int fd, bool demangle, bool loadable) {
+    std::vector<symbol_info> symbols_list;
     PIMAGE_EXPORT_DIRECTORY pExportDir;
     PIMAGE_DOS_HEADER pDosHeader;
     PIMAGE_NT_HEADERS pNTHeaders;
@@ -67,8 +79,7 @@ std::vector<std::string> get_symbols(HMODULE handle, int fd, bool demangle, bool
     for (DWORD i = 0; i < pExportDir->NumberOfNames; ++i) {
         const char *name = (const char *)((BYTE *)handle + pNames[i]);
 
-        if (!loadable || GetProcAddress(handle, name))
-            add_symbol(symbols_list, name, demangle);
+        add_symbol(symbols_list, name, !!GetProcAddress(handle, name));
     }
 
     return symbols_list;
@@ -98,8 +109,7 @@ std::vector<std::string> get_symbols(HMODULE handle, int fd, bool demangle, bool
     #error "Environment not 32 or 64-bit."
 #endif
 
-static void get_symbols_at_off(std::vector<std::string> &symbols_list, void *handle, int fd,
-                               bool demangle, bool loadable, off_t offset) {
+static void get_symbols_at_off(std::vector<symbol_info> &symbols_list, void *handle, int fd, off_t offset) {
     mach_header_arch mh;
     uint32_t ncmds;
 
@@ -147,8 +157,7 @@ static void get_symbols_at_off(std::vector<std::string> &symbols_list, void *han
                 if (name[0] == '_')
                     name++;
 
-                if (!loadable || dlsym(handle, name))
-                    add_symbol(symbols_list, name, demangle);
+                add_symbol(symbols_list, name, !!dlsym(handle, name));
             }
         }
 
@@ -156,8 +165,8 @@ static void get_symbols_at_off(std::vector<std::string> &symbols_list, void *han
     }
 }
 
-std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool loadable) {
-    std::vector<std::string> symbols_list;
+std::vector<symbol_info> get_symbols(void *handle, int fd) {
+    std::vector<symbol_info> symbols_list;
     uint32_t magic;
 
     lseek(fd, 0, SEEK_SET);
@@ -177,10 +186,10 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
         for (uint32_t i = 0; i < ntohl(fat_header.nfat_arch); i++) {
             off_t off = ntohl(fat_arches[i].offset);
 
-            get_symbols_at_off(symbols_list, handle, fd, demangle, loadable, off);
+            get_symbols_at_off(symbols_list, handle, fd, off);
         }
     } else if (magic == DYLIB_MH_MAGIC || magic == DYLIB_MH_CIGAM) {
-        get_symbols_at_off(symbols_list, handle, fd, demangle, loadable, 0);
+        get_symbols_at_off(symbols_list, handle, fd, 0);
     } else {
         throw std::runtime_error("Unsupported file format");
     }
@@ -205,8 +214,8 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
     #error "Environment not 32 or 64-bit."
 #endif
 
-std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool loadable) {
-    std::vector<std::string> result;
+std::vector<symbol_info> get_symbols(void *handle, int fd, bool demangle, bool loadable) {
+    std::vector<symbol_info> result;
     struct link_map *map = nullptr;
     ElfSym *symtab = nullptr;
     char *strtab = nullptr;
@@ -238,8 +247,7 @@ std::vector<std::string> get_symbols(void *handle, int fd, bool demangle, bool l
         if (DYLIB_ELF_ST_TYPE(symtab[i].st_info) == STT_FUNC) {
             const char *name = &strtab[sym->st_name];
 
-            if (!loadable || dlsym(handle, name))
-                add_symbol(result, name, demangle);
+            add_symbol(result, name, !!dlsym(handle, name));
         }
     }
 
