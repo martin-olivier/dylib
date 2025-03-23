@@ -40,6 +40,18 @@ static void add_symbol(std::vector<symbol_info> &result, const char *symbol, boo
     else
         type = symbol_type::CPP;
 
+    /* 
+     * In case of duplicate symbols, for example when loading a FAT binary,
+     * avoid duplicates and override loadable if the previous symbol was not loadable.
+     */
+    for (auto &sym : result) {
+        if (sym.name == symbol) {
+            if (!sym.loadable)
+                sym.loadable = loadable;
+            return;
+        }
+    }
+
     result.push_back({symbol, demangled, type, loadable});
 }
 
