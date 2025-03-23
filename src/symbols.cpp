@@ -216,7 +216,7 @@ std::vector<symbol_info> get_symbols(void *handle, int fd) {
 #endif
 
 std::vector<symbol_info> get_symbols(void *handle, int fd) {
-    std::vector<symbol_info> result;
+    std::vector<symbol_info> symbols_list;
     struct link_map *map = nullptr;
     ElfSym *symtab = nullptr;
     char *strtab = nullptr;
@@ -238,7 +238,7 @@ std::vector<symbol_info> get_symbols(void *handle, int fd) {
     }
 
     if (!symtab || !strtab || symentries == 0)
-        return result;
+        return symbols_list;
 
     size = strtab - (char *)symtab;
 
@@ -248,11 +248,11 @@ std::vector<symbol_info> get_symbols(void *handle, int fd) {
         if (DYLIB_ELF_ST_TYPE(symtab[i].st_info) == STT_FUNC) {
             const char *name = &strtab[sym->st_name];
 
-            add_symbol(result, name, !!dlsym(handle, name));
+            add_symbol(symbols_list, name, !!dlsym(handle, name));
         }
     }
 
-    return result;
+    return symbols_list;
 }
 
 #endif
