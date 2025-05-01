@@ -37,6 +37,16 @@ if(DYLIB_BUILD_TESTS)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(googletest)
 
+    # Silence warnings from googletest targets
+    foreach(target gtest gtest_main)
+        if(TARGET ${target})
+            get_target_property(gtest_sources ${target} SOURCES)
+            if(gtest_sources)
+                target_compile_options(${target} PRIVATE -w)  # -w disables all warnings
+            endif()
+        endif()
+    endforeach()
+
     add_library(dynamic_lib SHARED tests/lib.cpp)
     if(WIN32 AND MINGW)
         set_target_properties(dynamic_lib PROPERTIES PREFIX "")
