@@ -15,20 +15,20 @@
 
 std::string demangle_symbol(const char *symbol);
 
-enum symbol_type {
+enum internal_symbol_type {
     C,
     CPP,
 };
 
-struct symbol_info {
+struct internal_symbol_info {
     std::string name;
     std::string demangled_name;
-    symbol_type type;
+    internal_symbol_type type;
     bool loadable;
 };
 
-static void add_symbol(std::vector<symbol_info> &result, const char *symbol, bool loadable) {
-    symbol_type type = symbol_type::C;
+static void add_symbol(std::vector<internal_symbol_info> &result, const char *symbol, bool loadable) {
+    internal_symbol_type type = internal_symbol_type::C;
     std::string demangled;
 
     if (!symbol || strcmp(symbol, "") == 0)
@@ -38,7 +38,7 @@ static void add_symbol(std::vector<symbol_info> &result, const char *symbol, boo
     if (demangled.empty())
         demangled = symbol;
     else
-        type = symbol_type::CPP;
+        type = internal_symbol_type::CPP;
 
     /* 
      * In case of duplicate symbols, for example when loading a FAT binary,
@@ -61,8 +61,8 @@ static void add_symbol(std::vector<symbol_info> &result, const char *symbol, boo
 #include <windows.h>
 #include <tchar.h>
 
-std::vector<symbol_info> get_symbols(HMODULE handle, int fd) {
-    std::vector<symbol_info> symbols_list;
+std::vector<internal_symbol_info> get_symbols(HMODULE handle, int fd) {
+    std::vector<internal_symbol_info> symbols_list;
     PIMAGE_EXPORT_DIRECTORY pExportDir;
     PIMAGE_DOS_HEADER pDosHeader;
     PIMAGE_NT_HEADERS pNTHeaders;
@@ -122,7 +122,7 @@ std::vector<symbol_info> get_symbols(HMODULE handle, int fd) {
     #error "Environment not 32 or 64-bit."
 #endif
 
-static void get_symbols_at_off(std::vector<symbol_info> &symbols_list, void *handle, int fd, off_t offset) {
+static void get_symbols_at_off(std::vector<internal_symbol_info> &symbols_list, void *handle, int fd, off_t offset) {
     mach_header_arch mh;
     uint32_t ncmds;
 
@@ -178,8 +178,8 @@ static void get_symbols_at_off(std::vector<symbol_info> &symbols_list, void *han
     }
 }
 
-std::vector<symbol_info> get_symbols(void *handle, int fd) {
-    std::vector<symbol_info> symbols_list;
+std::vector<internal_symbol_info> get_symbols(void *handle, int fd) {
+    std::vector<internal_symbol_info> symbols_list;
     uint32_t magic;
 
     lseek(fd, 0, SEEK_SET);
@@ -227,8 +227,8 @@ std::vector<symbol_info> get_symbols(void *handle, int fd) {
     #error "Environment not 32 or 64-bit."
 #endif
 
-std::vector<symbol_info> get_symbols(void *handle, int fd) {
-    std::vector<symbol_info> symbols_list;
+std::vector<internal_symbol_info> get_symbols(void *handle, int fd) {
+    std::vector<internal_symbol_info> symbols_list;
     struct link_map *map = nullptr;
     ElfSym *symtab = nullptr;
     char *strtab = nullptr;

@@ -22,7 +22,25 @@ using dylib::symbol_info;
 using dylib::native_handle_type;
 using dylib::native_symbol_type;
 
-std::vector<symbol_info> get_symbols(native_handle_type handle, int fd);
+/* 
+ * internal_symbol_type and internal_symbol_info are needed
+ * because the namespace 'dylib' conflicts with the 'dylib'
+ * struct from <mach-o/loader.h> witch is needed on macOS.
+ */
+
+enum internal_symbol_type {
+    C,
+    CPP,
+};
+
+struct internal_symbol_info {
+    std::string name;
+    std::string demangled_name;
+    internal_symbol_type type;
+    bool loadable;
+};
+
+std::vector<internal_symbol_info> get_symbols(native_handle_type handle, int fd);
 std::string demangle_symbol(const char *symbol);
 
 static native_handle_type open_lib(const char *path) noexcept {
@@ -200,14 +218,30 @@ native_handle_type library::native_handle() noexcept {
 }
 
 std::vector<symbol_info> library::symbols() const {
+    std::vector<internal_symbol_info> internal_symbols;
+    std::vector<symbol_info> symbols;
+
     if (!m_handle)
         throw std::logic_error("Attempted to use a moved library object.");
 
     try {
-        return get_symbols(
+        internal_symbols = get_symbols(
             m_handle,
             DYLIB_WIN_MAC_OTHER(-1, m_fd, -1)
         );
+
+        symbols.reserve(internal_symbols.size());
+
+        for (const auto &symbol : internal_symbols) {
+            symbols.push_back(symbol_info{
+                symbol.name,
+                symbol.demangled_name,
+                static_cast<symbol_type>(symbol.type),
+                symbol.loadable
+            });
+        }
+
+        return symbols;
     } catch (const std::runtime_error &e) {
         throw symbol_collection_error(e.what());
     }
