@@ -154,6 +154,14 @@ TEST(symbols, variables) {
     EXPECT_EQ(ptr1, &lib);
 }
 
+#if defined(_WIN32)
+TEST(symbols, system_lib) {
+    dylib::library lib("/windows/system32/kernel32", dylib::decorations::os_default());
+
+    lib.get_function<DWORD()>("GetCurrentThreadId");
+}
+#endif
+
 #define STD_STRING "std::basic_string<char, std::char_traits<char>, std::allocator<char>>"
 #define STD_VECTOR_STRING "std::vector<" STD_STRING ", std::allocator<" STD_STRING ">>"
 
