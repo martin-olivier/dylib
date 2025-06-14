@@ -44,4 +44,5 @@ vector:
 - def
 - ghi
 - jkl
+cb operation with (10, 5), using adder: 15
 ```

@@ -45,4 +45,8 @@ namespace example {
 
         return result;
     }
+
+    LIB_EXPORT double operation(double a, double b, double (*cb)(double, double)) {
+        return cb(a, b);
+    }
 }

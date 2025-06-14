@@ -38,6 +38,9 @@ int main() {
         ("example::adder(" STD_VECTOR(STD_STRING) " const &, " STD_VECTOR(STD_STRING) " const &)");
     auto result_vec = adder_vec({"abc", "def"}, {"ghi", "jkl"});
 
+    auto operation = lib.get_function<double(double, double, double (*)(double, double))>
+        ("example::operation(double, double, double (*)(double, double))");
+
 
     std::cout << hello_world() << std::endl;
     std::cout << dylib_info() << std::endl;
@@ -49,6 +52,7 @@ int main() {
     for (const auto &str : result_vec) {
         std::cout << "- " << str << std::endl;
     }
+    std::cout << "cb operation with (10, 5), using adder: " << operation(10, 5, adder) << std::endl;
 
     return EXIT_SUCCESS;
 }
