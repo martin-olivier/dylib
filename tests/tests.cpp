@@ -1,4 +1,13 @@
+#if defined(__GNUC__) && __GNUC__ >= 8 && !defined(__clang__)
+// suppress '#warning <ciso646> is deprecated in C++17' for mingw and ucrt
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcpp"
+#endif
 #include <gtest/gtest.h>
+#if defined(__GNUC__) && __GNUC__ >= 8 && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
 #include <algorithm>
 #include <utility>
 #include <vector>
