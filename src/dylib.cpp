@@ -173,7 +173,7 @@ native_symbol_type library::get_symbol(const char *symbol_name) const {
     if (symbol_name[0] == '\0')
         throw std::invalid_argument("The symbol name to lookup is an empty string");
     if (!m_handle)
-        throw std::logic_error("Attempted to use a moved library object.");
+        throw std::logic_error("Attempted to use a moved library object");
 
     symbol_name_len = strlen(symbol_name);
 
@@ -222,7 +222,7 @@ std::vector<symbol_info> library::symbols() const {
     std::vector<symbol_info> symbols;
 
     if (!m_handle)
-        throw std::logic_error("Attempted to use a moved library object.");
+        throw std::logic_error("Attempted to use a moved library object");
 
     try {
         internal_symbols = get_symbols(
