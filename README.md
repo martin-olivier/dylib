@@ -128,7 +128,7 @@ double result = adder(pi, pi);
 ```c++
 // Load "foo" dynamic library
 
-dylib lib("foo");
+dylib::library lib("./foo", dylib::decorations::os_default());
 
 // Get the C++ functions "to_string" located in the namespace "tools"
 // The format for the function arguments is the following:
@@ -145,6 +145,23 @@ std::string meaning_of_life_str = int_to_string(42);
 std::string pi_str = double_to_string(pi);
 ```
 
+### Gather library symbols
+
+You can collect the symbols of a dynamic library using the `symbols` method:
+
+```c++
+// Load "foo" dynamic library
+
+dylib::library lib("./foo", dylib::decorations::os_default());
+
+// Iterate through symbols
+
+for (auto &symbol : lib.symbols()) {
+    if (symbol.loadable)
+        std::cout << symbol.demangled_name << std::endl;
+}
+```
+
 ### Miscellaneous tools
 
 `get_symbol`  
@@ -154,7 +171,7 @@ Get a C or C++ symbol from the dynamic library currently loaded in the object
 Returns the dynamic library handle
 
 ```c++
-dylib lib("foo");
+dylib::library lib("./foo", dylib::decorations::os_default());
 
 dylib::native_handle_type handle = lib.native_handle();
 dylib::native_symbol_type symbol = lib.get_symbol("pi_value");
@@ -175,7 +192,7 @@ Those exceptions inherit from `dylib::exception`
 
 ```c++
 try {
-    dylib lib("foo");
+    dylib::library lib("./foo", dylib::decorations::os_default());
     double pi_value = lib.get_variable<double>("pi_value");
     std::cout << pi_value << std::endl;
 } catch (const dylib::load_error &) {
