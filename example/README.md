@@ -1,8 +1,9 @@
-# Dylib example
+# dylib example
 
 Here is an example about the usage of the `dylib` library in a project
 
 The functions and variables of our forthcoming dynamic library are located inside [lib.cpp](lib.cpp)
+
 ```c++
 // lib.cpp
 
@@ -31,6 +32,7 @@ LIB_EXPORT void print_hello() {
 ```
 
 The code that will load functions and global variables of our dynamic library at runtime is located inside [main.cpp](main.cpp)
+
 ```c++
 // main.cpp
 
@@ -57,11 +59,13 @@ int main() {
 ```
 
 Then, we want a build system that will:
+
 - Fetch `dylib` into the project
 - Build [lib.cpp](lib.cpp) into a dynamic library
 - Build [main.cpp](main.cpp) into an executable
 
 This build system is located inside [CMakeLists.txt](CMakeLists.txt)
+
 ```cmake
 # CMakeLists.txt
 
@@ -82,7 +86,7 @@ include(FetchContent)
 FetchContent_Declare(
     dylib
     GIT_REPOSITORY  "https://github.com/martin-olivier/dylib"
-    GIT_TAG         "v2.1.0"
+    GIT_TAG         "v2.2.1"
 )
 
 FetchContent_MakeAvailable(dylib)
@@ -99,12 +103,14 @@ target_link_libraries(dylib_example PRIVATE dylib)
 
 Let's build our code:
 > Make sure to type the following commands inside the `example` folder
+
 ```sh
 cmake . -B build
 cmake --build build
 ```
 
 Let's run our code:
+
 ```sh
 # on unix, run the following command inside "build" folder
 ./dylib_example
@@ -114,6 +120,7 @@ Let's run our code:
 ```
 
 You will have the following result:
+
 ```sh
 15
 Hello
