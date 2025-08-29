@@ -14,9 +14,9 @@ std::string format_symbol(std::string input);
 /************************   MSVC   ************************/
 #if defined(_WIN32) && defined(_MSC_VER)
 
+#include <windows.h>
 #include <dbghelp.h>
 #include <tchar.h>
-#include <windows.h>
 
 #pragma comment(lib, "dbghelp.lib")
 

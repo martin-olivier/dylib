@@ -5,3 +5,10 @@ BreakBeforeBraces: Attach
 AllowShortFunctionsOnASingleLine: Empty
 AlwaysBreakTemplateDeclarations: true
 AccessModifierOffset: -4
+IncludeCategories:
+  - Regex: '^<windows.h>'
+    Priority: 1
+  - Regex: '^<.*>'
+    Priority: 2
+  - Regex: '^".*"'
+    Priority: 3

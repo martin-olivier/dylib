@@ -60,8 +60,8 @@ static void add_symbol(std::vector<internal_symbol_info> &result, const char *sy
 /************************   Windows   ************************/
 #if defined(_WIN32)
 
-#include <tchar.h>
 #include <windows.h>
+#include <tchar.h>
 
 std::vector<internal_symbol_info> get_symbols(HMODULE handle, int fd) {
     std::vector<internal_symbol_info> symbols_list;
