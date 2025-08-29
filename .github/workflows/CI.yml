@@ -85,7 +85,7 @@ jobs:
       matrix:
         cxx-std: [11, 14, 17, 20]
         arch: [64bit, 32bit]
-        action: [tests, valgrind]
+        action: [tests, valgrind, clang-tidy]
         include:
           - arch: 64bit
             docker_arch: amd64
@@ -109,13 +109,23 @@ jobs:
         run: apt update
 
       - name: Install build tools
-        run: apt install -y build-essential cmake valgrind
+        run: apt install -y build-essential cmake valgrind clang-tidy
 
-      - name: Generate project files
+      - name: Generate project files with tests
+        if: ${{ matrix.action != 'clang-tidy'}}
         run: cmake . -B build -DCMAKE_CXX_STANDARD=${{ matrix.cxx-std }} -DDYLIB_BUILD_TESTS=ON -DDYLIB_WARNING_AS_ERRORS=ON
+
+      - name: Generate project files with compile commands
+        if: ${{ matrix.action == 'clang-tidy'}}
+        run: cmake . -B build -DCMAKE_CXX_STANDARD=${{ matrix.cxx-std }} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DDYLIB_WARNING_AS_ERRORS=ON
 
       - name: Build dynamic library and unit tests
         run: cmake --build build
+
+      - name: Run clang-tidy
+        if: ${{ matrix.action == 'clang-tidy'}}
+        working-directory: build
+        run: run-clang-tidy
 
       - name: Run unit tests
         if: ${{ matrix.action == 'tests'}}

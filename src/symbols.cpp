@@ -230,21 +230,21 @@ std::vector<internal_symbol_info> get_symbols(void *handle, int fd) {
 std::vector<internal_symbol_info> get_symbols(void *handle, int fd) {
     std::vector<internal_symbol_info> symbols_list;
     struct link_map *map = nullptr;
+    unsigned long symentries = 0;
     ElfSym *symtab = nullptr;
     char *strtab = nullptr;
-    int symentries = 0;
-    int size = 0;
+    unsigned long size = 0;
 
     if (dlinfo(handle, RTLD_DI_LINKMAP, &map) != 0) {
         const char *error = dlerror();
         throw std::runtime_error("dlinfo failed: " + std::string(error ? error : "Unknown error (dlerror failed)"));
     }
 
-    for (auto section = map->l_ld; section->d_tag != DT_NULL; ++section) {
+    for (auto *section = map->l_ld; section->d_tag != DT_NULL; ++section) {
         if (section->d_tag == DT_SYMTAB)
             symtab = (ElfSym *)section->d_un.d_ptr;
         else if (section->d_tag == DT_STRTAB)
-            strtab = (char*)section->d_un.d_ptr;
+            strtab = (char *)section->d_un.d_ptr;
         else if (section->d_tag == DT_SYMENT)
             symentries = section->d_un.d_val;
     }
