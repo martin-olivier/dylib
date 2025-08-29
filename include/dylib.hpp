@@ -275,9 +275,6 @@ public:
      *
      *  @throws dylib::symbol_collection_error if an error occurred during symbols collection
      *
-     *  @param symbol_params::demangle if true, returns demangled symbols
-     *  @param symbol_params::loadable if true, returns only loadable symbols
-     *
      *  @return the list of symbols in the dynamic library
      */
     std::vector<symbol_info> symbols() const;
