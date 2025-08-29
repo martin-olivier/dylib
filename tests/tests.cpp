@@ -283,8 +283,9 @@ TEST(cpp_symbols, demangle) {
 
     for (auto &symbol : symbols) {
         try {
-            if (symbol.loadable)
+            if (symbol.loadable) {
                 EXPECT_TRUE(!!lib.get_symbol(symbol.name));
+            }        
         } catch (dylib::symbol_multiple_matches &) {
         }
     }
