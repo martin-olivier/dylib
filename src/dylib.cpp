@@ -28,7 +28,7 @@ using dylib::native_symbol_type;
  * struct from <mach-o/loader.h> witch is needed on macOS.
  */
 
-enum internal_symbol_type {
+enum internal_symbol_type : std::uint8_t {
     C,
     CPP,
 };

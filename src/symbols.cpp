@@ -9,13 +9,14 @@
 
 #include <vector>
 #include <string>
+#include <cstdint>
 #include <cstring>
 #include <algorithm>
 #include <stdexcept>
 
 std::string demangle_symbol(const char *symbol);
 
-enum internal_symbol_type {
+enum internal_symbol_type : std::uint8_t {
     C,
     CPP,
 };
@@ -212,7 +213,6 @@ std::vector<internal_symbol_info> get_symbols(void *handle, int fd) {
 
 #else /************************   Linux   ************************/
 
-#include <cstdint>
 #include <dlfcn.h>
 #include <link.h>
 #include <elf.h>
@@ -235,7 +235,7 @@ std::vector<internal_symbol_info> get_symbols(void *handle, int fd) {
     char *strtab = nullptr;
     unsigned long size = 0;
 
-    if (dlinfo(handle, RTLD_DI_LINKMAP, &map) != 0) {
+    if (dlinfo(handle, RTLD_DI_LINKMAP, static_cast<void*>(&map)) != 0) {
         const char *error = dlerror();
         throw std::runtime_error("dlinfo failed: " + std::string(error ? error : "Unknown error (dlerror failed)"));
     }

@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <stdexcept>
@@ -79,7 +80,7 @@ struct decorations {
     }
 };
 
-enum symbol_type {
+enum symbol_type : std::uint8_t {
     C,
     CPP,
 };
