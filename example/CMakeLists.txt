@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.11...3.31)
 
 project(dylib_example)
 
@@ -15,7 +15,7 @@ include(FetchContent)
 FetchContent_Declare(
     dylib
     GIT_REPOSITORY  "https://github.com/martin-olivier/dylib"
-    GIT_TAG         "v2.2.1"
+    GIT_TAG         "v3.0.0"
 )
 
 FetchContent_MakeAvailable(dylib)

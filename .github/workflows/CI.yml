@@ -7,6 +7,7 @@ on:
       - CMakeLists.txt
       - include/*
       - tests/*
+      - src/*
 
   pull_request:
     paths:
@@ -14,93 +15,177 @@ on:
       - CMakeLists.txt
       - include/*
       - tests/*
+      - src/*
 
 defaults:
   run:
     shell: bash
 
+
 jobs:
-  unit_tests:
+  clang_format:
+    name: clang-format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update packages
+        run: sudo apt update
+
+      - name: Install clang-format
+        run: sudo apt install -y clang-format
+
+      - name: Check formatting
+        run: find src include tests -name '*.cpp' -o -name '*.hpp' | xargs clang-format --dry-run --Werror
+
+  windows_msvc:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
         cxx-std: [11, 14, 17, 20]
-        generator: [Unix Makefiles, MinGW Makefiles, Visual Studio 17]
-        exclude:
-          - os: windows-latest
-            generator: Unix Makefiles
-          - os: macos-latest
-            generator: MinGW Makefiles
-          - os: macos-latest
-            generator: Visual Studio 17
-          - os: ubuntu-latest
-            generator: MinGW Makefiles
-          - os: ubuntu-latest
-            generator: Visual Studio 17
-          - generator: MinGW Makefiles
-            cxx-std: 17
-          - generator: MinGW Makefiles
-            cxx-std: 20
 
-    name: ${{ matrix.os }} (C++${{ matrix.cxx-std }} - ${{ matrix.generator }})
-    runs-on: ${{ matrix.os }}
+    name: windows / C++${{ matrix.cxx-std }} / MSVC
+    runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Generate project files
-        run: cmake . -B build -G "${{ matrix.generator }}" -DCMAKE_CXX_STANDARD=${{ matrix.cxx-std }} -DDYLIB_BUILD_TESTS=ON -DDYLIB_WARNING_AS_ERRORS=ON
+        run: cmake . -B build -DCMAKE_CXX_STANDARD=${{ matrix.cxx-std }} -DDYLIB_BUILD_TESTS=ON -DDYLIB_WARNING_AS_ERRORS=ON
 
       - name: Build dynamic library and unit tests
         run: cmake --build build
 
       - name: Run unit tests
         working-directory: build
-        run: ctest
+        run: ctest --verbose
 
-      - name: Generate code coverage
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.cxx-std == 20 }}
-        run: gcov -abcfu build/CMakeFiles/unit_tests.dir/tests/tests.cpp.gcda
 
-      - name: Send coverage to codecov.io
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.cxx-std == 20 }}
-        uses: codecov/codecov-action@v3
-        with:
-          files: dylib.hpp.gcov
+  windows_msys2:
+    defaults:
+      run:
+        shell: msys2 {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        sys: [mingw32, mingw64, ucrt64, clang64]
+        cxx-std: [11, 14, 17, 20]
 
-  memory_check:
-    name: memory check
-    runs-on: ubuntu-latest
+    name: windows / C++${{ matrix.cxx-std }} / ${{matrix.sys}}
+    runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.sys}}
+          update: true
+          install: make
+          pacboy: toolchain:p cmake:p
 
-      - name: Update packages
-        run: sudo apt update
+      - name: Generate project files
+        run: cmake . -B build -G "MinGW Makefiles" -DCMAKE_CXX_STANDARD=${{ matrix.cxx-std }} -DDYLIB_BUILD_TESTS=ON -DDYLIB_WARNING_AS_ERRORS=ON
 
-      - name: Install valgrind
-        run: sudo apt install -y valgrind
-
-      - name: Generate tests build file
-        run: cmake . -B build -DCMAKE_CXX_STANDARD=20 -DDYLIB_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
-
-      - name: Build unit tests
+      - name: Build dynamic library and unit tests
         run: cmake --build build
 
+      - name: Run unit tests
+        working-directory: build
+        run: ctest --verbose
+
+
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        cxx-std: [11, 14, 17, 20]
+        arch: [64bit, 32bit]
+        action: [tests, valgrind, clang-tidy]
+        include:
+          - arch: 64bit
+            docker_arch: amd64
+          - arch: 32bit
+            docker_arch: i386
+
+    name: linux ${{ matrix.arch }} ${{ matrix.action }} / C++${{ matrix.cxx-std }} / gcc
+    runs-on: ubuntu-latest
+    container:
+      # replace with debian 13 (or latest) when available
+      image: ${{ matrix.docker_arch }}/debian:testing
+      options: --user root
+      volumes:
+        - ${{ github.workspace }}:/workspace
+
+    steps:
+      # https://github.com/actions/upload-artifact/issues/616
+      - uses: actions/checkout@v1
+
+      - name: Update packages
+        run: apt update
+
+      - name: Install build tools
+        run: apt install -y build-essential cmake valgrind clang-tidy
+
+      - name: Generate project files with tests
+        if: ${{ matrix.action != 'clang-tidy'}}
+        run: cmake . -B build -DCMAKE_CXX_STANDARD=${{ matrix.cxx-std }} -DDYLIB_BUILD_TESTS=ON -DDYLIB_WARNING_AS_ERRORS=ON
+
+      - name: Generate project files with compile commands
+        if: ${{ matrix.action == 'clang-tidy'}}
+        run: cmake . -B build -DCMAKE_CXX_STANDARD=${{ matrix.cxx-std }} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DDYLIB_WARNING_AS_ERRORS=ON
+
+      - name: Build dynamic library and unit tests
+        run: cmake --build build
+
+      - name: Run clang-tidy
+        if: ${{ matrix.action == 'clang-tidy'}}
+        working-directory: build
+        run: run-clang-tidy
+
+      - name: Run unit tests
+        if: ${{ matrix.action == 'tests'}}
+        working-directory: build
+        run: ctest --verbose
+
       - name: Run unit tests with valgrind
+        if: ${{ matrix.action == 'valgrind'}}
         working-directory: build
         run: valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./unit_tests
 
-  linter:
-    name: linter
-    runs-on: ubuntu-latest
+
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        cxx-std: [11, 14, 17, 20]
+        arch: [intel, silicon, universal]
+        action: [tests, leaks]
+        include:
+          - arch: intel
+            osx_arch: x86_64
+          - arch: silicon
+            osx_arch: arm64
+          - arch: universal
+            osx_arch: arm64;x86_64
+
+    name: macos ${{ matrix.arch }} ${{ matrix.action }} / C++${{ matrix.cxx-std }} / clang
+    runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Install cpplint
-        run: pip install cpplint
+      - name: Generate project files
+        run: cmake . -B build "-DCMAKE_OSX_ARCHITECTURES=${{ matrix.osx_arch }}" -DCMAKE_CXX_STANDARD=${{ matrix.cxx-std }} -DDYLIB_BUILD_TESTS=ON -DDYLIB_WARNING_AS_ERRORS=ON
 
-      - name: Run cpplint
-        run: cpplint --linelength=140 --filter=-whitespace/indent,-whitespace/parens include/dylib.hpp
+      - name: Build dynamic library and unit tests
+        run: cmake --build build
+
+      - name: Run unit tests
+        if: ${{ matrix.action == 'tests'}}
+        working-directory: build
+        run: ctest --verbose
+
+      - name: Run unit tests with leaks
+        if: ${{ matrix.action == 'leaks'}}
+        working-directory: build
+        run: leaks -atExit -- ./unit_tests

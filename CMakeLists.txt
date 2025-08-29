@@ -1,19 +1,24 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.11...3.31)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
-include(dylib)
-
-project(dylib CXX)
+project(dylib VERSION 3.0.0 LANGUAGES CXX)
 
 if(NOT "${CMAKE_CXX_STANDARD}")
-  set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD 11)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_library(dylib INTERFACE)
-target_include_directories(dylib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(SOURCES
+    src/dylib.cpp
+    src/symbols.cpp
+    src/demangle.cpp
+    src/format.cpp
+)
+
+add_library(dylib STATIC ${SOURCES})
+
+target_include_directories(dylib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 if(UNIX)
-    target_link_libraries(dylib INTERFACE dl)
+    target_link_libraries(dylib PRIVATE dl)
 endif()
 
 option(DYLIB_BUILD_TESTS "When set to ON, build unit tests" OFF)
@@ -27,7 +32,7 @@ if(DYLIB_BUILD_TESTS)
     include(FetchContent)
     FetchContent_Declare(
         googletest
-        URL https://github.com/google/googletest/archive/refs/tags/release-1.12.1.zip
+        URL https://github.com/google/googletest/archive/refs/tags/v1.15.2.zip
     )
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(googletest)
