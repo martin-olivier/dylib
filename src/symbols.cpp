@@ -1,18 +1,18 @@
 /**
  * @file symbols.cpp
- * 
+ *
  * @author Martin Olivier <martin.olivier@live.fr>
  * @copyright (c) 2025 Martin Olivier
  *
  * This library is released under MIT license
  */
 
-#include <vector>
-#include <string>
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
-#include <algorithm>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 std::string demangle_symbol(const char *symbol);
 
@@ -28,7 +28,8 @@ struct internal_symbol_info {
     bool loadable;
 };
 
-static void add_symbol(std::vector<internal_symbol_info> &result, const char *symbol, bool loadable) {
+static void add_symbol(std::vector<internal_symbol_info> &result, const char *symbol,
+                       bool loadable) {
     internal_symbol_type type = internal_symbol_type::C;
     std::string demangled;
 
@@ -41,7 +42,7 @@ static void add_symbol(std::vector<internal_symbol_info> &result, const char *sy
     else
         type = internal_symbol_type::CPP;
 
-    /* 
+    /*
      * In case of duplicate symbols, for example when loading a FAT binary,
      * avoid duplicates and override loadable if the previous symbol was not loadable.
      */
@@ -59,8 +60,8 @@ static void add_symbol(std::vector<internal_symbol_info> &result, const char *sy
 /************************   Windows   ************************/
 #if defined(_WIN32)
 
-#include <windows.h>
 #include <tchar.h>
+#include <windows.h>
 
 std::vector<internal_symbol_info> get_symbols(HMODULE handle, int fd) {
     std::vector<internal_symbol_info> symbols_list;
@@ -81,7 +82,8 @@ std::vector<internal_symbol_info> get_symbols(HMODULE handle, int fd) {
         throw std::runtime_error("Invalid NT headers");
 
     // Get the export directory
-    exportDirRVA = pNTHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
+    exportDirRVA =
+        pNTHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
     if (exportDirRVA == 0)
         throw std::runtime_error("No export directory found");
 
@@ -102,28 +104,29 @@ std::vector<internal_symbol_info> get_symbols(HMODULE handle, int fd) {
 /************************   Mac OS   ************************/
 #elif defined(__APPLE__)
 
+#include <dlfcn.h>
+#include <mach-o/fat.h>
 #include <mach-o/loader.h>
 #include <mach-o/nlist.h>
-#include <mach-o/fat.h>
-#include <dlfcn.h>
 #include <unistd.h>
 #include <utility>
 
 #if INTPTR_MAX == INT32_MAX
-    using mach_header_arch = mach_header;
-    using nlist_arch = nlist;
-    #define DYLIB_MH_MAGIC MH_MAGIC
-    #define DYLIB_MH_CIGAM MH_CIGAM
+using mach_header_arch = mach_header;
+using nlist_arch = nlist;
+#define DYLIB_MH_MAGIC MH_MAGIC
+#define DYLIB_MH_CIGAM MH_CIGAM
 #elif INTPTR_MAX == INT64_MAX
-    using mach_header_arch = mach_header_64;
-    using nlist_arch = nlist_64;
-    #define DYLIB_MH_MAGIC MH_MAGIC_64
-    #define DYLIB_MH_CIGAM MH_CIGAM_64
+using mach_header_arch = mach_header_64;
+using nlist_arch = nlist_64;
+#define DYLIB_MH_MAGIC MH_MAGIC_64
+#define DYLIB_MH_CIGAM MH_CIGAM_64
 #else
-    #error "Environment not 32 or 64-bit."
+#error "Environment not 32 or 64-bit."
 #endif
 
-static void get_symbols_at_off(std::vector<internal_symbol_info> &symbols_list, void *handle, int fd, off_t offset) {
+static void get_symbols_at_off(std::vector<internal_symbol_info> &symbols_list, void *handle,
+                               int fd, off_t offset) {
     mach_header_arch mh;
     uint32_t ncmds;
 
@@ -214,17 +217,17 @@ std::vector<internal_symbol_info> get_symbols(void *handle, int fd) {
 #else /************************   Linux   ************************/
 
 #include <dlfcn.h>
-#include <link.h>
 #include <elf.h>
+#include <link.h>
 
 #if INTPTR_MAX == INT32_MAX
-    using ElfSym = Elf32_Sym;
-    #define DYLIB_ELF_ST_TYPE ELF32_ST_TYPE
+using ElfSym = Elf32_Sym;
+#define DYLIB_ELF_ST_TYPE ELF32_ST_TYPE
 #elif INTPTR_MAX == INT64_MAX
-    using ElfSym = Elf64_Sym;
-    #define DYLIB_ELF_ST_TYPE ELF64_ST_TYPE
+using ElfSym = Elf64_Sym;
+#define DYLIB_ELF_ST_TYPE ELF64_ST_TYPE
 #else
-    #error "Environment not 32 or 64-bit."
+#error "Environment not 32 or 64-bit."
 #endif
 
 std::vector<internal_symbol_info> get_symbols(void *handle, int fd) {
@@ -235,9 +238,10 @@ std::vector<internal_symbol_info> get_symbols(void *handle, int fd) {
     char *strtab = nullptr;
     unsigned long size = 0;
 
-    if (dlinfo(handle, RTLD_DI_LINKMAP, static_cast<void*>(&map)) != 0) {
+    if (dlinfo(handle, RTLD_DI_LINKMAP, static_cast<void *>(&map)) != 0) {
         const char *error = dlerror();
-        throw std::runtime_error("dlinfo failed: " + std::string(error ? error : "Unknown error (dlerror failed)"));
+        throw std::runtime_error("dlinfo failed: " +
+                                 std::string(error ? error : "Unknown error (dlerror failed)"));
     }
 
     for (auto *section = map->l_ld; section->d_tag != DT_NULL; ++section) {
@@ -255,7 +259,7 @@ std::vector<internal_symbol_info> get_symbols(void *handle, int fd) {
     size = strtab - (char *)symtab;
 
     for (int i = 0; i < size / symentries; ++i) {
-        ElfSym* sym = &symtab[i];
+        ElfSym *sym = &symtab[i];
 
         if (DYLIB_ELF_ST_TYPE(symtab[i].st_info) == STT_FUNC) {
             const char *name = &strtab[sym->st_name];

@@ -1,6 +1,6 @@
 /**
  * @file format.cpp
- * 
+ *
  * @author Martin Olivier <martin.olivier@live.fr>
  * @copyright (c) 2025 Martin Olivier
  *
@@ -9,7 +9,8 @@
 
 #include <string>
 
-static void replace_occurrences(std::string &symbol, const std::string &find, const std::string &replace) {
+static void replace_occurrences(std::string &symbol, const std::string &find,
+                                const std::string &replace) {
     size_t pos = 0;
 
     while ((pos = symbol.find(find, pos)) != std::string::npos)
@@ -55,10 +56,7 @@ static void add_sym_separator(std::string &symbol, char c) {
     size_t pos = 0;
 
     while ((pos = symbol.find(c, pos)) != std::string::npos) {
-        if (pos &&
-            symbol[pos - 1] != ' ' &&
-            symbol[pos - 1] != '&' &&
-            symbol[pos - 1] != '*' &&
+        if (pos && symbol[pos - 1] != ' ' && symbol[pos - 1] != '&' && symbol[pos - 1] != '*' &&
             symbol[pos - 1] != '(') {
             symbol.replace(pos, 1, std::string(" ") + c);
             pos += 2;

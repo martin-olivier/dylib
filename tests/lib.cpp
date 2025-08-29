@@ -37,40 +37,40 @@ LIB_EXPORT void list_add_string(std::vector<std::string> &cont, std::string elem
 }
 
 namespace tools {
-    LIB_EXPORT double adder() {
-        return 0;
-    }
-
-    LIB_EXPORT double adder(double a, double b) {
-        return a + b;
-    }
-
-    LIB_EXPORT std::string adder(std::string a, std::string b) {
-        return a + b;
-    }
-
-    namespace string {
-        LIB_EXPORT std::string format(const char *str) {
-            return std::string("ptr: ") + str;
-        }
-
-        LIB_EXPORT std::string format(const std::string str) {
-            return std::string("cpy: ") + str;
-        }
-
-        LIB_EXPORT std::string format(const std::string &str) {
-            return std::string("ref: ") + str;
-        }
-
-        LIB_EXPORT std::string format(std::string &&str) {
-            return std::string("mov: ") + str;
-        }
-
-        LIB_EXPORT std::string format(const unsigned int& val) {
-            return std::string("ref: ") + std::to_string(val);
-        }
-    }
+LIB_EXPORT double adder() {
+    return 0;
 }
+
+LIB_EXPORT double adder(double a, double b) {
+    return a + b;
+}
+
+LIB_EXPORT std::string adder(std::string a, std::string b) {
+    return a + b;
+}
+
+namespace string {
+LIB_EXPORT std::string format(const char *str) {
+    return std::string("ptr: ") + str;
+}
+
+LIB_EXPORT std::string format(const std::string str) {
+    return std::string("cpy: ") + str;
+}
+
+LIB_EXPORT std::string format(const std::string &str) {
+    return std::string("ref: ") + str;
+}
+
+LIB_EXPORT std::string format(std::string &&str) {
+    return std::string("mov: ") + str;
+}
+
+LIB_EXPORT std::string format(const unsigned int &val) {
+    return std::string("ref: ") + std::to_string(val);
+}
+} // namespace string
+} // namespace tools
 
 LIB_EXPORT std::string fmt_position(Position &pos) {
     return std::to_string(pos.x) + ", " + std::to_string(pos.y);

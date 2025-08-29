@@ -1,6 +1,6 @@
 /**
  * @file demangle.cpp
- * 
+ *
  * @author Martin Olivier <martin.olivier@live.fr>
  * @copyright (c) 2025 Martin Olivier
  *
@@ -14,9 +14,9 @@ std::string format_symbol(std::string input);
 /************************   MSVC   ************************/
 #if defined(_WIN32) && defined(_MSC_VER)
 
-#include <windows.h>
 #include <dbghelp.h>
 #include <tchar.h>
+#include <windows.h>
 
 #pragma comment(lib, "dbghelp.lib")
 
@@ -34,10 +34,10 @@ std::string demangle_symbol(const char *symbol) {
             /*
              * If symbol signature starts with symbol name, it means
              * that this is a function, otherwise, this is a variable:
-             * 
+             *
              * signature: tools::adder(double, double)
              * name:      tools::adder
-             * 
+             *
              * signature: long ptr
              * name:      ptr
              */

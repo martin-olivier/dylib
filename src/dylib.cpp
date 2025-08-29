@@ -1,6 +1,6 @@
 /**
  * @file dylib.cpp
- * 
+ *
  * @author Martin Olivier <martin.olivier@live.fr>
  * @copyright (c) 2025 Martin Olivier
  *
@@ -12,17 +12,17 @@
 #include <unistd.h>
 #endif
 
-#include <fcntl.h>
 #include <cstring>
+#include <fcntl.h>
 
 #include "dylib.hpp"
 
 using dylib::library;
-using dylib::symbol_info;
 using dylib::native_handle_type;
 using dylib::native_symbol_type;
+using dylib::symbol_info;
 
-/* 
+/*
  * internal_symbol_type and internal_symbol_info are needed
  * because the namespace 'dylib' conflicts with the 'dylib'
  * struct from <mach-o/loader.h> witch is needed on macOS.
@@ -78,8 +78,8 @@ static std::string get_error_description() noexcept {
     if (!error_code)
         return "Unknown error (GetLastError failed)";
 
-    length = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code,
-                            lang, description, 512, nullptr);
+    length = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, lang, description, 512,
+                            nullptr);
 
     return (length == 0) ? "Unknown error (FormatMessage failed)" : description;
 #else
@@ -130,7 +130,8 @@ library::library(const char *lib_path, dylib::decorations decorations) {
     lib_dir = lib.substr(0, lib.find_last_of('/'));
 
     if (lib_name.empty())
-        throw std::invalid_argument("Could not load library '" + lib + "': a directory was provided");
+        throw std::invalid_argument("Could not load library '" + lib +
+                                    "': a directory was provided");
 
     lib = lib_dir + '/' + decorations.prefix + lib_name + decorations.suffix;
 
@@ -225,10 +226,7 @@ std::vector<symbol_info> library::symbols() const {
         throw std::logic_error("Attempted to use a moved library object");
 
     try {
-        internal_symbols = get_symbols(
-            m_handle,
-            DYLIB_WIN_MAC_OTHER(-1, m_fd, -1)
-        );
+        internal_symbols = get_symbols(m_handle, DYLIB_WIN_MAC_OTHER(-1, m_fd, -1));
 
         symbols.reserve(internal_symbols.size());
 
@@ -237,7 +235,7 @@ std::vector<symbol_info> library::symbols() const {
                 symbol.name,
                 symbol.demangled_name,
                 static_cast<symbol_type>(symbol.type),
-                symbol.loadable
+                symbol.loadable,
             });
         }
 

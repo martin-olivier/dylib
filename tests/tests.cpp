@@ -9,9 +9,9 @@
 #endif
 
 #include <algorithm>
+#include <string>
 #include <utility>
 #include <vector>
-#include <string>
 
 #include "dylib.hpp"
 #include "lib.hpp"
@@ -38,7 +38,8 @@ TEST(library, path) {
     EXPECT_NO_THROW(dylib::library(".///dynamic_lib", dylib::decorations::os_default()));
     EXPECT_NO_THROW(dylib::library("./././dynamic_lib", dylib::decorations::os_default()));
 
-    EXPECT_THROW(dylib::library("/usr/bin/", dylib::decorations::os_default()), std::invalid_argument);
+    EXPECT_THROW(dylib::library("/usr/bin/", dylib::decorations::os_default()),
+                 std::invalid_argument);
     EXPECT_THROW(dylib::library("/usr/bin/", dylib::decorations::none()), std::invalid_argument);
 }
 
@@ -64,13 +65,9 @@ TEST(library, std_move) {
 
 TEST(library, manual_decorations) {
     dylib::decorations os_decorations = dylib::decorations::os_default();
-    dylib::library lib(
-        std::string("./") +
-        os_decorations.prefix +
-        std::string("dynamic_lib") +
-        os_decorations.suffix,
-        dylib::decorations::none()
-    );
+    dylib::library lib(std::string("./") + os_decorations.prefix + std::string("dynamic_lib") +
+                           os_decorations.suffix,
+                       dylib::decorations::none());
 
     auto pi = lib.get_variable<double>("pi_value_c");
     EXPECT_EQ(pi, 3.14159);
@@ -175,8 +172,10 @@ TEST(cpp_symbols, functions) {
 
     EXPECT_EQ(list_new_find, list_new_full);
 
-    auto list_add_find = lib.get_function<void(std::vector<std::string> &, std::string)>("list_add_string");
-    auto list_add_full = lib.get_function<void(std::vector<std::string> &, std::string)>("list_add_string(" STD_VECTOR_STRING " &, " STD_STRING ")");
+    auto list_add_find =
+        lib.get_function<void(std::vector<std::string> &, std::string)>("list_add_string");
+    auto list_add_full = lib.get_function<void(std::vector<std::string> &, std::string)>(
+        "list_add_string(" STD_VECTOR_STRING " &, " STD_STRING ")");
 
     EXPECT_EQ(list_add_find, list_add_full);
 
@@ -203,23 +202,29 @@ TEST(cpp_symbols, functions_overload_namespace) {
     auto d_adder = lib.get_function<double(double, double)>("tools::adder(double, double)");
     EXPECT_EQ(d_adder(11, 11), 22);
 
-    auto s_adder = lib.get_function<std::string(std::string, std::string)>("tools::adder(" STD_STRING ", " STD_STRING ")");
+    auto s_adder = lib.get_function<std::string(std::string, std::string)>(
+        "tools::adder(" STD_STRING ", " STD_STRING ")");
     EXPECT_EQ(s_adder("Hello", "World"), "HelloWorld");
 
-    auto ptr_format = lib.get_function<std::string(const char *)>("tools::string::format(char const *)");
+    auto ptr_format =
+        lib.get_function<std::string(const char *)>("tools::string::format(char const *)");
     EXPECT_EQ(ptr_format(TEST_TEXT), "ptr: " TEST_TEXT);
 
-    auto cpy_format = lib.get_function<std::string(std::string)>("tools::string::format(" STD_STRING ")");
+    auto cpy_format =
+        lib.get_function<std::string(std::string)>("tools::string::format(" STD_STRING ")");
     EXPECT_EQ(cpy_format(TEST_TEXT), "cpy: " TEST_TEXT);
 
-    auto ref_format = lib.get_function<std::string(const std::string &)>("tools::string::format(" STD_STRING " const &)");
+    auto ref_format = lib.get_function<std::string(const std::string &)>(
+        "tools::string::format(" STD_STRING " const &)");
     EXPECT_EQ(ref_format(TEST_TEXT), "ref: " TEST_TEXT);
 
-    auto mov_format = lib.get_function<std::string(std::string &&)>("tools::string::format(" STD_STRING " &&)");
+    auto mov_format =
+        lib.get_function<std::string(std::string &&)>("tools::string::format(" STD_STRING " &&)");
     auto mov_text = std::string(TEST_TEXT);
     EXPECT_EQ(mov_format(std::move(mov_text)), "mov: " TEST_TEXT);
 
-    auto int_ref_println = lib.get_function<std::string(const unsigned int &)>("tools::string::format(unsigned int const &)");
+    auto int_ref_println = lib.get_function<std::string(const unsigned int &)>(
+        "tools::string::format(unsigned int const &)");
     EXPECT_EQ(int_ref_println(123), "ref: 123");
 }
 
@@ -251,8 +256,8 @@ TEST(cpp_symbols, callback) {
     dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
 
     auto adder = lib.get_function<double(double, double)>("tools::adder(double, double)");
-    auto callback = lib.get_function<double(double, double, double (*)(double, double))>
-        ("callback(double, double, double (*)(double, double))");
+    auto callback = lib.get_function<double(double, double, double (*)(double, double))>(
+        "callback(double, double, double (*)(double, double))");
 
     EXPECT_EQ(callback(10, 10, adder), 20);
 }
@@ -278,10 +283,10 @@ TEST(cpp_symbols, demangle) {
 
     for (auto &symbol : symbols) {
         try {
-            if (symbol.loadable) {
+            if (symbol.loadable)
                 EXPECT_TRUE(!!lib.get_symbol(symbol.name));
-            }
-        } catch (dylib::symbol_multiple_matches &) {}
+        } catch (dylib::symbol_multiple_matches &) {
+        }
     }
 }
 

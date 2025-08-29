@@ -3,7 +3,7 @@
  * @version 3.0.0
  * @brief C++ cross-platform wrapper around dynamic loading of shared libraries
  * @link https://github.com/martin-olivier/dylib
- * 
+ *
  * @author Martin Olivier <martin.olivier@live.fr>
  * @copyright (c) 2025 Martin Olivier
  *
@@ -13,10 +13,10 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
-#include <vector>
 #include <stdexcept>
+#include <string>
 #include <utility>
+#include <vector>
 
 #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 #include <filesystem>
@@ -75,7 +75,7 @@ struct decorations {
     static decorations os_default() noexcept {
         return {
             DYLIB_WIN_OTHER("", "lib"),
-            DYLIB_WIN_MAC_OTHER(".dll", ".dylib", ".so")
+            DYLIB_WIN_MAC_OTHER(".dll", ".dylib", ".so"),
         };
     }
 };
@@ -130,9 +130,8 @@ public:
  */
 class symbol_not_found : public symbol_error {
 public:
-    explicit symbol_not_found(const std::string &symbol, const std::string &error) : symbol_error(
-        "Could not get symbol '" + symbol + "':\n" + error
-    ) {}
+    explicit symbol_not_found(const std::string &symbol, const std::string &error)
+        : symbol_error("Could not get symbol '" + symbol + "':\n" + error) {}
 };
 
 /**
@@ -143,9 +142,9 @@ public:
  */
 class symbol_multiple_matches : public symbol_error {
 public:
-    explicit symbol_multiple_matches(const std::string &symbol, const std::string &matching_symbols) : symbol_error(
-        "Could not get symbol '" + symbol + "', multiple matches:\n" + matching_symbols
-    ) {}
+    explicit symbol_multiple_matches(const std::string &symbol, const std::string &matching_symbols)
+        : symbol_error("Could not get symbol '" + symbol + "', multiple matches:\n" +
+                       matching_symbols) {}
 };
 
 /**
@@ -155,9 +154,8 @@ public:
  */
 class symbol_collection_error : public symbol_error {
 public:
-    explicit symbol_collection_error(const std::string &error) : symbol_error(
-        "Could not collect symbols:\n" + error
-    ) {}
+    explicit symbol_collection_error(const std::string &error)
+        : symbol_error("Could not collect symbols:\n" + error) {}
 };
 
 /**
@@ -184,7 +182,8 @@ public:
     explicit library(const char *lib_path, decorations decorations = decorations::none());
     explicit library(const std::string &lib_path, decorations decorations = decorations::none());
 #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
-    explicit library(const std::filesystem::path &lib_path, decorations decorations = decorations::none());
+    explicit library(const std::filesystem::path &lib_path,
+                     decorations decorations = decorations::none());
 #endif
 
     ~library();
@@ -195,7 +194,7 @@ public:
      *  @throws dylib::symbol_not_found if the symbol could not be found
      *  @throws dylib::symbol_multiple_matches if multiple matching symbols were found
      *  @throws dylib::symbol_collection_error if an error occurred during symbols collection
-     * 
+     *
      *  Those exceptions inherit from dylib::symbol_error
      *
      *  @param symbol_name the symbol name to get from the dynamic library
@@ -211,7 +210,7 @@ public:
      *  @throws dylib::symbol_not_found if the symbol could not be found
      *  @throws dylib::symbol_multiple_matches if multiple matching symbols were found
      *  @throws dylib::symbol_collection_error if an error occurred during symbols collection
-     * 
+     *
      *  Those exceptions inherit from dylib::symbol_error
      *
      *  @param T the template argument must be the function prototype to get
@@ -253,7 +252,7 @@ public:
      *  @throws dylib::symbol_not_found if the symbol could not be found
      *  @throws dylib::symbol_multiple_matches if multiple matching symbols were found
      *  @throws dylib::symbol_collection_error if an error occurred during symbols collection
-     * 
+     *
      *  Those exceptions inherit from dylib::symbol_error
      *
      *  @param T the template argument must be the type of the variable to get
