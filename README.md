@@ -3,9 +3,7 @@
 [![version](https://img.shields.io/badge/Version-3.0.0-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v3.0.0)
 [![license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/martin-olivier/dylib/blob/main/LICENSE)
 [![cpp](https://img.shields.io/badge/Compatibility-C++11-darkgreen.svg)](https://isocpp.org)
-
 [![ci](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml/badge.svg)](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml)
-[![coverage](https://codecov.io/gh/martin-olivier/dylib/branch/main/graph/badge.svg)](https://codecov.io/gh/martin-olivier/dylib)
 
 The goal of this C++ library is to load dynamic libraries (.so, .dll, .dylib) and access its C and C++ functions and global variables at runtime.  
 
