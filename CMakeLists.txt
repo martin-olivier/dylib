@@ -16,10 +16,58 @@ set(SOURCES
 
 add_library(dylib STATIC ${SOURCES})
 
-target_include_directories(dylib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(dylib
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+
 if(UNIX)
     target_link_libraries(dylib PRIVATE dl)
 endif()
+
+include(GNUInstallDirs)
+
+install(
+    TARGETS dylib
+    EXPORT dylibTargets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+install(
+    DIRECTORY include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(
+    EXPORT dylibTargets
+    FILE dylibTargets.cmake
+    NAMESPACE dylib::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/dylib
+)
+
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/dylibConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/dylibConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/dylibConfig.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/dylib
+)
+
+install(
+    FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/dylibConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/dylibConfigVersion.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/dylib
+)
 
 option(DYLIB_BUILD_TESTS "When set to ON, build unit tests" OFF)
 option(DYLIB_WARNING_AS_ERRORS "Treat warnings as errors" OFF)
