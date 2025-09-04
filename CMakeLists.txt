@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.11...3.31)
 
-project(dylib VERSION 3.0.0 LANGUAGES CXX)
+project(dylib VERSION 3.0.1 LANGUAGES CXX)
 
 if(NOT "${CMAKE_CXX_STANDARD}")
     set(CMAKE_CXX_STANDARD 11)

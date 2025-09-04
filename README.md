@@ -1,6 +1,6 @@
 # dylib
 
-[![version](https://img.shields.io/badge/Version-3.0.0-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v3.0.0)
+[![version](https://img.shields.io/badge/Version-3.0.1-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v3.0.1)
 [![license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/martin-olivier/dylib/blob/main/LICENSE)
 [![cpp](https://img.shields.io/badge/Compatibility-C++11-darkgreen.svg)](https://isocpp.org)
 [![ci](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml/badge.svg)](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml)
@@ -28,7 +28,7 @@ vcpkg install dylib
 ```
 
 ```sh
-conan install --requires=dylib/3.0.0
+conan install --requires=dylib/3.0.1
 ```
 
 ### Using CMake Fetch
@@ -41,7 +41,7 @@ include(FetchContent)
 FetchContent_Declare(
     dylib
     GIT_REPOSITORY "https://github.com/martin-olivier/dylib"
-    GIT_TAG        "v3.0.0"
+    GIT_TAG        "v3.0.1"
 )
 
 FetchContent_MakeAvailable(dylib)

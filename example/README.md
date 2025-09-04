@@ -34,7 +34,7 @@ You will have the following result:
 
 ```sh
 Hello World!
-dylib - v3.0.0
+dylib - v3.0.1
 pi value: 3.14159
 magic value: cafebabe
 10 + 10 = 20
