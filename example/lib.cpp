@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
 
-#if defined(_WIN32)
+#ifdef _WIN32
 #define LIB_EXPORT __declspec(dllexport)
 #else
 #define LIB_EXPORT

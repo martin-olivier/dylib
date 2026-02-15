@@ -16,7 +16,7 @@
 #include "dylib.hpp"
 #include "lib.hpp"
 
-#if !defined(_WIN32)
+#ifndef _WIN32
 #include <dlfcn.h>
 #endif
 
@@ -85,14 +85,14 @@ TEST(library, handle_management) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
-#if defined __clang__
+#ifdef __clang__
 #if __has_warning("-Wcast-function-type-mismatch")
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
 #endif
 #endif
     auto res = ((double (*)(double, double))(sym))(10, 10);
-#if defined __clang__
+#ifdef __clang__
 #if __has_warning("-Wcast-function-type-mismatch")
 #pragma clang diagnostic pop
 #endif

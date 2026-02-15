@@ -22,7 +22,7 @@
 #include <filesystem>
 #endif
 
-#if defined(_WIN32)
+#ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #define DYLIB_UNDEFINE_LEAN_AND_MEAN
@@ -42,7 +42,7 @@
 #endif
 #endif
 
-#if defined(_WIN32)
+#ifdef _WIN32
 #define DYLIB_WIN_MAC_OTHER(win_def, mac_def, other_def) win_def
 #define DYLIB_WIN_OTHER(win_def, other_def) win_def
 #elif defined(__APPLE__)
@@ -224,14 +224,14 @@ public:
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
-#if defined __clang__
+#ifdef __clang__
 #if __has_warning("-Wcast-function-type-mismatch")
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
 #endif
 #endif
         return reinterpret_cast<T *>(get_symbol(symbol_name));
-#if defined __clang__
+#ifdef __clang__
 #if __has_warning("-Wcast-function-type-mismatch")
 #pragma clang diagnostic pop
 #endif
@@ -286,7 +286,7 @@ public:
 
 protected:
     native_handle_type m_handle{nullptr};
-#if defined(__APPLE__)
+#ifdef __APPLE__
     int m_fd{-1};
 #endif
 };

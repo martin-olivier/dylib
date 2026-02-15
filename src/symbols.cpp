@@ -58,7 +58,7 @@ static void add_symbol(std::vector<internal_symbol_info> &result, const char *sy
 }
 
 /************************   Windows   ************************/
-#if defined(_WIN32)
+#ifdef _WIN32
 
 #include <windows.h>
 #include <tchar.h>
