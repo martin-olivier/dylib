@@ -14,15 +14,11 @@ set(SOURCES
     src/format.cpp
 )
 
-if(DYLIB_SHARED)
-    add_library(dylib SHARED ${SOURCES})
-    if(WIN32)
-        set_target_properties(dylib PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
-    endif()
-else()
-    add_library(dylib STATIC ${SOURCES})
-endif()
+add_library(dylib ${SOURCES})
 
+if(BUILD_SHARED_LIBS AND WIN32)
+    set_target_properties(dylib PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
 
 target_include_directories(dylib
     PUBLIC
@@ -79,7 +75,6 @@ install(
 
 option(DYLIB_BUILD_TESTS "When set to ON, build unit tests" OFF)
 option(DYLIB_WARNING_AS_ERRORS "Treat warnings as errors" OFF)
-option(DYLIB_SHARED "Build as shared object" ON)
 
 if(DYLIB_BUILD_TESTS)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
@@ -132,5 +127,3 @@ if(DYLIB_BUILD_TESTS)
     include(GoogleTest)
     gtest_discover_tests(unit_tests PROPERTIES DISCOVERY_TIMEOUT 600 WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
 endif()
-
-
