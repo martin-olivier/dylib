@@ -280,13 +280,22 @@ public:
     std::vector<symbol_info> symbols() const;
 
     /**
+     *  Get the list of section names from the dynamic library currently loaded in the object
+     *
+     *  @throws dylib::symbol_collection_error if an error occurred during sections collection
+     *
+     *  @return the list of sections in the dynamic library
+     */
+    std::vector<std::string> sections() const;
+
+    /**
      *  @return the dynamic library handle
      */
     native_handle_type native_handle() noexcept;
 
 protected:
     native_handle_type m_handle{nullptr};
-#if defined(__APPLE__)
+#ifndef _WIN32
     int m_fd{-1};
 #endif
 };

@@ -291,6 +291,17 @@ TEST(cpp_symbols, demangle) {
     }
 }
 
+#include <iostream>
+
+TEST(sections, lookup) {
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
+    std::vector<std::string> sections;
+
+    sections = lib.sections();
+
+    EXPECT_NE(std::find(sections.begin(), sections.end(), "test_section"), sections.end());
+}
+
 int main(int ac, char **av) {
     testing::InitGoogleTest(&ac, av);
     return RUN_ALL_TESTS();

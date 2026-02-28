@@ -41,6 +41,7 @@ struct internal_symbol_info {
 };
 
 std::vector<internal_symbol_info> get_symbols(native_handle_type handle, int fd);
+std::vector<std::string> get_sections(native_handle_type handle, int fd);
 std::string demangle_symbol(const char *symbol);
 
 static native_handle_type open_lib(const char *path) noexcept {
@@ -91,7 +92,7 @@ static std::string get_error_description() noexcept {
 
 library::library(library &&other) noexcept {
     std::swap(m_handle, other.m_handle);
-#if defined(__APPLE__)
+#ifndef _WIN32
     std::swap(m_fd, other.m_fd);
 #endif
 }
@@ -99,7 +100,7 @@ library::library(library &&other) noexcept {
 library &library::operator=(library &&other) noexcept {
     if (this != &other) {
         std::swap(m_handle, other.m_handle);
-#if defined(__APPLE__)
+#ifndef _WIN32
         std::swap(m_fd, other.m_fd);
 #endif
     }
@@ -139,7 +140,7 @@ library::library(const char *lib_path, dylib::decorations decorations) {
     if (!m_handle)
         throw load_error("Could not load library '" + lib + "':\n" + get_error_description());
 
-#if defined(__APPLE__)
+#ifndef _WIN32
     m_fd = open(lib.c_str(), O_RDONLY);
     if (m_fd < 0)
         throw load_error("Could not open file '" + lib + "':\n" + strerror(errno));
@@ -157,7 +158,7 @@ library::library(const std::filesystem::path &lib_path, decorations decorations)
 library::~library() {
     if (m_handle)
         close_lib(m_handle);
-#if defined(__APPLE__)
+#ifndef _WIN32
     if (m_fd > -1)
         close(m_fd);
 #endif
@@ -240,6 +241,17 @@ std::vector<symbol_info> library::symbols() const {
         }
 
         return symbols;
+    } catch (const std::runtime_error &e) {
+        throw symbol_collection_error(e.what());
+    }
+}
+
+std::vector<std::string> library::sections() const {
+    if (!m_handle)
+        throw std::logic_error("Attempted to use a moved library object");
+
+    try {
+        return get_sections(m_handle, DYLIB_WIN_MAC_OTHER(-1, m_fd, m_fd));
     } catch (const std::runtime_error &e) {
         throw symbol_collection_error(e.what());
     }
