@@ -7,7 +7,7 @@
  * This library is released under MIT license
  */
 
-#if !defined(_WIN32)
+#ifndef _WIN32
 #include <dlfcn.h>
 #include <unistd.h>
 #endif

@@ -14,7 +14,7 @@ extern "C" {
 #ifdef _WIN32
 #pragma section("test_section", read)
 __declspec(allocate("test_section"))
-#elifdef __APPLE__
+#elif defined(__APPLE__)
 __attribute__((section("test_section,null"), used))
 #else
 __attribute__((section("test_section"), used))

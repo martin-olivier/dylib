@@ -16,7 +16,7 @@
 #include "dylib.hpp"
 #include "lib.hpp"
 
-#if !defined(_WIN32)
+#ifndef _WIN32
 #include <dlfcn.h>
 #endif
 
