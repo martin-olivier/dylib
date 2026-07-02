@@ -58,13 +58,12 @@ static void add_symbol(std::vector<internal_symbol_info> &result, const char *sy
 }
 
 /************************   Windows   ************************/
-#if defined(_WIN32)
+#ifdef _WIN32
 
 #include <windows.h>
 #include <tchar.h>
 
-static PIMAGE_NT_HEADERS get_nt_headers(HMODULE handle)
-{
+static PIMAGE_NT_HEADERS get_nt_headers(HMODULE handle) {
     PIMAGE_DOS_HEADER pDosHeader;
     PIMAGE_NT_HEADERS pNTHeaders;
 
@@ -118,8 +117,7 @@ std::vector<std::string> get_sections(HMODULE handle, int fd) {
     numSections = pNTHeaders->FileHeader.NumberOfSections;
     sectionHeadersOffset =
         sizeof(DWORD) + sizeof(IMAGE_FILE_HEADER) + pNTHeaders->FileHeader.SizeOfOptionalHeader;
-    pSectionHeader =
-        (PIMAGE_SECTION_HEADER)((BYTE *)pNTHeaders + sectionHeadersOffset);
+    pSectionHeader = (PIMAGE_SECTION_HEADER)((BYTE *)pNTHeaders + sectionHeadersOffset);
 
     for (WORD i = 0; i < numSections; ++i) {
         char name[IMAGE_SIZEOF_SHORT_NAME + 1];
@@ -434,8 +432,7 @@ std::vector<std::string> get_sections(void *handle, int fd) {
     if (lseek(fd, static_cast<off_t>(shdrs[ehdr.e_shstrndx].sh_offset), SEEK_SET) < 0)
         throw std::runtime_error("Could not seek to section name string table");
 
-    if (read(fd, shstrtab.data(), shstrtab.size()) !=
-        static_cast<ssize_t>(shstrtab.size()))
+    if (read(fd, shstrtab.data(), shstrtab.size()) != static_cast<ssize_t>(shstrtab.size()))
         throw std::runtime_error("Could not read section name string table");
 
     for (unsigned int i = 0; i < ehdr.e_shnum; i++) {

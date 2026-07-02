@@ -45,7 +45,7 @@ std::vector<std::string> get_sections(native_handle_type handle, int fd);
 std::string demangle_symbol(const char *symbol);
 
 static native_handle_type open_lib(const char *path) noexcept {
-#if defined(_WIN32)
+#ifdef _WIN32
     return LoadLibraryA(path);
 #else
     return dlopen(path, RTLD_NOW | RTLD_LOCAL);
@@ -53,7 +53,7 @@ static native_handle_type open_lib(const char *path) noexcept {
 }
 
 static native_symbol_type locate_symbol(native_handle_type lib, const char *name) noexcept {
-#if defined(_WIN32)
+#ifdef _WIN32
     return GetProcAddress(lib, name);
 #else
     return dlsym(lib, name);
@@ -61,7 +61,7 @@ static native_symbol_type locate_symbol(native_handle_type lib, const char *name
 }
 
 static void close_lib(native_handle_type lib) noexcept {
-#if defined(_WIN32)
+#ifdef _WIN32
     FreeLibrary(lib);
 #else
     dlclose(lib);
@@ -69,7 +69,7 @@ static void close_lib(native_handle_type lib) noexcept {
 }
 
 static std::string get_error_description() noexcept {
-#if defined(_WIN32)
+#ifdef _WIN32
     WORD lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
     char description[512];
     DWORD error_code;
@@ -117,7 +117,7 @@ library::library(const char *lib_path, dylib::decorations decorations) {
 
     lib = lib_path;
 
-#if defined(_WIN32)
+#ifdef _WIN32
     while (lib.find('\\') != std::string::npos)
         lib.replace(lib.find('\\'), 1, "/");
 #endif

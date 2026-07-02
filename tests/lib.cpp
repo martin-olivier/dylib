@@ -4,17 +4,17 @@
 
 #include "lib.hpp"
 
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _WIN32
 #define LIB_EXPORT __declspec(dllexport)
 #else
 #define LIB_EXPORT
 #endif
 
 extern "C" {
-#if defined(_WIN32)
+#ifdef _WIN32
 #pragma section("test_section", read)
 __declspec(allocate("test_section"))
-#elif defined(__APPLE__)
+#elifdef __APPLE__
 __attribute__((section("test_section,null"), used))
 #else
 __attribute__((section("test_section"), used))
