@@ -2,35 +2,30 @@ cmake_minimum_required(VERSION 3.11...3.31)
 
 project(dylib VERSION 3.0.1 LANGUAGES CXX)
 
-if(NOT "${CMAKE_CXX_STANDARD}")
-    set(CMAKE_CXX_STANDARD 11)
-endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+include(GNUInstallDirs)
 
-set(SOURCES
+add_library(dylib)
+
+target_sources(dylib PRIVATE
     src/dylib.cpp
     src/symbols.cpp
     src/demangle.cpp
     src/format.cpp
 )
 
-add_library(dylib ${SOURCES})
+target_include_directories(dylib
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+
+target_compile_features(dylib PUBLIC cxx_std_11)
+
+target_link_libraries(dylib PRIVATE ${CMAKE_DL_LIBS})
 
 if(BUILD_SHARED_LIBS AND WIN32)
     set_target_properties(dylib PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
-
-target_include_directories(dylib
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
-)
-
-if(UNIX)
-    target_link_libraries(dylib PRIVATE dl)
-endif()
-
-include(GNUInstallDirs)
 
 install(
     TARGETS dylib
