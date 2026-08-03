@@ -320,7 +320,7 @@ public:
     /**
      *  @return the dynamic library handle
      */
-    native_handle_type native_handle() noexcept;
+    native_handle_type native_handle() const noexcept;
 
 protected:
     native_handle_type m_handle{nullptr};
