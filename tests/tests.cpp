@@ -9,6 +9,8 @@
 #endif
 
 #include <algorithm>
+#include <cstdio>
+#include <fstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -61,6 +63,46 @@ TEST(library, std_move) {
     EXPECT_EQ(ptr, (void *)1);
 
     EXPECT_THROW(other.get_variable<double>("pi_value_c"), std::logic_error);
+}
+
+TEST(library, std_move_assign_empties_the_source) {
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
+    dylib::library other("./dynamic_lib", dylib::decorations::os_default());
+
+    /*
+     * Unlike the std_move test above, the destination already holds a library
+     * here, which is what distinguishes a move from a swap.
+     */
+    lib = std::move(other);
+
+    EXPECT_EQ(lib.get_variable<double>("pi_value_c"), 3.14159);
+
+    EXPECT_THROW(other.get_variable<double>("pi_value_c"), std::logic_error);
+    EXPECT_THROW(other.symbols(), std::logic_error);
+    EXPECT_THROW(other.sections(), std::logic_error);
+    EXPECT_EQ(other.native_handle(), nullptr);
+}
+
+TEST(library, std_move_self_assign) {
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
+    dylib::library *self = &lib;
+
+    lib = std::move(*self);
+
+    EXPECT_EQ(lib.get_variable<double>("pi_value_c"), 3.14159);
+}
+
+TEST(library, not_a_library) {
+    const char *path = "./not_a_library.txt";
+
+    {
+        std::ofstream file(path);
+        file << "this is not a dynamic library" << std::endl;
+    }
+
+    EXPECT_THROW(dylib::library(path, dylib::decorations::none()), dylib::load_error);
+
+    std::remove(path);
 }
 
 TEST(library, manual_decorations) {
@@ -121,11 +163,63 @@ TEST(symbols, bad_symbol) {
     EXPECT_THROW(lib.get_function<void()>(nullptr), std::invalid_argument);
     EXPECT_THROW(lib.get_variable<void *>(nullptr), std::invalid_argument);
 
+    EXPECT_THROW(lib.get_function<void()>(""), std::invalid_argument);
+    EXPECT_THROW(lib.get_variable<void *>(""), std::invalid_argument);
+    EXPECT_THROW(lib.get_symbol(std::string()), std::invalid_argument);
+
     EXPECT_THROW(lib.get_function<double()>("unknown"), dylib::symbol_not_found);
     EXPECT_THROW(lib.get_variable<double>("unknown"), dylib::symbol_not_found);
 }
 
-TEST(symbols, fuctions) {
+TEST(symbols, moved) {
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
+    dylib::library other(std::move(lib));
+
+    EXPECT_THROW(lib.symbols(), std::logic_error);
+    EXPECT_THROW(lib.get_symbol("adder"), std::logic_error);
+}
+
+TEST(symbols, metadata) {
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
+    std::vector<dylib::symbol_info> symbols = lib.symbols();
+    const dylib::symbol_info *c_symbol = nullptr;
+    const dylib::symbol_info *cpp_symbol = nullptr;
+
+    for (const auto &symbol : symbols) {
+        if (symbol.name == "adder")
+            c_symbol = &symbol;
+        else if (symbol.demangled_name == "tools::adder(double, double)")
+            cpp_symbol = &symbol;
+    }
+
+    ASSERT_NE(c_symbol, nullptr);
+    EXPECT_TRUE(c_symbol->loadable);
+    // An unmangled name is reported as is.
+    EXPECT_EQ(c_symbol->demangled_name, "adder");
+
+    ASSERT_NE(cpp_symbol, nullptr);
+    EXPECT_TRUE(cpp_symbol->loadable);
+    EXPECT_EQ(cpp_symbol->type, dylib::symbol_type::CPP);
+    // A mangled name has to differ from its demangled form.
+    EXPECT_NE(cpp_symbol->name, cpp_symbol->demangled_name);
+}
+
+TEST(symbols, no_duplicates) {
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
+    std::vector<dylib::symbol_info> symbols = lib.symbols();
+    std::vector<std::string> names;
+
+    names.reserve(symbols.size());
+    for (const auto &symbol : symbols) {
+        EXPECT_FALSE(symbol.name.empty());
+        names.push_back(symbol.name);
+    }
+
+    std::sort(names.begin(), names.end());
+    EXPECT_EQ(std::adjacent_find(names.begin(), names.end()), names.end());
+}
+
+TEST(symbols, functions) {
     dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
 
     auto adder = lib.get_function<double(double, double)>("adder");
