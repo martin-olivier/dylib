@@ -26,7 +26,7 @@ namespace example {
 
     namespace dylib {
         LIB_EXPORT std::string info() {
-            return "dylib - v3.0.1";
+            return "dylib - v3.1.0";
         }
     }
 
