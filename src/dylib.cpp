@@ -14,6 +14,7 @@
 
 #include <cstring>
 #include <fcntl.h>
+#include <system_error>
 
 #include "dylib.hpp"
 #include "internal.hpp"
@@ -72,9 +73,21 @@ static std::string get_error_description() noexcept {
 #ifndef _WIN32
 class scoped_fd {
 public:
-    explicit scoped_fd(const std::string &path) : m_fd(open(path.c_str(), O_RDONLY)) {
-        if (m_fd < 0)
-            throw std::runtime_error("Could not open file '" + path + "': " + strerror(errno));
+    /*
+     * O_CLOEXEC keeps the descriptor from leaking into a process forked while the
+     * library image is being read.
+     */
+    explicit scoped_fd(const std::string &path) : m_fd(open(path.c_str(), O_RDONLY | O_CLOEXEC)) {
+        if (m_fd < 0) {
+            int error = errno;
+
+            /*
+             * strerror is not thread safe; the generic category formats the same
+             * message through a thread safe path.
+             */
+            throw std::runtime_error("Could not open file '" + path +
+                                     "': " + std::generic_category().message(error));
+        }
     }
 
     scoped_fd(const scoped_fd &) = delete;
@@ -93,18 +106,34 @@ private:
 };
 #endif
 
-library::library(library &&other) noexcept {
-    std::swap(m_handle, other.m_handle);
-#ifndef _WIN32
-    std::swap(m_path, other.m_path);
-#endif
+#ifdef _WIN32
+library::library(library &&other) noexcept : m_handle(other.m_handle) {
+    other.m_handle = nullptr;
 }
+#else
+library::library(library &&other) noexcept
+    : m_handle(other.m_handle), m_path(std::move(other.m_path)) {
+    other.m_handle = nullptr;
+    other.m_path.clear();
+}
+#endif
 
 library &library::operator=(library &&other) noexcept {
     if (this != &other) {
-        std::swap(m_handle, other.m_handle);
+        /*
+         * Release the library currently held rather than handing it over to the
+         * moved-from object: the source has to end up empty, which is the state
+         * the rest of the class reports as "moved", and the previous library has
+         * to be unloaded now rather than whenever the source happens to die.
+         */
+        if (m_handle)
+            close_lib(m_handle);
+
+        m_handle = other.m_handle;
+        other.m_handle = nullptr;
 #ifndef _WIN32
-        std::swap(m_path, other.m_path);
+        m_path = std::move(other.m_path);
+        other.m_path.clear();
 #endif
     }
     return *this;
@@ -140,8 +169,16 @@ library::library(const char *lib_path, dylib::decorations decorations) {
     lib = lib_dir + '/' + decorations.prefix + lib_name + decorations.suffix;
 
     m_handle = open_lib(lib.c_str());
-    if (!m_handle)
-        throw load_error("Could not load library '" + lib + "':\n" + get_error_description());
+    if (!m_handle) {
+        /*
+         * On Windows the description comes from GetLastError, which any
+         * intervening allocation is free to overwrite, so it is captured before
+         * the message is built.
+         */
+        std::string error = get_error_description();
+
+        throw load_error("Could not load library '" + lib + "':\n" + error);
+    }
 
 #ifndef _WIN32
     m_path = lib;
@@ -192,7 +229,8 @@ native_symbol_type library::get_symbol(const char *symbol_name) const {
 
         const std::string &demangled = sym.demangled_name;
 
-        if (demangled.find(symbol_name) == 0 &&
+        if (demangled.size() >= symbol_name_len &&
+            demangled.compare(0, symbol_name_len, symbol_name) == 0 &&
             (demangled.size() == symbol_name_len || demangled[symbol_name_len] == '('))
             matching_symbols.push_back(sym.name);
     }
@@ -200,8 +238,18 @@ native_symbol_type library::get_symbol(const char *symbol_name) const {
     switch (matching_symbols.size()) {
     case 0:
         throw symbol_not_found(symbol_name, initial_error);
-    case 1:
-        return locate_symbol(m_handle, matching_symbols.front().c_str());
+    case 1: {
+        /*
+         * The match was reported as loadable while the symbol list was collected,
+         * so this normally succeeds. Report the failure rather than handing back a
+         * null pointer that get_variable would dereference.
+         */
+        symbol = locate_symbol(m_handle, matching_symbols.front().c_str());
+        if (!symbol)
+            throw symbol_not_found(symbol_name, get_error_description());
+
+        return symbol;
+    }
     default:
         std::string matching_symbols_display;
 
