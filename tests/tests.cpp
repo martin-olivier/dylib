@@ -291,6 +291,29 @@ TEST(cpp_symbols, demangle) {
     }
 }
 
+#include <iostream>
+
+TEST(sections, lookup) {
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
+    std::vector<std::string> sections;
+
+    sections = lib.sections();
+
+    EXPECT_NE(std::find(sections.begin(), sections.end(), "testsec"), sections.end());
+
+    std::vector<std::string> sorted_sections = sections;
+    std::sort(sorted_sections.begin(), sorted_sections.end());
+    EXPECT_EQ(std::adjacent_find(sorted_sections.begin(), sorted_sections.end()),
+              sorted_sections.end());
+}
+
+TEST(sections, moved) {
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
+    dylib::library other(std::move(lib));
+
+    EXPECT_THROW(lib.sections(), std::logic_error);
+}
+
 int main(int ac, char **av) {
     testing::InitGoogleTest(&ac, av);
     return RUN_ALL_TESTS();

@@ -4,14 +4,21 @@
 
 #include "lib.hpp"
 
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _WIN32
 #define LIB_EXPORT __declspec(dllexport)
 #else
 #define LIB_EXPORT
 #endif
 
 extern "C" {
-
+#if defined(_MSC_VER)
+#pragma section("testsec", read, write)
+__declspec(allocate("testsec"))
+#elif defined(__APPLE__)
+__attribute__((section("testsec,null"), used))
+#else
+__attribute__((section("testsec"), used))
+#endif
 LIB_EXPORT double pi_value_c = 3.14159;
 LIB_EXPORT void *ptr_c = (void *)1;
 
