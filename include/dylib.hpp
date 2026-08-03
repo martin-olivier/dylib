@@ -1,6 +1,6 @@
 /**
  * @file dylib.hpp
- * @version 3.0.1
+ * @version 3.1.0
  * @brief C++ cross-platform wrapper around dynamic loading of shared libraries
  * @link https://github.com/martin-olivier/dylib
  *
@@ -11,6 +11,21 @@
  */
 
 #pragma once
+
+#define DYLIB_VERSION_MAJOR 3
+#define DYLIB_VERSION_MINOR 1
+#define DYLIB_VERSION_PATCH 0
+
+#ifdef _WIN32
+#define DYLIB_WIN_MAC_OTHER(win_def, mac_def, other_def) win_def
+#define DYLIB_WIN_OTHER(win_def, other_def) win_def
+#elif defined(__APPLE__)
+#define DYLIB_WIN_MAC_OTHER(win_def, mac_def, other_def) mac_def
+#define DYLIB_WIN_OTHER(win_def, other_def) other_def
+#else
+#define DYLIB_WIN_MAC_OTHER(win_def, mac_def, other_def) other_def
+#define DYLIB_WIN_OTHER(win_def, other_def) other_def
+#endif
 
 #include <cstdint>
 #include <stdexcept>
@@ -40,17 +55,6 @@
 #undef NOMINMAX
 #undef DYLIB_UNDEFINE_NOMINMAX
 #endif
-#endif
-
-#ifdef _WIN32
-#define DYLIB_WIN_MAC_OTHER(win_def, mac_def, other_def) win_def
-#define DYLIB_WIN_OTHER(win_def, other_def) win_def
-#elif defined(__APPLE__)
-#define DYLIB_WIN_MAC_OTHER(win_def, mac_def, other_def) mac_def
-#define DYLIB_WIN_OTHER(win_def, other_def) other_def
-#else
-#define DYLIB_WIN_MAC_OTHER(win_def, mac_def, other_def) other_def
-#define DYLIB_WIN_OTHER(win_def, other_def) other_def
 #endif
 
 namespace dylib {
