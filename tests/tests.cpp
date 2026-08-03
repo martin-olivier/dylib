@@ -299,7 +299,7 @@ TEST(sections, lookup) {
 
     sections = lib.sections();
 
-    EXPECT_NE(std::find(sections.begin(), sections.end(), "test_section"), sections.end());
+    EXPECT_NE(std::find(sections.begin(), sections.end(), "testsec"), sections.end());
 }
 
 int main(int ac, char **av) {

@@ -11,13 +11,13 @@
 #endif
 
 extern "C" {
-#ifdef _WIN32
-#pragma section("test_section", read)
-__declspec(allocate("test_section"))
+#if defined(_MSC_VER)
+#pragma section("testsec", read)
+__declspec(allocate("testsec"))
 #elif defined(__APPLE__)
-__attribute__((section("test_section,null"), used))
+__attribute__((section("testsec,null"), used))
 #else
-__attribute__((section("test_section"), used))
+__attribute__((section("testsec"), used))
 #endif
 LIB_EXPORT double pi_value_c = 3.14159;
 LIB_EXPORT void *ptr_c = (void *)1;
