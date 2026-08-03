@@ -14,23 +14,33 @@
 #include <string>
 #include <vector>
 
-std::string demangle_symbol(const char *symbol);
+#include "internal.hpp"
 
-enum internal_symbol_type : std::uint8_t {
-    C,
-    CPP,
-};
+/*
+ * Platform headers are included before opening the namespace so that the symbols
+ * they declare keep their usual scope.
+ */
+#ifdef _WIN32
+#include <tchar.h>
+#elif defined(__APPLE__)
+#include <dlfcn.h>
+#include <mach-o/fat.h>
+#include <mach-o/loader.h>
+#include <mach-o/nlist.h>
+#include <unistd.h>
+#include <utility>
+#else
+#include <dlfcn.h>
+#include <elf.h>
+#include <fcntl.h>
+#include <link.h>
+#include <unistd.h>
+#endif
 
-struct internal_symbol_info {
-    std::string name;
-    std::string demangled_name;
-    internal_symbol_type type;
-    bool loadable;
-};
+namespace dylib_detail {
 
-static void add_symbol(std::vector<internal_symbol_info> &result, const char *symbol,
-                       bool loadable) {
-    internal_symbol_type type = internal_symbol_type::C;
+static void add_symbol(std::vector<symbol_info> &result, const char *symbol, bool loadable) {
+    symbol_type type = symbol_type::C;
     std::string demangled;
 
     if (!symbol || strcmp(symbol, "") == 0)
@@ -40,7 +50,7 @@ static void add_symbol(std::vector<internal_symbol_info> &result, const char *sy
     if (demangled.empty())
         demangled = symbol;
     else
-        type = internal_symbol_type::CPP;
+        type = symbol_type::CPP;
 
     /*
      * In case of duplicate symbols, for example when loading a FAT binary,
@@ -60,9 +70,6 @@ static void add_symbol(std::vector<internal_symbol_info> &result, const char *sy
 /************************   Windows   ************************/
 #ifdef _WIN32
 
-#include <windows.h>
-#include <tchar.h>
-
 static PIMAGE_NT_HEADERS get_nt_headers(HMODULE handle) {
     PIMAGE_DOS_HEADER pDosHeader;
     PIMAGE_NT_HEADERS pNTHeaders;
@@ -78,8 +85,8 @@ static PIMAGE_NT_HEADERS get_nt_headers(HMODULE handle) {
     return pNTHeaders;
 }
 
-std::vector<internal_symbol_info> get_symbols(HMODULE handle, int fd) {
-    std::vector<internal_symbol_info> symbols_list;
+std::vector<symbol_info> get_symbols(HMODULE handle, int fd) {
+    std::vector<symbol_info> symbols_list;
     PIMAGE_EXPORT_DIRECTORY pExportDir;
     PIMAGE_NT_HEADERS pNTHeaders;
     DWORD exportDirRVA;
@@ -140,13 +147,6 @@ std::vector<std::string> get_sections(HMODULE handle, int fd) {
 
 /************************   Mac OS   ************************/
 #elif defined(__APPLE__)
-
-#include <dlfcn.h>
-#include <mach-o/fat.h>
-#include <mach-o/loader.h>
-#include <mach-o/nlist.h>
-#include <unistd.h>
-#include <utility>
 
 #if INTPTR_MAX == INT32_MAX
 using mach_header_arch = mach_header;
@@ -240,7 +240,7 @@ static void for_each_mach_slice(int fd, F &&fn, Ctx ctx) {
 }
 
 struct mach_symbols_context {
-    std::vector<internal_symbol_info> *symbols_list;
+    std::vector<symbol_info> *symbols_list;
     void *handle;
 };
 
@@ -295,8 +295,8 @@ static void process_mach_slice_symbols(int fd, off_t offset, mach_symbols_contex
     for_each_mach_load_command(fd, offset, process_load_command_symbols, ctx);
 }
 
-std::vector<internal_symbol_info> get_symbols(void *handle, int fd) {
-    std::vector<internal_symbol_info> symbols_list;
+std::vector<symbol_info> get_symbols(void *handle, int fd) {
+    std::vector<symbol_info> symbols_list;
     mach_symbols_context ctx{&symbols_list, handle};
 
     for_each_mach_slice(fd, process_mach_slice_symbols, ctx);
@@ -339,12 +339,6 @@ std::vector<std::string> get_sections(void *handle, int fd) {
 
 #else /************************   Linux   ************************/
 
-#include <dlfcn.h>
-#include <elf.h>
-#include <fcntl.h>
-#include <link.h>
-#include <unistd.h>
-
 #if INTPTR_MAX == INT32_MAX
 using ElfSym = Elf32_Sym;
 using ElfEhdr = Elf32_Ehdr;
@@ -359,8 +353,8 @@ using ElfShdr = Elf64_Shdr;
 #error "Environment not 32 or 64-bit."
 #endif
 
-std::vector<internal_symbol_info> get_symbols(void *handle, int fd) {
-    std::vector<internal_symbol_info> symbols_list;
+std::vector<symbol_info> get_symbols(void *handle, int fd) {
+    std::vector<symbol_info> symbols_list;
     struct link_map *map = nullptr;
     unsigned long symentries = 0;
     ElfSym *symtab = nullptr;
@@ -477,3 +471,5 @@ std::vector<std::string> get_sections(void *handle, int fd) {
 }
 
 #endif
+
+} // namespace dylib_detail

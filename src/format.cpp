@@ -9,6 +9,10 @@
 
 #include <string>
 
+#include "internal.hpp"
+
+namespace dylib_detail {
+
 static void replace_occurrences(std::string &symbol, const std::string &find,
                                 const std::string &replace) {
     size_t pos = 0;
@@ -83,3 +87,5 @@ std::string format_symbol(std::string symbol) {
 }
 
 #endif
+
+} // namespace dylib_detail

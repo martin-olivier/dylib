@@ -16,32 +16,12 @@
 #include <fcntl.h>
 
 #include "dylib.hpp"
+#include "internal.hpp"
 
 using dylib::library;
 using dylib::native_handle_type;
 using dylib::native_symbol_type;
 using dylib::symbol_info;
-
-/*
- * internal_symbol_type and internal_symbol_info are needed
- * because the namespace 'dylib' conflicts with the 'dylib'
- * struct from <mach-o/loader.h> witch is needed on macOS.
- */
-
-enum internal_symbol_type : std::uint8_t {
-    C,
-    CPP,
-};
-
-struct internal_symbol_info {
-    std::string name;
-    std::string demangled_name;
-    internal_symbol_type type;
-    bool loadable;
-};
-
-std::vector<internal_symbol_info> get_symbols(native_handle_type handle, int fd);
-std::vector<std::string> get_sections(native_handle_type handle, int fd);
 
 static native_handle_type open_lib(const char *path) noexcept {
 #ifdef _WIN32
@@ -241,7 +221,7 @@ native_handle_type library::native_handle() const noexcept {
 }
 
 std::vector<symbol_info> library::symbols() const {
-    std::vector<internal_symbol_info> internal_symbols;
+    std::vector<dylib_detail::symbol_info> internal_symbols;
     std::vector<symbol_info> symbols;
 
     if (!m_handle)
@@ -251,9 +231,9 @@ std::vector<symbol_info> library::symbols() const {
 #ifdef __APPLE__
         scoped_fd fd(m_path);
 
-        internal_symbols = get_symbols(m_handle, fd.get());
+        internal_symbols = dylib_detail::get_symbols(m_handle, fd.get());
 #else
-        internal_symbols = get_symbols(m_handle, -1);
+        internal_symbols = dylib_detail::get_symbols(m_handle, -1);
 #endif
 
         symbols.reserve(internal_symbols.size());
@@ -279,11 +259,11 @@ std::vector<std::string> library::sections() const {
 
     try {
 #ifdef _WIN32
-        return get_sections(m_handle, -1);
+        return dylib_detail::get_sections(m_handle, -1);
 #else
         scoped_fd fd(m_path);
 
-        return get_sections(m_handle, fd.get());
+        return dylib_detail::get_sections(m_handle, fd.get());
 #endif
     } catch (const std::runtime_error &e) {
         throw section_collection_error(e.what());

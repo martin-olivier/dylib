@@ -9,16 +9,25 @@
 
 #include <string>
 
-std::string format_symbol(std::string input);
+#include "internal.hpp"
+
+/*
+ * Platform headers are included before opening the namespace so that the symbols
+ * they declare keep their usual scope.
+ */
+#if defined(_WIN32) && defined(_MSC_VER)
+#include <dbghelp.h>
+#include <tchar.h>
+#pragma comment(lib, "dbghelp.lib")
+#else
+#include <cxxabi.h>
+#include <stdlib.h>
+#endif
+
+namespace dylib_detail {
 
 /************************   MSVC   ************************/
 #if defined(_WIN32) && defined(_MSC_VER)
-
-#include <windows.h>
-#include <dbghelp.h>
-#include <tchar.h>
-
-#pragma comment(lib, "dbghelp.lib")
 
 std::string demangle_symbol(const char *symbol) {
     DWORD sign_flags = UNDNAME_COMPLETE | UNDNAME_NO_FUNCTION_RETURNS | UNDNAME_NO_MS_KEYWORDS;
@@ -53,9 +62,6 @@ std::string demangle_symbol(const char *symbol) {
 
 #else /************************   gcc, clang, MinGW   ************************/
 
-#include <cxxabi.h>
-#include <stdlib.h>
-
 std::string demangle_symbol(const char *symbol) {
     std::string result;
     char *demangled;
@@ -72,3 +78,5 @@ std::string demangle_symbol(const char *symbol) {
 }
 
 #endif
+
+} // namespace dylib_detail
