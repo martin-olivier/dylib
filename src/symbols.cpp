@@ -388,10 +388,13 @@ std::vector<internal_symbol_info> get_symbols(void *handle, int fd) {
     size = strtab - (char *)symtab;
 
     for (int i = 0; i < size / symentries; ++i) {
-        ElfSym *sym = &symtab[i];
+        unsigned char type = DYLIB_ELF_ST_TYPE(symtab[i].st_info);
 
-        if (DYLIB_ELF_ST_TYPE(symtab[i].st_info) == STT_FUNC) {
-            const char *name = &strtab[sym->st_name];
+        /*
+         * Collect functions (STT_FUNC) and global variables (STT_OBJECT)
+         */
+        if (type == STT_FUNC || type == STT_OBJECT) {
+            const char *name = &strtab[symtab[i].st_name];
 
             add_symbol(symbols_list, name, !!dlsym(handle, name));
         }

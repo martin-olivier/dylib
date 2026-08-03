@@ -44,6 +44,8 @@ LIB_EXPORT void list_add_string(std::vector<std::string> &cont, std::string elem
 }
 
 namespace tools {
+LIB_EXPORT double pi_value = 3.14159;
+
 LIB_EXPORT double adder() {
     return 0;
 }
