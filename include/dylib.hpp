@@ -148,14 +148,36 @@ public:
 };
 
 /**
+ *  This exception is raised when the library failed to collect a list of items
+ *  (such as symbols or sections) from the dynamic library
+ *
+ *  @param message the error message
+ */
+class collection_error : public exception {
+public:
+    explicit collection_error(const std::string &message) : exception(message) {}
+};
+
+/**
  *  This exception is raised when the library failed to load symbol list
  *
  *  @param error the error message
  */
-class symbol_collection_error : public symbol_error {
+class symbol_collection_error : public collection_error {
 public:
     explicit symbol_collection_error(const std::string &error)
-        : symbol_error("Could not collect symbols:\n" + error) {}
+        : collection_error("Could not collect symbols:\n" + error) {}
+};
+
+/**
+ *  This exception is raised when the library failed to load section list
+ *
+ *  @param error the error message
+ */
+class section_collection_error : public collection_error {
+public:
+    explicit section_collection_error(const std::string &error)
+        : collection_error("Could not collect sections:\n" + error) {}
 };
 
 /**
@@ -195,7 +217,8 @@ public:
      *  @throws dylib::symbol_multiple_matches if multiple matching symbols were found
      *  @throws dylib::symbol_collection_error if an error occurred during symbols collection
      *
-     *  Those exceptions inherit from dylib::symbol_error
+     *  dylib::symbol_not_found and dylib::symbol_multiple_matches inherit from dylib::symbol_error
+     *  dylib::symbol_collection_error inherits from dylib::collection_error
      *
      *  @param symbol_name the symbol name to get from the dynamic library
      *
@@ -211,7 +234,8 @@ public:
      *  @throws dylib::symbol_multiple_matches if multiple matching symbols were found
      *  @throws dylib::symbol_collection_error if an error occurred during symbols collection
      *
-     *  Those exceptions inherit from dylib::symbol_error
+     *  dylib::symbol_not_found and dylib::symbol_multiple_matches inherit from dylib::symbol_error
+     *  dylib::symbol_collection_error inherits from dylib::collection_error
      *
      *  @param T the template argument must be the function prototype to get
      *  @param symbol_name the symbol name of a function to get from the dynamic library
@@ -253,7 +277,8 @@ public:
      *  @throws dylib::symbol_multiple_matches if multiple matching symbols were found
      *  @throws dylib::symbol_collection_error if an error occurred during symbols collection
      *
-     *  Those exceptions inherit from dylib::symbol_error
+     *  dylib::symbol_not_found and dylib::symbol_multiple_matches inherit from dylib::symbol_error
+     *  dylib::symbol_collection_error inherits from dylib::collection_error
      *
      *  @param T the template argument must be the type of the variable to get
      *  @param symbol_name the symbol name of a variable to get from the dynamic library
@@ -282,7 +307,7 @@ public:
     /**
      *  Get the list of section names from the dynamic library currently loaded in the object
      *
-     *  @throws dylib::symbol_collection_error if an error occurred during sections collection
+     *  @throws dylib::section_collection_error if an error occurred during sections collection
      *
      *  @return the list of sections in the dynamic library
      */

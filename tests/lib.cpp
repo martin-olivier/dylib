@@ -12,7 +12,7 @@
 
 extern "C" {
 #if defined(_MSC_VER)
-#pragma section("testsec", read)
+#pragma section("testsec", read, write)
 __declspec(allocate("testsec"))
 #elif defined(__APPLE__)
 __attribute__((section("testsec,null"), used))

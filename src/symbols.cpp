@@ -128,6 +128,10 @@ std::vector<std::string> get_sections(HMODULE handle, int fd) {
 
         memcpy(name, pSectionHeader[i].Name, len);
         name[len] = '\0';
+
+        if (std::find(sections_list.begin(), sections_list.end(), name) != sections_list.end())
+            continue;
+
         sections_list.emplace_back(name);
     }
 
@@ -313,10 +317,9 @@ static void process_load_command_sections(const load_command &lc, int fd, off_t 
 
     seg.segname[mach_sect_name_size - 1] = '\0';
 
-    for (const auto &s : *ctx.sections_list) {
-        if (s == seg.segname)
-            return;
-    }
+    if (std::find(ctx.sections_list->begin(), ctx.sections_list->end(), seg.segname) !=
+        ctx.sections_list->end())
+        return;
 
     ctx.sections_list->push_back(seg.segname);
 }
@@ -448,8 +451,16 @@ std::vector<std::string> get_sections(void *handle, int fd) {
         while (len < shstrtab.size() - name_off && name[len] != '\0')
             len++;
 
-        if (len > 0)
-            sections_list.emplace_back(name, len);
+        if (len == 0)
+            continue;
+
+        std::string section_name(name, len);
+
+        if (std::find(sections_list.begin(), sections_list.end(), section_name) !=
+            sections_list.end())
+            continue;
+
+        sections_list.push_back(std::move(section_name));
     }
 
     return sections_list;

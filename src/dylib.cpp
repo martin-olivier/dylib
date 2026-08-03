@@ -253,6 +253,6 @@ std::vector<std::string> library::sections() const {
     try {
         return get_sections(m_handle, DYLIB_WIN_MAC_OTHER(-1, m_fd, m_fd));
     } catch (const std::runtime_error &e) {
-        throw symbol_collection_error(e.what());
+        throw section_collection_error(e.what());
     }
 }
