@@ -140,9 +140,9 @@ library &library::operator=(library &&other) noexcept {
 }
 
 #ifdef _WIN32
-library::library(const char *lib_path, dylib::decorations decorations) {
+library::library(const char *lib_path, dylib::decorations decor) {
 #else
-library::library(const char *lib_path, dylib::decorations decorations) : m_path() {
+library::library(const char *lib_path, dylib::decorations decor) : m_path() {
 #endif
     std::string lib_name;
     std::string lib_dir;
@@ -170,7 +170,7 @@ library::library(const char *lib_path, dylib::decorations decorations) : m_path(
         throw std::invalid_argument("Could not load library '" + lib +
                                     "': a directory was provided");
 
-    lib = lib_dir + '/' + decorations.prefix + lib_name + decorations.suffix;
+    lib = lib_dir + '/' + decor.prefix + lib_name + decor.suffix;
 
     m_handle = open_lib(lib.c_str());
     if (!m_handle) {
@@ -189,12 +189,12 @@ library::library(const char *lib_path, dylib::decorations decorations) : m_path(
 #endif
 }
 
-library::library(const std::string &lib_path, decorations decorations)
-    : library(lib_path.c_str(), decorations) {}
+library::library(const std::string &lib_path, decorations decor)
+    : library(lib_path.c_str(), decor) {}
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
-library::library(const std::filesystem::path &lib_path, decorations decorations)
-    : library(lib_path.string(), decorations) {}
+#ifdef DYLIB_CPP17
+library::library(const std::filesystem::path &lib_path, decorations decor)
+    : library(lib_path.string(), decor) {}
 #endif
 
 library::~library() {

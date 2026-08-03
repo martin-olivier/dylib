@@ -27,13 +27,18 @@
 #define DYLIB_WIN_OTHER(win_def, other_def) other_def
 #endif
 
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#define DYLIB_CPP17
+#endif
+
 #include <cstdint>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#ifdef DYLIB_CPP17
 #include <filesystem>
 #endif
 
@@ -187,29 +192,43 @@ public:
 /**
  *  The dylib::library class can hold a dynamic library instance and interact with it
  *  by getting its symbols like functions or global variables
+ *
+ *  Thread safety: distinct objects can be used concurrently. A single object can
+ *  be used concurrently through its const members on Linux and macOS; on MSVC the
+ *  symbol demangling goes through DbgHelp, which is single threaded, so callers
+ *  must serialize get_symbol, get_function, get_variable and symbols themselves.
  */
 class library {
 public:
     library(const library &) = delete;
     library &operator=(const library &) = delete;
 
+    /**
+     *  Transfers the library held by `other`, leaving it empty. Any subsequent
+     *  use of a moved-from object throws std::logic_error.
+     */
     library(library &&other) noexcept;
     library &operator=(library &&other) noexcept;
 
     /**
      *  @brief Loads a dynamic library
      *
+     *  The path must contain a directory separator: the library is looked up at
+     *  that location, never through the OS library search path.
+     *
+     *  @throws std::invalid_argument if the path is null, empty, contains no
+     *  directory separator, or names a directory
      *  @throws dylib::load_error if the library could not be opened (including
      *  the case of the library file not being found)
      *
      *  @param lib_path the path to the dynamic library to load
-     *  @param decorations os decorations to append to the library name
+     *  @param decor os decorations to append to the library name
      */
-    explicit library(const char *lib_path, decorations decorations = decorations::none());
-    explicit library(const std::string &lib_path, decorations decorations = decorations::none());
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    explicit library(const char *lib_path, decorations decor = decorations::none());
+    explicit library(const std::string &lib_path, decorations decor = decorations::none());
+#ifdef DYLIB_CPP17
     explicit library(const std::filesystem::path &lib_path,
-                     decorations decorations = decorations::none());
+                     decorations decor = decorations::none());
 #endif
 
     ~library();
@@ -217,6 +236,8 @@ public:
     /**
      *  Get a symbol from the dynamic library currently loaded in the object
      *
+     *  @throws std::invalid_argument if the symbol name is null or empty
+     *  @throws std::logic_error if the object has been moved from
      *  @throws dylib::symbol_not_found if the symbol could not be found
      *  @throws dylib::symbol_multiple_matches if multiple matching symbols were found
      *  @throws dylib::symbol_collection_error if an error occurred during symbols collection
@@ -234,6 +255,8 @@ public:
     /**
      *  Get a function from the dynamic library currently loaded in the object
      *
+     *  @throws std::invalid_argument if the symbol name is null or empty
+     *  @throws std::logic_error if the object has been moved from
      *  @throws dylib::symbol_not_found if the symbol could not be found
      *  @throws dylib::symbol_multiple_matches if multiple matching symbols were found
      *  @throws dylib::symbol_collection_error if an error occurred during symbols collection
@@ -277,6 +300,8 @@ public:
     /**
      *  Get a variable from the dynamic library currently loaded in the object
      *
+     *  @throws std::invalid_argument if the symbol name is null or empty
+     *  @throws std::logic_error if the object has been moved from
      *  @throws dylib::symbol_not_found if the symbol could not be found
      *  @throws dylib::symbol_multiple_matches if multiple matching symbols were found
      *  @throws dylib::symbol_collection_error if an error occurred during symbols collection
@@ -302,6 +327,7 @@ public:
     /**
      *  Get the list of symbols from the dynamic library currently loaded in the object
      *
+     *  @throws std::logic_error if the object has been moved from
      *  @throws dylib::symbol_collection_error if an error occurred during symbols collection
      *
      *  @return the list of symbols in the dynamic library
@@ -311,6 +337,10 @@ public:
     /**
      *  Get the list of section names from the dynamic library currently loaded in the object
      *
+     *  On macOS the names are those of the Mach-O segments, not of the sections
+     *  they contain.
+     *
+     *  @throws std::logic_error if the object has been moved from
      *  @throws dylib::section_collection_error if an error occurred during sections collection
      *
      *  @return the list of sections in the dynamic library
