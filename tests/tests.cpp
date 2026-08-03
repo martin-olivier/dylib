@@ -164,6 +164,13 @@ TEST(cpp_symbols, variables) {
     EXPECT_EQ(strcmp(secret, "12345"), 0);
 }
 
+TEST(cpp_symbols, variables_namespace) {
+    dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
+
+    auto pi = lib.get_variable<double>("tools::pi_value");
+    EXPECT_EQ(pi, 3.14159);
+}
+
 TEST(cpp_symbols, functions) {
     dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
 
