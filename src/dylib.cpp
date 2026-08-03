@@ -89,10 +89,34 @@ static std::string get_error_description() noexcept {
 #endif
 }
 
+#ifndef _WIN32
+class scoped_fd {
+public:
+    explicit scoped_fd(const std::string &path) : m_fd(open(path.c_str(), O_RDONLY)) {
+        if (m_fd < 0)
+            throw std::runtime_error("Could not open file '" + path + "': " + strerror(errno));
+    }
+
+    scoped_fd(const scoped_fd &) = delete;
+    scoped_fd &operator=(const scoped_fd &) = delete;
+
+    ~scoped_fd() {
+        close(m_fd);
+    }
+
+    int get() const noexcept {
+        return m_fd;
+    }
+
+private:
+    int m_fd;
+};
+#endif
+
 library::library(library &&other) noexcept {
     std::swap(m_handle, other.m_handle);
 #ifndef _WIN32
-    std::swap(m_fd, other.m_fd);
+    std::swap(m_path, other.m_path);
 #endif
 }
 
@@ -100,7 +124,7 @@ library &library::operator=(library &&other) noexcept {
     if (this != &other) {
         std::swap(m_handle, other.m_handle);
 #ifndef _WIN32
-        std::swap(m_fd, other.m_fd);
+        std::swap(m_path, other.m_path);
 #endif
     }
     return *this;
@@ -140,9 +164,7 @@ library::library(const char *lib_path, dylib::decorations decorations) {
         throw load_error("Could not load library '" + lib + "':\n" + get_error_description());
 
 #ifndef _WIN32
-    m_fd = open(lib.c_str(), O_RDONLY);
-    if (m_fd < 0)
-        throw load_error("Could not open file '" + lib + "':\n" + strerror(errno));
+    m_path = lib;
 #endif
 }
 
@@ -157,10 +179,6 @@ library::library(const std::filesystem::path &lib_path, decorations decorations)
 library::~library() {
     if (m_handle)
         close_lib(m_handle);
-#ifndef _WIN32
-    if (m_fd > -1)
-        close(m_fd);
-#endif
 }
 
 native_symbol_type library::get_symbol(const char *symbol_name) const {
@@ -230,7 +248,13 @@ std::vector<symbol_info> library::symbols() const {
         throw std::logic_error("Attempted to use a moved library object");
 
     try {
-        internal_symbols = get_symbols(m_handle, DYLIB_WIN_MAC_OTHER(-1, m_fd, -1));
+#ifdef __APPLE__
+        scoped_fd fd(m_path);
+
+        internal_symbols = get_symbols(m_handle, fd.get());
+#else
+        internal_symbols = get_symbols(m_handle, -1);
+#endif
 
         symbols.reserve(internal_symbols.size());
 
@@ -254,7 +278,13 @@ std::vector<std::string> library::sections() const {
         throw std::logic_error("Attempted to use a moved library object");
 
     try {
-        return get_sections(m_handle, DYLIB_WIN_MAC_OTHER(-1, m_fd, m_fd));
+#ifdef _WIN32
+        return get_sections(m_handle, -1);
+#else
+        scoped_fd fd(m_path);
+
+        return get_sections(m_handle, fd.get());
+#endif
     } catch (const std::runtime_error &e) {
         throw section_collection_error(e.what());
     }
