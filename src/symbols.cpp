@@ -385,9 +385,17 @@ std::vector<internal_symbol_info> get_symbols(void *handle, int fd) {
     if (!symtab || !strtab || symentries == 0)
         return symbols_list;
 
-    size = strtab - (char *)symtab;
+    /*
+     * The dynamic section does not record the size of the symbol table, so it is
+     * deduced from the fact that the string table usually directly follows it.
+     * Bail out instead of underflowing if a linker lays them out the other way.
+     */
+    if (strtab <= (const char *)symtab)
+        return symbols_list;
 
-    for (int i = 0; i < size / symentries; ++i) {
+    size = (unsigned long)(strtab - (char *)symtab);
+
+    for (unsigned long i = 0; i < size / symentries; ++i) {
         unsigned char type = DYLIB_ELF_ST_TYPE(symtab[i].st_info);
 
         /*
