@@ -8,6 +8,7 @@ on:
       - include/*
       - tests/*
       - src/*
+      - example/*
 
   pull_request:
     paths:
@@ -16,6 +17,7 @@ on:
       - include/*
       - tests/*
       - src/*
+      - example/*
 
 defaults:
   run:
@@ -37,6 +39,37 @@ jobs:
 
       - name: Check formatting
         run: find src include tests -name '*.cpp' -o -name '*.hpp' | xargs clang-format --dry-run --Werror
+
+  example:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    name: example / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # FETCHCONTENT_SOURCE_DIR_DYLIB makes FetchContent use the checked out
+      # sources instead of the released tag, so that the example is built
+      # against the code of the current branch.
+      - name: Generate project files
+        run: cmake example -B example/build -DFETCHCONTENT_SOURCE_DIR_DYLIB="${{ github.workspace }}"
+
+      - name: Build example
+        run: cmake --build example/build --config Release
+
+      # Multi config generators place the binaries in a per config subdirectory,
+      # and the example loads its dynamic library from the working directory.
+      - name: Run example
+        working-directory: example/build
+        run: |
+          if [ -d Release ]; then
+            cd Release
+          fi
+          ./dylib_example
 
   windows_msvc:
     strategy:
