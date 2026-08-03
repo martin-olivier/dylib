@@ -160,6 +160,22 @@ for (auto &symbol : lib.symbols()) {
 }
 ```
 
+### Gather library sections
+
+You can collect the section names of a dynamic library using the `sections` method:
+
+```c++
+// Load "foo" dynamic library
+
+dylib::library lib("./foo", dylib::decorations::os_default());
+
+// Iterate through sections
+
+for (auto &section : lib.sections()) {
+    std::cout << section << std::endl;
+}
+```
+
 ### Miscellaneous tools
 
 `get_symbol`  
@@ -185,6 +201,9 @@ This exception is raised when the library failed to load or the library encounte
 
 `symbol_error`  
 This exception is raised when the library failed to load a symbol  
+
+`collection_error`  
+This exception is raised when the library failed to collect a list of items (such as symbols or sections) from the dynamic library  
 
 Those exceptions inherit from `dylib::exception`
 

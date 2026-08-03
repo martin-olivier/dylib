@@ -402,7 +402,6 @@ std::vector<internal_symbol_info> get_symbols(void *handle, int fd) {
 
 std::vector<std::string> get_sections(void *handle, int fd) {
     std::vector<std::string> sections_list;
-    struct link_map *map = nullptr;
     std::vector<ElfShdr> shdrs;
     std::vector<char> shstrtab;
     ElfEhdr ehdr;
