@@ -1,6 +1,18 @@
 cmake_minimum_required(VERSION 3.11...3.31)
 
-project(dylib VERSION 3.0.1 LANGUAGES CXX)
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/include/dylib.hpp" DYLIB_HEADER)
+
+foreach(part MAJOR MINOR PATCH)
+    if(NOT DYLIB_HEADER MATCHES "#define DYLIB_VERSION_${part} ([0-9]+)")
+        message(FATAL_ERROR "Could not parse DYLIB_VERSION_${part} from include/dylib.hpp")
+    endif()
+    set(DYLIB_VERSION_${part} ${CMAKE_MATCH_1})
+endforeach()
+
+project(dylib
+    VERSION ${DYLIB_VERSION_MAJOR}.${DYLIB_VERSION_MINOR}.${DYLIB_VERSION_PATCH}
+    LANGUAGES CXX
+)
 
 include(GNUInstallDirs)
 

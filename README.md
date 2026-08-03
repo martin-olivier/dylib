@@ -1,6 +1,6 @@
 # dylib
 
-[![version](https://img.shields.io/badge/Version-3.0.1-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v3.0.1)
+[![version](https://img.shields.io/badge/Version-3.1.0-blue.svg)](https://github.com/martin-olivier/dylib/releases/tag/v3.1.0)
 [![license](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/martin-olivier/dylib/blob/main/LICENSE)
 [![cpp](https://img.shields.io/badge/Compatibility-C++11-darkgreen.svg)](https://isocpp.org)
 [![ci](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml/badge.svg)](https://github.com/martin-olivier/dylib/actions/workflows/CI.yml)
@@ -28,7 +28,7 @@ vcpkg install dylib
 ```
 
 ```sh
-conan install --requires=dylib/3.0.1
+conan install --requires=dylib/3.1.0
 ```
 
 ### Using CMake Fetch
@@ -41,7 +41,7 @@ include(FetchContent)
 FetchContent_Declare(
     dylib
     GIT_REPOSITORY "https://github.com/martin-olivier/dylib"
-    GIT_TAG        "v3.0.1"
+    GIT_TAG        "v3.1.0"
 )
 
 FetchContent_MakeAvailable(dylib)
@@ -217,6 +217,17 @@ try {
 } catch (const dylib::symbol_error &) {
     std::cerr << "failed to get 'pi_value' symbol" << std::endl;
 }
+```
+
+### Version
+
+`dylib.hpp` exposes its version as macros, which lets you detect the availability of a feature at compile time:
+
+```c++
+#if DYLIB_VERSION_MAJOR > 3 || (DYLIB_VERSION_MAJOR == 3 && DYLIB_VERSION_MINOR >= 1)
+    for (auto &section : lib.sections())
+        std::cout << section << std::endl;
+#endif
 ```
 
 ## Example
