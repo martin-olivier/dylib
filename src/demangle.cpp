@@ -34,6 +34,9 @@ std::string demangle_symbol(const char *symbol) {
     DWORD name_flags = UNDNAME_NAME_ONLY;
     char undecorated[MAX_SYM_NAME];
 
+    if (!symbol)
+        return "";
+
     // Get undecorated symbol signature
     if (UnDecorateSymbolName(symbol, undecorated, MAX_SYM_NAME, sign_flags)) {
         std::string signature = undecorated;
@@ -65,6 +68,14 @@ std::string demangle_symbol(const char *symbol) {
 std::string demangle_symbol(const char *symbol) {
     std::string result;
     char *demangled;
+
+    /*
+     * Every Itanium ABI mangled name starts with '_Z'. Filtering on that prefix
+     * avoids paying for a failed demangling attempt on each plain C export, which
+     * otherwise dominates the cost of walking a large symbol table.
+     */
+    if (!symbol || symbol[0] != '_' || symbol[1] != 'Z')
+        return "";
 
     demangled = abi::__cxa_demangle(symbol, nullptr, nullptr, nullptr);
     if (!demangled)

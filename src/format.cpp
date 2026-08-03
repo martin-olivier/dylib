@@ -13,6 +13,13 @@
 
 namespace dylib_detail {
 
+/*
+ * The search deliberately resumes at the position that was just rewritten rather
+ * than after it, so that matches created by the replacement itself are collapsed
+ * too: "> > >" has to become ">>>", not ">> >". Every pattern below either shrinks
+ * the string or replaces it with text that cannot match again, which is what makes
+ * the loop terminate; a replacement containing its own pattern would spin forever.
+ */
 static void replace_occurrences(std::string &symbol, const std::string &find,
                                 const std::string &replace) {
     size_t pos = 0;
@@ -26,6 +33,8 @@ static void replace_occurrences(std::string &symbol, const std::string &find,
 
 static void add_space_after_comma(std::string &symbol) {
     std::string result;
+
+    result.reserve(symbol.size());
 
     for (char c : symbol) {
         if (c == ',')

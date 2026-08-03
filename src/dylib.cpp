@@ -238,10 +238,10 @@ std::vector<symbol_info> library::symbols() const {
 
         symbols.reserve(internal_symbols.size());
 
-        for (const auto &symbol : internal_symbols) {
+        for (auto &symbol : internal_symbols) {
             symbols.push_back(symbol_info{
-                symbol.name,
-                symbol.demangled_name,
+                std::move(symbol.name),
+                std::move(symbol.demangled_name),
                 static_cast<symbol_type>(symbol.type),
                 symbol.loadable,
             });

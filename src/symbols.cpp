@@ -12,6 +12,7 @@
 #include <cstring>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "internal.hpp"
@@ -40,32 +41,64 @@
 
 namespace dylib_detail {
 
-static void add_symbol(std::vector<symbol_info> &result, const char *symbol, bool loadable) {
-    symbol_type type = symbol_type::C;
-    std::string demangled;
+/*
+ * A symbol table routinely lists the same name more than once, for example when
+ * every slice of a FAT binary is walked. Names are indexed as they are collected
+ * so that deduplication stays linear on libraries exporting tens of thousands of
+ * symbols, and so that demangling, by far the most expensive step, runs at most
+ * once per distinct name.
+ */
+class symbol_collector {
+public:
+    void add(const char *symbol, bool loadable) {
+        if (!symbol || symbol[0] == '\0')
+            return;
 
-    if (!symbol || strcmp(symbol, "") == 0)
-        return;
+        auto entry = m_index.find(symbol);
+        if (entry != m_index.end()) {
+            /*
+             * Keep the most permissive answer: a name that resolves through any
+             * slice of the library is loadable.
+             */
+            symbol_info &known = m_symbols[entry->second];
 
-    demangled = demangle_symbol(symbol);
-    if (demangled.empty())
-        demangled = symbol;
-    else
-        type = symbol_type::CPP;
+            if (!known.loadable)
+                known.loadable = loadable;
 
-    /*
-     * In case of duplicate symbols, for example when loading a FAT binary,
-     * avoid duplicates and override loadable if the previous symbol was not loadable.
-     */
-    for (auto &sym : result) {
-        if (sym.name == symbol) {
-            if (!sym.loadable)
-                sym.loadable = loadable;
             return;
         }
+
+        symbol_type type = symbol_type::C;
+        std::string demangled = demangle_symbol(symbol);
+
+        if (demangled.empty())
+            demangled = symbol;
+        else
+            type = symbol_type::CPP;
+
+        m_index.emplace(symbol, m_symbols.size());
+        m_symbols.push_back({symbol, std::move(demangled), type, loadable});
     }
 
-    result.push_back({symbol, demangled, type, loadable});
+    std::vector<symbol_info> release() {
+        m_index.clear();
+        return std::move(m_symbols);
+    }
+
+private:
+    std::vector<symbol_info> m_symbols;
+    std::unordered_map<std::string, size_t> m_index;
+};
+
+/*
+ * Section and segment name lists stay small enough that a linear scan is cheaper
+ * than maintaining an index.
+ */
+static void add_unique(std::vector<std::string> &result, std::string name) {
+    if (std::find(result.begin(), result.end(), name) != result.end())
+        return;
+
+    result.push_back(std::move(name));
 }
 
 /************************   Windows   ************************/
@@ -87,7 +120,7 @@ static PIMAGE_NT_HEADERS get_nt_headers(HMODULE handle) {
 }
 
 std::vector<symbol_info> get_symbols(HMODULE handle, int fd) {
-    std::vector<symbol_info> symbols_list;
+    symbol_collector collector;
     PIMAGE_EXPORT_DIRECTORY pExportDir;
     PIMAGE_NT_HEADERS pNTHeaders;
     DWORD exportDirRVA;
@@ -107,10 +140,10 @@ std::vector<symbol_info> get_symbols(HMODULE handle, int fd) {
     for (DWORD i = 0; i < pExportDir->NumberOfNames; ++i) {
         const char *name = (const char *)((BYTE *)handle + pNames[i]);
 
-        add_symbol(symbols_list, name, !!GetProcAddress(handle, name));
+        collector.add(name, !!GetProcAddress(handle, name));
     }
 
-    return symbols_list;
+    return collector.release();
 }
 
 std::vector<std::string> get_sections(HMODULE handle, int fd) {
@@ -137,10 +170,7 @@ std::vector<std::string> get_sections(HMODULE handle, int fd) {
         memcpy(name, pSectionHeader[i].Name, len);
         name[len] = '\0';
 
-        if (std::find(sections_list.begin(), sections_list.end(), name) != sections_list.end())
-            continue;
-
-        sections_list.emplace_back(name);
+        add_unique(sections_list, name);
     }
 
     return sections_list;
@@ -282,7 +312,7 @@ static void for_each_mach_slice(int fd, F &&fn, Ctx ctx) {
 }
 
 struct mach_symbols_context {
-    std::vector<symbol_info> *symbols_list;
+    symbol_collector *collector;
     void *handle;
 };
 
@@ -343,7 +373,7 @@ static void process_load_command_symbols(const load_command &lc, int fd, off_t o
         if (name[0] == '_')
             name++;
 
-        add_symbol(*ctx.symbols_list, name, !!dlsym(ctx.handle, name));
+        ctx.collector->add(name, !!dlsym(ctx.handle, name));
     }
 }
 
@@ -352,12 +382,12 @@ static void process_mach_slice_symbols(int fd, off_t offset, mach_symbols_contex
 }
 
 std::vector<symbol_info> get_symbols(void *handle, int fd) {
-    std::vector<symbol_info> symbols_list;
-    mach_symbols_context ctx{&symbols_list, handle};
+    symbol_collector collector;
+    mach_symbols_context ctx{&collector, handle};
 
     for_each_mach_slice(fd, process_mach_slice_symbols, ctx);
 
-    return symbols_list;
+    return collector.release();
 }
 
 static void process_load_command_sections(const load_command &lc, int fd, off_t offset,
@@ -374,11 +404,7 @@ static void process_load_command_sections(const load_command &lc, int fd, off_t 
 
     seg.segname[sizeof(seg.segname) - 1] = '\0';
 
-    if (std::find(ctx.sections_list->begin(), ctx.sections_list->end(), seg.segname) !=
-        ctx.sections_list->end())
-        return;
-
-    ctx.sections_list->push_back(seg.segname);
+    add_unique(*ctx.sections_list, seg.segname);
 }
 
 static void process_mach_slice_sections(int fd, off_t offset, mach_sections_context ctx) {
@@ -411,7 +437,7 @@ using ElfShdr = Elf64_Shdr;
 #endif
 
 std::vector<symbol_info> get_symbols(void *handle, int fd) {
-    std::vector<symbol_info> symbols_list;
+    symbol_collector collector;
     struct link_map *map = nullptr;
     unsigned long symentries = 0;
     unsigned long strsize = 0;
@@ -437,7 +463,7 @@ std::vector<symbol_info> get_symbols(void *handle, int fd) {
     }
 
     if (!symtab || !strtab || symentries == 0 || strsize == 0)
-        return symbols_list;
+        return collector.release();
 
     /*
      * The dynamic section does not record the size of the symbol table, so it is
@@ -445,7 +471,7 @@ std::vector<symbol_info> get_symbols(void *handle, int fd) {
      * Bail out instead of underflowing if a linker lays them out the other way.
      */
     if (strtab <= (const char *)symtab)
-        return symbols_list;
+        return collector.release();
 
     size = (unsigned long)(strtab - (char *)symtab);
 
@@ -469,11 +495,11 @@ std::vector<symbol_info> get_symbols(void *handle, int fd) {
 
             name = &strtab[symtab[i].st_name];
 
-            add_symbol(symbols_list, name, !!dlsym(handle, name));
+            collector.add(name, !!dlsym(handle, name));
         }
     }
 
-    return symbols_list;
+    return collector.release();
 }
 
 std::vector<std::string> get_sections(void *handle, int fd) {
@@ -539,13 +565,7 @@ std::vector<std::string> get_sections(void *handle, int fd) {
         if (len == 0)
             continue;
 
-        std::string section_name(name, len);
-
-        if (std::find(sections_list.begin(), sections_list.end(), section_name) !=
-            sections_list.end())
-            continue;
-
-        sections_list.push_back(std::move(section_name));
+        add_unique(sections_list, std::string(name, len));
     }
 
     return sections_list;
