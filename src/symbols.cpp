@@ -24,6 +24,7 @@
 #include <tchar.h>
 #elif defined(__APPLE__)
 #include <dlfcn.h>
+#include <libkern/OSByteOrder.h>
 #include <mach-o/fat.h>
 #include <mach-o/loader.h>
 #include <mach-o/nlist.h>
@@ -153,14 +154,12 @@ using mach_header_arch = mach_header;
 using nlist_arch = nlist;
 using segment_command_arch = segment_command;
 #define DYLIB_MH_MAGIC MH_MAGIC
-#define DYLIB_MH_CIGAM MH_CIGAM
 #define DYLIB_LC_SEGMENT LC_SEGMENT
 #elif INTPTR_MAX == INT64_MAX
 using mach_header_arch = mach_header_64;
 using nlist_arch = nlist_64;
 using segment_command_arch = segment_command_64;
 #define DYLIB_MH_MAGIC MH_MAGIC_64
-#define DYLIB_MH_CIGAM MH_CIGAM_64
 #define DYLIB_LC_SEGMENT LC_SEGMENT_64
 #else
 #error "Environment not 32 or 64-bit."
@@ -206,36 +205,79 @@ static void for_each_mach_load_command(int fd, off_t offset, F &&fn, Ctx ctx) {
     }
 }
 
-template <typename F, typename Ctx>
-static void for_each_mach_slice(int fd, F &&fn, Ctx ctx) {
+static uint32_t read_magic_at(int fd, off_t offset) {
     uint32_t magic;
 
-    if (lseek(fd, 0, SEEK_SET) == (off_t)-1)
+    if (lseek(fd, offset, SEEK_SET) == (off_t)-1)
         throw lseek_error();
     if (read(fd, &magic, sizeof(magic)) != (ssize_t)(sizeof(magic)))
         throw read_error();
-    if (lseek(fd, 0, SEEK_SET) == (off_t)-1)
-        throw lseek_error();
 
-    if (magic == FAT_MAGIC || magic == FAT_CIGAM) {
+    return magic;
+}
+
+/*
+ * A slice is only walked when its Mach-O header matches the layout this build was
+ * compiled for. A universal binary pairs the slice that was actually loaded with
+ * slices of a different word size or byte order, and reading one of those through
+ * mach_header_arch reinterprets unrelated bytes as a command count.
+ */
+template <typename F, typename Ctx>
+static void for_each_mach_slice(int fd, F &&fn, Ctx ctx) {
+    uint32_t magic = read_magic_at(fd, 0);
+    std::vector<off_t> offsets;
+
+    if (magic == FAT_MAGIC || magic == FAT_CIGAM || magic == FAT_MAGIC_64 ||
+        magic == FAT_CIGAM_64) {
+        bool is_64 = (magic == FAT_MAGIC_64 || magic == FAT_CIGAM_64);
+        size_t arch_size = is_64 ? sizeof(struct fat_arch_64) : sizeof(struct fat_arch);
         struct fat_header fat_header;
+        uint32_t nfat_arch;
 
+        if (lseek(fd, 0, SEEK_SET) == (off_t)-1)
+            throw lseek_error();
         if (read(fd, &fat_header, sizeof(fat_header)) != (ssize_t)(sizeof(fat_header)))
             throw read_error();
 
-        uint32_t nfat_arch = ntohl(fat_header.nfat_arch);
-        std::vector<struct fat_arch> fat_arches(nfat_arch);
+        /*
+         * The fat header and the arch entries are always big endian, whichever
+         * byte order the slices themselves use.
+         */
+        nfat_arch = OSSwapBigToHostInt32(fat_header.nfat_arch);
 
-        if (read(fd, fat_arches.data(), sizeof(struct fat_arch) * nfat_arch) !=
-            (ssize_t)(sizeof(struct fat_arch) * nfat_arch))
-            throw read_error();
+        for (uint32_t i = 0; i < nfat_arch; i++) {
+            off_t entry = (off_t)sizeof(fat_header) + (off_t)i * (off_t)arch_size;
 
-        for (uint32_t i = 0; i < nfat_arch; i++)
-            fn(fd, (off_t)ntohl(fat_arches[i].offset), ctx);
-    } else if (magic == DYLIB_MH_MAGIC || magic == DYLIB_MH_CIGAM) {
-        fn(fd, (off_t)0, ctx);
+            if (lseek(fd, entry, SEEK_SET) == (off_t)-1)
+                throw lseek_error();
+
+            if (is_64) {
+                struct fat_arch_64 arch;
+
+                if (read(fd, &arch, sizeof(arch)) != (ssize_t)(sizeof(arch)))
+                    throw read_error();
+
+                offsets.push_back((off_t)OSSwapBigToHostInt64(arch.offset));
+            } else {
+                struct fat_arch arch;
+
+                if (read(fd, &arch, sizeof(arch)) != (ssize_t)(sizeof(arch)))
+                    throw read_error();
+
+                offsets.push_back((off_t)OSSwapBigToHostInt32(arch.offset));
+            }
+        }
+    } else if (magic == DYLIB_MH_MAGIC) {
+        offsets.push_back((off_t)0);
     } else {
         throw std::runtime_error("Unsupported file format");
+    }
+
+    for (off_t slice_offset : offsets) {
+        if (read_magic_at(fd, slice_offset) != DYLIB_MH_MAGIC)
+            continue;
+
+        fn(fd, slice_offset, ctx);
     }
 }
 
@@ -320,8 +362,9 @@ std::vector<symbol_info> get_symbols(void *handle, int fd) {
 
 static void process_load_command_sections(const load_command &lc, int fd, off_t offset,
                                           mach_sections_context ctx) {
-    size_t mach_sect_name_size = 16;
     segment_command_arch seg;
+
+    (void)offset;
 
     if (lc.cmd != DYLIB_LC_SEGMENT)
         return;
@@ -329,7 +372,7 @@ static void process_load_command_sections(const load_command &lc, int fd, off_t 
     if (read(fd, &seg, sizeof(seg)) != (ssize_t)(sizeof(seg)))
         throw read_error();
 
-    seg.segname[mach_sect_name_size - 1] = '\0';
+    seg.segname[sizeof(seg.segname) - 1] = '\0';
 
     if (std::find(ctx.sections_list->begin(), ctx.sections_list->end(), seg.segname) !=
         ctx.sections_list->end())
