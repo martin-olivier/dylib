@@ -218,7 +218,7 @@ native_symbol_type library::get_symbol(const std::string &symbol_name) const {
     return get_symbol(symbol_name.c_str());
 }
 
-native_handle_type library::native_handle() noexcept {
+native_handle_type library::native_handle() const noexcept {
     return m_handle;
 }
 
