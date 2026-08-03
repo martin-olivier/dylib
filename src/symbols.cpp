@@ -261,16 +261,23 @@ static void process_load_command_symbols(const load_command &lc, int fd, off_t o
     if (read(fd, &symtab, sizeof(symtab)) != (ssize_t)(sizeof(symtab)))
         throw read_error();
 
+    if (symtab.nsyms == 0 || symtab.strsize == 0)
+        return;
+
     symbols.resize(symtab.nsyms);
 
     if (lseek(fd, offset + (off_t)(symtab.symoff), SEEK_SET) == (off_t)-1)
         throw lseek_error();
 
-    symbols_size = symtab.nsyms * sizeof(nlist_arch);
+    symbols_size = (size_t)symtab.nsyms * sizeof(nlist_arch);
     if (read(fd, symbols.data(), symbols_size) != (ssize_t)(symbols_size))
         throw read_error();
 
-    strtab.resize(symtab.strsize);
+    /*
+     * One extra byte guarantees that every name is terminated, even if the string
+     * table of a malformed image does not end with a null byte.
+     */
+    strtab.resize((size_t)symtab.strsize + 1, '\0');
 
     if (lseek(fd, offset + (off_t)(symtab.stroff), SEEK_SET) == (off_t)-1)
         throw lseek_error();
@@ -278,10 +285,17 @@ static void process_load_command_symbols(const load_command &lc, int fd, off_t o
         throw read_error();
 
     for (uint32_t i = 0; i < symtab.nsyms; i++) {
-        uint32_t strx;
-        char *name;
+        uint32_t strx = symbols[i].n_un.n_strx;
+        const char *name;
 
-        strx = symbols[i].n_un.n_strx;
+        /*
+         * n_strx comes straight from the file and is not trusted: an index past the
+         * end of the string table would otherwise read out of bounds. Index 0 is the
+         * conventional "no name" marker.
+         */
+        if (strx == 0 || strx >= symtab.strsize)
+            continue;
+
         name = &strtab[strx];
 
         if (name[0] == '_')
@@ -357,6 +371,7 @@ std::vector<symbol_info> get_symbols(void *handle, int fd) {
     std::vector<symbol_info> symbols_list;
     struct link_map *map = nullptr;
     unsigned long symentries = 0;
+    unsigned long strsize = 0;
     ElfSym *symtab = nullptr;
     char *strtab = nullptr;
     unsigned long size = 0;
@@ -374,9 +389,11 @@ std::vector<symbol_info> get_symbols(void *handle, int fd) {
             strtab = (char *)section->d_un.d_ptr;
         else if (section->d_tag == DT_SYMENT)
             symentries = section->d_un.d_val;
+        else if (section->d_tag == DT_STRSZ)
+            strsize = section->d_un.d_val;
     }
 
-    if (!symtab || !strtab || symentries == 0)
+    if (!symtab || !strtab || symentries == 0 || strsize == 0)
         return symbols_list;
 
     /*
@@ -396,7 +413,18 @@ std::vector<symbol_info> get_symbols(void *handle, int fd) {
          * Collect functions (STT_FUNC) and global variables (STT_OBJECT)
          */
         if (type == STT_FUNC || type == STT_OBJECT) {
-            const char *name = &strtab[symtab[i].st_name];
+            const char *name;
+
+            /*
+             * The deduced symbol table size is a heuristic, so entries may be read
+             * beyond the real table when a linker places something between it and
+             * the string table. DT_STRSZ bounds st_name so that a bogus entry is
+             * skipped rather than dereferenced outside the string table.
+             */
+            if (symtab[i].st_name == 0 || symtab[i].st_name >= strsize)
+                continue;
+
+            name = &strtab[symtab[i].st_name];
 
             add_symbol(symbols_list, name, !!dlsym(handle, name));
         }
@@ -420,6 +448,16 @@ std::vector<std::string> get_sections(void *handle, int fd) {
     if (ehdr.e_ident[EI_MAG0] != ELFMAG0 || ehdr.e_ident[EI_MAG1] != ELFMAG1 ||
         ehdr.e_ident[EI_MAG2] != ELFMAG2 || ehdr.e_ident[EI_MAG3] != ELFMAG3)
         throw std::runtime_error("Invalid ELF magic");
+
+    /*
+     * The header is read into the layout this build was compiled for, so an image
+     * of a different class or with unexpected entry sizes must not be walked.
+     */
+    if (ehdr.e_ident[EI_CLASS] != (INTPTR_MAX == INT32_MAX ? ELFCLASS32 : ELFCLASS64))
+        throw std::runtime_error("Unsupported ELF class");
+
+    if (ehdr.e_shnum != 0 && ehdr.e_shentsize != sizeof(ElfShdr))
+        throw std::runtime_error("Unsupported ELF section header size");
 
     if (ehdr.e_shnum == 0 || ehdr.e_shstrndx == SHN_UNDEF)
         return sections_list;
