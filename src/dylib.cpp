@@ -42,7 +42,6 @@ struct internal_symbol_info {
 
 std::vector<internal_symbol_info> get_symbols(native_handle_type handle, int fd);
 std::vector<std::string> get_sections(native_handle_type handle, int fd);
-std::string demangle_symbol(const char *symbol);
 
 static native_handle_type open_lib(const char *path) noexcept {
 #ifdef _WIN32
@@ -186,10 +185,14 @@ native_symbol_type library::get_symbol(const char *symbol_name) const {
     initial_error = get_error_description();
 
     for (const auto &sym : symbols()) {
-        if (!sym.loadable)
+        /*
+         * Only C++ symbols are considered here: a C symbol is not mangled, so it would
+         * already have been resolved by the locate_symbol call above.
+         */
+        if (!sym.loadable || sym.type != symbol_type::CPP)
             continue;
 
-        std::string demangled = demangle_symbol(sym.name.c_str());
+        const std::string &demangled = sym.demangled_name;
 
         if (demangled.find(symbol_name) == 0 &&
             (demangled.size() == symbol_name_len || demangled[symbol_name_len] == '('))
