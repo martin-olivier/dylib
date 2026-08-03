@@ -298,8 +298,6 @@ TEST(cpp_symbols, demangle) {
     }
 }
 
-#include <iostream>
-
 TEST(sections, lookup) {
     dylib::library lib("./dynamic_lib", dylib::decorations::os_default());
     std::vector<std::string> sections;
