@@ -139,7 +139,11 @@ library &library::operator=(library &&other) noexcept {
     return *this;
 }
 
+#ifdef _WIN32
 library::library(const char *lib_path, dylib::decorations decorations) {
+#else
+library::library(const char *lib_path, dylib::decorations decorations) : m_path() {
+#endif
     std::string lib_name;
     std::string lib_dir;
     std::string lib;

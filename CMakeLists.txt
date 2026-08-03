@@ -83,6 +83,30 @@ install(
 option(DYLIB_BUILD_TESTS "When set to ON, build unit tests" OFF)
 option(DYLIB_WARNING_AS_ERRORS "Treat warnings as errors" OFF)
 
+# Applies the project warning flags to a target.
+#
+# These are set per target rather than through add_compile_options, which only
+# affects targets created after the call: the dylib target is created at the top
+# of this file, so a directory level setting would leave the sources of the
+# library itself, the ones that matter most here, unchecked.
+function(dylib_set_warnings target)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        target_compile_options(${target} PRIVATE -Wall -Wextra -Weffc++)
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
+        target_compile_options(${target} PRIVATE -Wall -Wextra)
+    elseif(MSVC)
+        target_compile_options(${target} PRIVATE /W4)
+    endif()
+
+    if(DYLIB_WARNING_AS_ERRORS)
+        if(MSVC)
+            target_compile_options(${target} PRIVATE /WX)
+        elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
+            target_compile_options(${target} PRIVATE -Werror)
+        endif()
+    endif()
+endfunction()
+
 if(DYLIB_BUILD_TESTS)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
@@ -96,38 +120,26 @@ if(DYLIB_BUILD_TESTS)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(googletest)
 
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        add_compile_options(-Wall -Wextra -Weffc++)
-    elseif(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
-        add_compile_options(-Wall -Wextra)
-    elseif(MSVC)
-        add_compile_options(/W4)
-    endif()
-
-    if(DYLIB_WARNING_AS_ERRORS)
-        if(MSVC)
-            add_compile_options(/WX)
-        elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
-            add_compile_options(-Werror)
-        endif()
-    endif()
+    dylib_set_warnings(dylib)
 
     add_library(dynamic_lib SHARED tests/lib.cpp)
+    dylib_set_warnings(dynamic_lib)
     if(WIN32 AND MINGW)
         set_target_properties(dynamic_lib PROPERTIES PREFIX "")
     endif()
 
     enable_testing()
 
-    if(UNIX AND NOT APPLE)
-        add_compile_options(-fprofile-arcs -ftest-coverage)
-    endif()
-
     add_executable(unit_tests tests/tests.cpp)
     add_dependencies(unit_tests dynamic_lib)
     target_link_libraries(unit_tests PRIVATE gtest_main dylib)
+    dylib_set_warnings(unit_tests)
 
+    # Coverage has to instrument the library sources, not only the test driver.
     if(UNIX AND NOT APPLE)
+        target_compile_options(dylib PRIVATE -fprofile-arcs -ftest-coverage)
+        target_link_libraries(dylib PRIVATE gcov)
+        target_compile_options(unit_tests PRIVATE -fprofile-arcs -ftest-coverage)
         target_link_libraries(unit_tests PRIVATE gcov)
     endif()
 

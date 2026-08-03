@@ -50,6 +50,8 @@ namespace dylib_detail {
  */
 class symbol_collector {
 public:
+    symbol_collector() : m_symbols(), m_index() {}
+
     void add(const char *symbol, bool loadable) {
         if (!symbol || symbol[0] == '\0')
             return;
@@ -126,6 +128,8 @@ std::vector<symbol_info> get_symbols(HMODULE handle, int fd) {
     DWORD exportDirRVA;
     DWORD *pNames;
 
+    (void)fd;
+
     pNTHeaders = get_nt_headers(handle);
 
     exportDirRVA =
@@ -152,6 +156,8 @@ std::vector<std::string> get_sections(HMODULE handle, int fd) {
     PIMAGE_NT_HEADERS pNTHeaders;
     size_t sectionHeadersOffset;
     WORD numSections;
+
+    (void)fd;
 
     pNTHeaders = get_nt_headers(handle);
 
@@ -415,6 +421,8 @@ std::vector<std::string> get_sections(void *handle, int fd) {
     std::vector<std::string> sections_list;
     mach_sections_context ctx{&sections_list};
 
+    (void)handle;
+
     for_each_mach_slice(fd, process_mach_slice_sections, ctx);
 
     return sections_list;
@@ -439,11 +447,14 @@ using ElfShdr = Elf64_Shdr;
 std::vector<symbol_info> get_symbols(void *handle, int fd) {
     symbol_collector collector;
     struct link_map *map = nullptr;
+
     unsigned long symentries = 0;
     unsigned long strsize = 0;
     ElfSym *symtab = nullptr;
     char *strtab = nullptr;
     unsigned long size = 0;
+
+    (void)fd;
 
     if (dlinfo(handle, RTLD_DI_LINKMAP, static_cast<void *>(&map)) != 0) {
         const char *error = dlerror();
@@ -507,6 +518,8 @@ std::vector<std::string> get_sections(void *handle, int fd) {
     std::vector<ElfShdr> shdrs;
     std::vector<char> shstrtab;
     ElfEhdr ehdr;
+
+    (void)handle;
 
     if (lseek(fd, 0, SEEK_SET) == (off_t)-1)
         throw std::runtime_error("Could not seek to beginning of file");
