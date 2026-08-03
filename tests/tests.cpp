@@ -304,7 +304,7 @@ TEST(sections, lookup) {
     std::vector<std::string> sorted_sections = sections;
     std::sort(sorted_sections.begin(), sorted_sections.end());
     EXPECT_EQ(std::adjacent_find(sorted_sections.begin(), sorted_sections.end()),
-             sorted_sections.end());
+              sorted_sections.end());
 }
 
 TEST(sections, moved) {
