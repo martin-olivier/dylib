@@ -355,7 +355,7 @@ public:
 protected:
     native_handle_type m_handle{nullptr};
 #ifndef _WIN32
-    std::string m_path;
+    std::string m_path{};
 #endif
 };
 

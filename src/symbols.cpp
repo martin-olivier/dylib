@@ -50,8 +50,6 @@ namespace dylib_detail {
  */
 class symbol_collector {
 public:
-    symbol_collector() : m_symbols(), m_index() {}
-
     void add(const char *symbol, bool loadable) {
         if (!symbol || symbol[0] == '\0')
             return;
@@ -88,8 +86,8 @@ public:
     }
 
 private:
-    std::vector<symbol_info> m_symbols;
-    std::unordered_map<std::string, size_t> m_index;
+    std::vector<symbol_info> m_symbols{};
+    std::unordered_map<std::string, size_t> m_index{};
 };
 
 /*
@@ -456,7 +454,7 @@ std::vector<symbol_info> get_symbols(void *handle, int fd) {
 
     (void)fd;
 
-    if (dlinfo(handle, RTLD_DI_LINKMAP, static_cast<void *>(&map)) != 0) {
+    if (dlinfo(handle, RTLD_DI_LINKMAP, reinterpret_cast<void *>(&map)) != 0) {
         const char *error = dlerror();
         throw std::runtime_error("dlinfo failed: " +
                                  std::string(error ? error : "Unknown error (dlerror failed)"));

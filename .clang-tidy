@@ -1,3 +1,6 @@
+# readability-redundant-member-init is disabled because it conflicts with
+# -Weffc++, which the GCC build enables and which requires every member to be
+# initialized explicitly.
 Checks: >
   bugprone-*,
   clang-analyzer-*,
@@ -7,7 +10,8 @@ Checks: >
   -performance-no-int-to-ptr,
   -readability-implicit-bool-conversion,
   -readability-braces-around-statements,
-  -readability-identifier-length
+  -readability-identifier-length,
+  -readability-redundant-member-init
 
 WarningsAsErrors: '*'
 HeaderFilterRegex: '.*'
